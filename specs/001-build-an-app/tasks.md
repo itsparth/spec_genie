@@ -58,90 +58,98 @@ Flutter mobile app structure at repository root:
 - [ ] T015 [P] Service test for audio recording/playback in test/services/audio_service_test.dart
 - [ ] T016 [P] Service test for file operations in test/services/file_service_test.dart
 - [ ] T017 [P] Service test for share functionality in test/services/share_service_test.dart
+- [ ] T018 [P] Integration test for quick actions output caching in test/integration/output_caching_test.dart
+- [ ] T019 [P] Integration test for message deletion functionality in test/integration/message_deletion_test.dart
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
-- [ ] T018 [P] Configuration model with Freezed in lib/models/configuration.dart
-- [ ] T019 [P] Thread model with Isar annotations in lib/models/thread.dart
-- [ ] T020 [P] Message model with multi-modal content in lib/models/message.dart
-- [ ] T021 [P] Quick action mode model in lib/models/mode.dart
-- [ ] T022 [P] Media attachment model in lib/models/media_attachment.dart
-- [ ] T023 Run build_runner to generate Freezed and Isar code
-- [ ] T024 [P] Go router type-safe routes in lib/routing/routes/home_route.dart
-- [ ] T025 [P] Configuration route in lib/routing/routes/config_route.dart
-- [ ] T026 [P] Thread route with parameters in lib/routing/routes/thread_route.dart
-- [ ] T027 [P] Mode configuration route in lib/routing/routes/mode_route.dart
-- [ ] T028 Router configuration with guards in lib/routing/app_router.dart
-- [ ] T029 Run build_runner to generate go_router code
-- [ ] T030 [P] AI service with OpenAI integration in lib/services/ai_service.dart
-- [ ] T031 [P] Storage service with Isar database in lib/services/storage_service.dart
-- [ ] T032 [P] Audio service with record/playback in lib/services/audio_service.dart
-- [ ] T033 [P] File service with file operations in lib/services/file_service.dart
-- [ ] T034 [P] Share service for incoming/outgoing shares in lib/services/share_service.dart
-- [ ] T035 [P] Permission service for runtime permissions in lib/services/permission_service.dart
-- [ ] T036 [P] Background service for background audio in lib/services/background_service.dart
+- [ ] T020 [P] Configuration model with Freezed in lib/models/configuration.dart
+- [ ] T021 [P] Thread model with Isar annotations in lib/models/thread.dart
+- [ ] T022 [P] Message model with multi-modal content and deletion support in lib/models/message.dart
+- [ ] T023 [P] Quick action mode model in lib/models/mode.dart
+- [ ] T024 [P] Media attachment model in lib/models/media_attachment.dart
+- [ ] T025 [P] Quick action output cache model in lib/models/quick_action_output.dart
+- [ ] T026 Run build_runner to generate Freezed and Isar code
+- [ ] T027 [P] Go router type-safe routes in lib/routing/routes/home_route.dart
+- [ ] T028 [P] Configuration route in lib/routing/routes/config_route.dart
+- [ ] T029 [P] Thread route with parameters in lib/routing/routes/thread_route.dart
+- [ ] T030 [P] Mode configuration route in lib/routing/routes/mode_route.dart
+- [ ] T031 Router configuration with guards in lib/routing/app_router.dart
+- [ ] T032 Run build_runner to generate go_router code
+- [ ] T033 [P] AI service with OpenAI integration and caching in lib/services/ai_service.dart
+- [ ] T034 [P] Storage service with Isar database and message deletion in lib/services/storage_service.dart
+- [ ] T035 [P] Audio service with record/playback in lib/services/audio_service.dart
+- [ ] T036 [P] File service with file operations in lib/services/file_service.dart
+- [ ] T037 [P] Share service for incoming/outgoing shares in lib/services/share_service.dart
+- [ ] T038 [P] Permission service for runtime permissions in lib/services/permission_service.dart
+- [ ] T039 [P] Background service for background audio in lib/services/background_service.dart
 
 ## Phase 3.4: UI Features
-- [ ] T037 [P] Configuration screen UI in lib/features/configuration/configuration_screen.dart
-- [ ] T038 [P] Thread list screen UI in lib/features/threads/thread_list_screen.dart
-- [ ] T039 [P] Chat screen with multi-modal input in lib/features/chat/chat_screen.dart
-- [ ] T040 [P] Quick action modes screen in lib/features/modes/modes_screen.dart
-- [ ] T041 [P] Media input widgets in lib/features/media/media_input_widgets.dart
-- [ ] T042 [P] Shared UI components in lib/features/shared/ui_components.dart
-- [ ] T043 Main app with Riverpod providers in lib/main.dart
-- [ ] T044 App-level configuration in lib/app/app.dart
+- [ ] T040 [P] Configuration screen UI in lib/features/configuration/configuration_screen.dart
+- [ ] T041 [P] Thread list screen UI in lib/features/threads/thread_list_screen.dart
+- [ ] T042 [P] Chat screen with multi-modal input and message deletion in lib/features/chat/chat_screen.dart
+- [ ] T043 [P] Quick action modes screen with output caching in lib/features/modes/modes_screen.dart
+- [ ] T044 [P] Media input widgets in lib/features/media/media_input_widgets.dart
+- [ ] T045 [P] Shared UI components in lib/features/shared/ui_components.dart
+- [ ] T046 Main app with Riverpod providers in lib/main.dart
+- [ ] T047 App-level configuration in lib/app/app.dart
 
 ## Phase 3.5: Integration
-- [ ] T045 Connect storage service to Isar database with schema migration
-- [ ] T046 Connect AI service to OpenAI API with error handling
-- [ ] T047 Integrate permission service with audio/camera/storage permissions
-- [ ] T048 Setup background audio service with platform-specific implementations
-- [ ] T049 Integrate share functionality with platform intents
-- [ ] T050 Connect router service with deep linking support
-- [ ] T051 Add structured logging throughout the app
-- [ ] T052 Implement error handling and user feedback
+- [ ] T048 Connect storage service to Isar database with schema migration and message deletion
+- [ ] T049 Connect AI service to OpenAI API with output caching and error handling
+- [ ] T050 Integrate permission service with audio/camera/storage permissions
+- [ ] T051 Setup background audio service with platform-specific implementations
+- [ ] T052 Integrate share functionality with platform intents
+- [ ] T053 Connect router service with deep linking support
+- [ ] T054 Add structured logging throughout the app
+- [ ] T055 Implement error handling and user feedback
 
 ## Phase 3.6: Polish
-- [ ] T053 [P] Unit tests for utility functions in test/utils/extensions_test.dart
-- [ ] T054 [P] Unit tests for file utilities in test/utils/file_utils_test.dart
-- [ ] T055 [P] Performance tests for voice recording startup (<2s) in test/performance/audio_performance_test.dart
-- [ ] T056 [P] Performance tests for AI response processing (<5s) in test/performance/ai_performance_test.dart
-- [ ] T057 [P] Widget golden tests for UI consistency in test/golden/
-- [ ] T058 [P] Update README.md with setup and usage instructions
-- [ ] T059 [P] Generate API documentation with dartdoc
-- [ ] T060 Remove code duplication and optimize imports
-- [ ] T061 Final integration test run to validate all 17 functional requirements
+- [ ] T056 [P] Unit tests for utility functions in test/utils/extensions_test.dart
+- [ ] T057 [P] Unit tests for file utilities in test/utils/file_utils_test.dart
+- [ ] T058 [P] Performance tests for voice recording startup (<2s) in test/performance/audio_performance_test.dart
+- [ ] T059 [P] Performance tests for AI response processing (<5s) in test/performance/ai_performance_test.dart
+- [ ] T060 [P] Widget golden tests for UI consistency in test/golden/
+- [ ] T061 [P] Update README.md with setup and usage instructions
+- [ ] T062 [P] Generate API documentation with dartdoc
+- [ ] T063 Remove code duplication and optimize imports
+- [ ] T064 Final integration test run to validate all 19 functional requirements
 
 ## Dependencies
 - Setup (T001-T004) before all other phases
-- Tests (T005-T017) before implementation (T018-T052)
-- Models (T018-T022) before services (T030-T036)
-- Code generation (T023, T029) after model/route definitions
-- Services before UI features (T037-T044)
-- Core implementation before integration (T045-T052)
-- Integration before polish (T053-T061)
+- Tests (T005-T019) before implementation (T020-T055)
+- Models (T020-T025) before services (T033-T039)
+- Code generation (T026, T032) after model/route definitions
+- Services before UI features (T040-T047)
+- Core implementation before integration (T048-T055)
+- Integration before polish (T056-T064)
 
 ## Parallel Example
 ```
-# Launch T005-T017 together (all test files):
+# Launch T005-T019 together (all test files):
 Task: "Widget test for configuration screen in test/features/configuration/configuration_screen_test.dart"
 Task: "Widget test for thread list screen in test/features/threads/thread_list_screen_test.dart"
 Task: "Widget test for chat screen in test/features/chat/chat_screen_test.dart"
 Task: "Integration test for configuration flow in test/integration/configuration_flow_test.dart"
+Task: "Integration test for quick actions output caching in test/integration/output_caching_test.dart"
+Task: "Integration test for message deletion functionality in test/integration/message_deletion_test.dart"
 # ... and so on for all [P] test tasks
 
-# Launch T018-T022 together (all model files):
+# Launch T020-T025 together (all model files):
 Task: "Configuration model with Freezed in lib/models/configuration.dart"
 Task: "Thread model with Isar annotations in lib/models/thread.dart"
-Task: "Message model with multi-modal content in lib/models/message.dart"
+Task: "Message model with multi-modal content and deletion support in lib/models/message.dart"
+Task: "Quick action output cache model in lib/models/quick_action_output.dart"
 # ... and so on for all [P] model tasks
 ```
 
 ## Notes
 - [P] tasks = different files, no dependencies
 - All tests must fail before implementing corresponding features
-- Run `dart run build_runner build` after T023 and T029 for code generation
+- Run `dart run build_runner build` after T026 and T032 for code generation
 - Commit after each task completion
-- Verify all 17 functional requirements (FR-001 through FR-017) are covered
+- Verify all 19 functional requirements (FR-001 through FR-019) are covered
+- FR-018: Quick actions output caching with selective recalculation
+- FR-019: Message deletion within threads
 
 ## Task Generation Rules
 *Applied during task creation*
@@ -167,7 +175,7 @@ Task: "Message model with multi-modal content in lib/models/message.dart"
 ## Validation Checklist
 *GATE: Verified before task execution*
 
-- [x] All 17 functional requirements have corresponding tests
+- [x] All 19 functional requirements have corresponding tests
 - [x] All models from plan.md have creation tasks  
 - [x] All tests come before implementation
 - [x] Parallel tasks target different files
@@ -175,3 +183,4 @@ Task: "Message model with multi-modal content in lib/models/message.dart"
 - [x] No task modifies same file as another [P] task
 - [x] TDD workflow enforced (RED before GREEN)
 - [x] Code generation tasks properly sequenced
+- [x] New requirements integrated: FR-018 (output caching), FR-019 (message deletion)

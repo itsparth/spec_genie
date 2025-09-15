@@ -2,7 +2,7 @@ name: spec_genie
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.0
+  sdk: ">=3.5.0 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -31,6 +31,40 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # State Management & Persistence
+  riverpod: ^3.0.0
+  isar_community: ^3.3.0-dev.2
+
+  # Code Generation (Runtime)
+  freezed_annotation: 3.1.0
+  json_annotation: ^4.9.0
+
+  # AI Integration
+  openai_dart: ^0.5.5
+
+  # Audio Recording & Playback
+  record: ^6.1.1
+  just_audio: ^0.10.5
+  just_audio_background: ^0.0.1-beta.17
+
+  # File & Media Handling
+  file: ^7.0.1
+  image_picker: ^1.2.0
+  file_picker: ^10.3.3
+  permission_handler: ^12.0.1
+  path_provider: ^2.1.5
+  cached_network_image: ^3.4.1
+
+  # Navigation & Routing
+  go_router: ^16.2.1
+
+  # Sharing & Intents
+  share_plus: ^12.0.0
+  share_handler: ^0.0.25
+
+  # UI Components
+  arcane: ^6.1.0
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -38,6 +72,15 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
+
+  # Code Generation (Build time)
+  build_runner: ^2.7.1
+  freezed: ^3.2.3
+  json_serializable: ^6.11.1
+  isar_community_generator: ^3.3.0-dev.2
+  go_router_builder: ^4.0.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -51,7 +94,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
