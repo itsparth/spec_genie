@@ -1,7 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isar_community/isar.dart';
+import 'package:path_provider/path_provider.dart';
+import 'features/shared/isar_provider.dart';
+import 'features/configuration/models/configuration.dart';
+import 'features/chat/models/message.dart';
+import 'features/threads/models/thread.dart';
+import 'features/modes/models/mode.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Isar database
+  final dir = await getApplicationDocumentsDirectory();
+  final isar = await Isar.open(
+    [
+      ConfigurationSchema,
+      MessageSchema,
+      ThreadSchema,
+      ModeSchema,
+    ],
+    directory: dir.path,
+  );
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        isarProvider.overrideWith((ref) => isar),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

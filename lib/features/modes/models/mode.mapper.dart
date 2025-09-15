@@ -21,8 +21,13 @@ class ModeMapper extends ClassMapperBase<Mode> {
   @override
   final String id = 'Mode';
 
-  static String _$id(Mode v) => v.id;
-  static const Field<Mode, String> _f$id = Field('id', _$id);
+  static int _$id(Mode v) => v.id;
+  static const Field<Mode, int> _f$id = Field(
+    'id',
+    _$id,
+    opt: true,
+    def: Isar.autoIncrement,
+  );
   static String _$name(Mode v) => v.name;
   static const Field<Mode, String> _f$name = Field('name', _$name);
   static String _$prompt(Mode v) => v.prompt;
@@ -105,7 +110,7 @@ extension ModeValueCopy<$R, $Out> on ObjectCopyWith<$R, Mode, $Out> {
 
 abstract class ModeCopyWith<$R, $In extends Mode, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({String? id, String? name, String? prompt, bool? isDefault});
+  $R call({int? id, String? name, String? prompt, bool? isDefault});
   ModeCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -116,15 +121,14 @@ class _ModeCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Mode, $Out>
   @override
   late final ClassMapperBase<Mode> $mapper = ModeMapper.ensureInitialized();
   @override
-  $R call({String? id, String? name, String? prompt, bool? isDefault}) =>
-      $apply(
-        FieldCopyWithData({
-          if (id != null) #id: id,
-          if (name != null) #name: name,
-          if (prompt != null) #prompt: prompt,
-          if (isDefault != null) #isDefault: isDefault,
-        }),
-      );
+  $R call({int? id, String? name, String? prompt, bool? isDefault}) => $apply(
+    FieldCopyWithData({
+      if (id != null) #id: id,
+      if (name != null) #name: name,
+      if (prompt != null) #prompt: prompt,
+      if (isDefault != null) #isDefault: isDefault,
+    }),
+  );
   @override
   Mode $make(CopyWithData data) => Mode(
     id: data.get(#id, or: $value.id),
