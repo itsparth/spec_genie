@@ -1,8 +1,7 @@
-# Implementation Plan: Multi-Modal AI Chat Assistant A- EVERY feature as library? YES (separate packages for AI, storage, audio, UI components, media handling, sharing, routing)
-- Libraries listed: ai_service (OpenAI integration), data_repository (Isar persistence), audio_handler (record/playback), media_service (camera/gallery/files), share_handler (incoming/outgoing shares), background_service (background audio), ui_components (reusable widgets), router_service (type-safe navigation)
-- CLI per library: N/A (mobile app, but libraries expose testable interfaces)
+# Implementation Plan: Multi-Modal AI Chat Assistant App
+
 **Branch**: `001-build-an-app` | **Date**: September 15, 2025 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/specs/001-build-an-app/spec.md`
+**Input**: Feature specification from `/home/parth/Work/spec_genie/specs/001-build-an-app/spec.md`
 
 ## Execution Flow (/plan command scope)
 ```
@@ -34,13 +33,13 @@ Multi-modal AI chat assistant mobile app with Flutter frontend enabling voice/te
 
 ## Technical Context
 **Language/Version**: Dart 3.5+ with Flutter 3.24+  
-**Primary Dependencies**: riverpod (state management), isar_community (local database), freezed (code generation), openai_dart (AI integration), arcane (UI components), record (audio recording), just_audio (audio playback), file (file operations), image_picker (camera/gallery), file_picker (device files), share_plus (sharing), receive_sharing_intent (incoming shares)  
+**Primary Dependencies**: flutter_riverpod 3.0+ (state management), dart_mappable 4.6+ (code generation), isar_community 3.3+ (local database), openai_dart 0.5+ (AI integration in chat/modes blocs), arcane 6.1+ (UI components), record 6.1+ (audio recording), go_router 16.2+ (navigation)  
 **Storage**: Isar database for local persistence (threads, messages, configuration, modes) + local file system for media files  
-**Testing**: Flutter test framework with widget/unit/integration testing + background service testing  
+**Testing**: Flutter test framework with widget/unit/integration testing + golden tests for UI components  
 **Target Platform**: Mobile (iOS 15+, Android API 21+) with background audio capabilities  
-**Project Type**: mobile - Flutter mobile application with local data persistence and share integration  
+**Project Type**: mobile - Flutter mobile application with feature-based architecture and code generation  
 **Performance Goals**: <2s voice recording startup, <5s AI response processing, smooth 60fps UI, background recording support  
-**Constraints**: 100% offline data management, online only for OpenAI API calls, BYOK security model, background audio compliance  
+**Constraints**: 100% offline data management, online only for OpenAI API calls via openai_dart in chat/modes blocs (using same LLM model for transcription), BYOK security model, background audio compliance  
 **Scale/Scope**: Single-user app, 1000+ threads, unlimited messages per thread, 10+ custom modes, shared media handling
 
 ## Constitution Check
@@ -48,32 +47,32 @@ Multi-modal AI chat assistant mobile app with Flutter frontend enabling voice/te
 
 **Simplicity**:
 - Projects: 1 (Flutter mobile app)
-- Using framework directly? YES (direct Flutter widgets + established packages)
-- Single data model? YES (Isar entities with Freezed generation)
-- Avoiding patterns? YES (direct service injection via Riverpod, no complex abstractions)
+- Using framework directly? YES (direct Flutter widgets + established packages, no wrapper classes)
+- Single data model? YES (dart_mappable entities with direct API mapping)
+- Avoiding patterns? YES (no Repository/Service patterns, direct feature-based Riverpod blocs)
 
 **Architecture**:
-- EVERY feature as library? YES (separate packages for AI, storage, audio, UI components, media handling, sharing)
-- Libraries listed: ai_service (OpenAI integration), data_repository (Isar persistence), audio_handler (record/playback), media_service (camera/gallery/files), share_handler (incoming/outgoing shares), background_service (background audio), ui_components (reusable widgets)
-- CLI per library: N/A (mobile app, but libraries expose testable interfaces)
-- Library docs: Generated dartdoc format planned
+- EVERY feature as library? YES (feature-based modules with blocs, models, widgets, utils)
+- Libraries listed: configuration (AI settings), threads (thread management), chat (messaging), modes (AI generation), media (audio/image/file), shared (common components)
+- CLI per library: N/A (mobile app, but feature modules expose clear APIs)
+- Library docs: dartdoc format with feature documentation
 
 **Testing (NON-NEGOTIABLE)**:
 - RED-GREEN-Refactor cycle enforced? YES (widget tests fail first, then implement)
 - Git commits show tests before implementation? YES (will be enforced)
-- Order: Contract→Integration→E2E→Unit strictly followed? YES (service contracts, widget integration, app E2E, unit logic)
+- Order: Contract→Integration→E2E→Unit strictly followed? YES (feature contracts, widget integration, app E2E, bloc unit tests)
 - Real dependencies used? YES (actual Isar database, real OpenAI API in integration tests)
-- Integration tests for: New service contracts, data model changes, multi-modal input flows
+- Integration tests for: New feature blocs, data model changes, multi-modal input flows
 - FORBIDDEN: Implementation before test, skipping RED phase
 
 **Observability**:
-- Structured logging included? YES (fast_log package for debugging)
+- Structured logging included? YES (flutter logging with debug/release modes)
 - Frontend logs → backend? N/A (single mobile app)
-- Error context sufficient? YES (detailed error states and user feedback)
+- Error context sufficient? YES (detailed error states in bloc patterns)
 
 **Versioning**:
-- Version number assigned? 0.1.0 (initial development)
-- BUILD increments on every change? YES (semantic versioning)
+- Version number assigned? 1.0.0 (initial release target)
+- BUILD increments on every change? YES (semantic versioning with build numbers)
 - Breaking changes handled? YES (migration scripts for Isar schema changes)
 
 ## Project Structure
@@ -91,102 +90,360 @@ specs/[###-feature]/
 
 ### Source Code (repository root)
 ```
-# Flutter Mobile Application
+# Flutter Feature-Based Architecture with Code Generation
 lib/
-├── main.dart
+├── main.dart                        # App entry point with Riverpod providers
 ├── app/
-│   ├── app.dart
+│   ├── app.dart                     # Main app widget with theme and router
 │   └── router/
+│       ├── app_router.dart          # GoRouter configuration
+│       └── app_router.g.dart        # Generated routes (build_runner)
 ├── features/
 │   ├── configuration/
+│   │   ├── models/
+│   │   │   ├── configuration.dart   # @MappableClass with minimal fields
+│   │   │   └── configuration.mapper.dart # Generated mapper
+│   │   ├── bloc/
+│   │   │   ├── configuration_bloc.dart # @riverpod class ConfigurationBloc
+│   │   │   └── configuration_bloc.g.dart # Generated provider
+│   │   ├── widgets/
+│   │   │   ├── configuration_screen.dart
+│   │   │   ├── api_settings_form.dart
+│   │   │   └── model_selector.dart
+│   │   └── utils/
+│   │       └── validation_utils.dart
+│   ├── threads/
+│   │   ├── models/
+│   │   │   ├── thread.dart          # @MappableClass, @Collection for Isar
+│   │   │   └── thread.mapper.dart   # Generated mapper
+│   │   ├── bloc/
+│   │   │   ├── threads_bloc.dart    # @riverpod class ThreadsBloc
+│   │   │   └── threads_bloc.g.dart  # Generated provider
+│   │   ├── widgets/
+│   │   │   ├── threads_screen.dart
+│   │   │   ├── thread_list_item.dart
+│   │   │   └── create_thread_button.dart
+│   │   └── utils/
+│   │       └── thread_utils.dart
+│   ├── chat/
+│   │   ├── models/
+│   │   │   ├── message.dart         # @MappableClass with content union
+│   │   │   └── message.mapper.dart  # Generated mapper
+│   │   ├── bloc/
+│   │   │   ├── chat_bloc.dart       # @riverpod class ChatBloc
+│   │   │   └── chat_bloc.g.dart     # Generated provider
+│   │   ├── widgets/
+│   │   │   ├── chat_screen.dart
+│   │   │   ├── message_input.dart
+│   │   │   ├── voice_recorder.dart
+│   │   │   └── message_bubble.dart
+│   │   └── utils/
+│   │       └── message_utils.dart
+│   ├── modes/
+│   │   ├── models/
+│   │   │   ├── mode.dart            # @MappableClass for AI generation modes
+│   │   │   └── mode.mapper.dart     # Generated mapper
+│   │   ├── bloc/
+│   │   │   ├── modes_bloc.dart      # @riverpod class ModesBloc
+│   │   │   └── modes_bloc.g.dart    # Generated provider
+│   │   ├── widgets/
+│   │   │   ├── modes_screen.dart
+│   │   │   ├── mode_selector.dart
+│   │   │   └── custom_mode_form.dart
+│   │   └── utils/
+│   │       └── prompt_utils.dart
+│   ├── media/
+│   │   ├── models/
+│   │   │   ├── media_attachment.dart # @MappableClass for files
+│   │   │   └── media_attachment.mapper.dart
+│   │   ├── bloc/
+│   │   │   ├── media_bloc.dart      # @riverpod class MediaBloc
+│   │   │   └── media_bloc.g.dart    # Generated provider
+│   │   ├── widgets/
+│   │   │   ├── image_picker_button.dart
+│   │   │   ├── audio_recorder.dart
+│   │   │   └── file_picker_button.dart
+│   │   └── utils/
+│   │       └── file_utils.dart
+│   └── shared/
+│       ├── widgets/
+│       │   ├── loading_indicator.dart
+│       │   ├── error_widget.dart
+│       │   └── empty_state.dart
+│       ├── utils/
+│       │   ├── extensions.dart
+│       │   └── constants.dart
+│       └── models/
+│           └── api_response.dart    # Generic response wrapper
+└── generated/                       # All generated files
+    ├── *.mapper.dart               # dart_mappable generated files
+    ├── *.g.dart                    # riverpod generated providers
+    └── app_router.g.dart           # go_router generated routes
+
+# Minimalistic Models Philosophy
+# Configuration: apiKey, baseUrl, modelName, transcribeAudioFirst (4 fields max)
+# Thread: id, name, createdAt, messageCount (4 fields max)  
+# Message: id, content, timestamp, type (4 fields max)
+# Mode: id, name, prompt, isDefault (4 fields max)
+# MediaAttachment: path, type, size (3 fields max)
+
+test/
+├── features/
+│   ├── configuration/
+│   │   ├── bloc/
+│   │   │   └── configuration_bloc_test.dart
+│   │   └── widgets/
+│   │       └── configuration_screen_test.dart
 │   ├── threads/
 │   ├── chat/
 │   ├── modes/
-│   ├── media/
-│   └── shared/
-├── services/
-│   ├── ai_service.dart
-│   ├── audio_service.dart
-│   ├── storage_service.dart
-│   ├── file_service.dart
-│   ├── share_service.dart
-│   ├── permission_service.dart
-│   ├── router_service.dart
-│   └── background_service.dart
-├── models/
-│   ├── configuration.dart
-│   ├── thread.dart
-│   ├── message.dart
-│   ├── mode.dart
-│   └── media_attachment.dart
-├── routing/
-│   ├── app_router.dart         # Generated GoRouter configuration
-│   ├── app_router.g.dart       # Auto-generated by go_router_builder
-│   ├── routes/
-│   │   ├── home_route.dart     # @TypedGoRoute definitions
-│   │   ├── config_route.dart
-│   │   ├── thread_route.dart
-│   │   └── mode_route.dart
-│   └── guards/
-│       ├── config_guard.dart   # Route protection logic
-│       └── thread_guard.dart
-└── utils/
-    ├── extensions.dart
-    ├── constants.dart
-    └── file_utils.dart
+│   └── media/
+├── integration/
+│   ├── app_integration_test.dart
+│   └── voice_to_ai_flow_test.dart
+└── golden/
+    ├── configuration_screen_test.dart
+    └── thread_list_test.dart
 ```
 
-**Structure Decision**: Mobile app structure with feature-based organization, enhanced media handling, and type-safe routing
+**Structure Decision**: Feature-based mobile architecture with minimalistic models and code generation
 
-### Routing Implementation Details
+### Code Generation Architecture
 
-**Code Generation Approach**:
+**Riverpod 3 Bloc Pattern**:
 ```dart
-// routing/routes/home_route.dart
-@TypedGoRoute<HomeRoute>(path: '/')
-class HomeRoute extends GoRouteData with $HomeRoute {
-  const HomeRoute();
-  
+// features/configuration/bloc/configuration_bloc.dart
+@riverpod
+class ConfigurationBloc extends _$ConfigurationBloc {
   @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return const HomeScreen();
-  }
-}
-
-// routing/routes/thread_route.dart  
-@TypedGoRoute<ThreadRoute>(path: '/thread/:threadId')
-class ThreadRoute extends GoRouteData with $ThreadRoute {
-  const ThreadRoute({required this.threadId, this.mode});
-  final String threadId;
-  final String? mode; // Query parameter for quick mode
-  
-  @override
-  Widget build(BuildContext context, GoRouterState state) {
-    return ChatScreen(
-      threadId: threadId,
-      initialMode: mode,
-    );
-  }
-}
-
-// Generated router configuration
-final GoRouter router = GoRouter(
-  routes: $appRoutes, // Auto-generated from @TypedGoRoute annotations
-  redirect: (context, state) {
-    // Check if OpenAI API key configured
-    if (!ConfigService.isConfigured && state.location != '/config') {
-      return const ConfigRoute().location;
-    }
+  Configuration? build() {
+    // Load from local storage on init
     return null;
-  },
-);
+  }
+
+  // Minimalistic methods called directly from UI
+  Future<void> saveConfiguration(Configuration config) async {
+    state = config;
+    // Direct API call to storage
+    await _saveToStorage(config);
+  }
+
+  Future<void> loadConfiguration() async {
+    // Direct API call to storage  
+    final config = await _loadFromStorage();
+    state = config;
+  }
+}
+
+// features/chat/bloc/chat_bloc.dart
+@riverpod
+class ChatBloc extends _$ChatBloc {
+  @override
+  List<Message> build(String threadId) {
+    // Load messages from local storage
+    return [];
+  }
+
+  // OpenAI integration for AI responses using openai_dart
+  Future<void> sendMessage(Message userMessage, Mode selectedMode) async {
+    // Add user message to state
+    state = [...state, userMessage];
+    
+    // Get configuration for OpenAI client
+    final config = ref.read(configurationBlocProvider);
+    final client = OpenAIClient(
+      apiKey: config.apiKey,
+      baseUrl: config.baseUrl, // Optional: for OpenAI-compatible APIs
+    );
+    
+    // Create chat completion with mode-specific system prompt
+    final res = await client.createChatCompletion(
+      request: CreateChatCompletionRequest(
+        model: ChatCompletionModel.modelId(config.modelName),
+        messages: [
+          ChatCompletionMessage.developer(content: selectedMode.prompt),
+          ...state.map((msg) => ChatCompletionMessage.user(
+            content: ChatCompletionUserMessageContent.string(msg.content),
+          )),
+        ],
+      ),
+    );
+    
+    // Add AI response to state
+    final aiResponse = res.choices.first.message.content ?? '';
+    final aiMessage = Message.fromAI(aiResponse);
+    state = [...state, aiMessage];
+  }
+
+  // Support for multi-modal input (voice/image) with transcription option
+  Future<void> sendMultiModalMessage(
+    String text, 
+    String? imagePath, 
+    String? audioPath,
+    Mode selectedMode,
+  ) async {
+    final config = ref.read(configurationBlocProvider);
+    final client = OpenAIClient(apiKey: config.apiKey, baseUrl: config.baseUrl);
+    
+    String finalText = text;
+    
+    // Handle audio transcription if enabled and audio provided
+    if (audioPath != null && config.transcribeAudioFirst) {
+      // First transcribe audio to text using the same LLM model
+      final audioBytes = await File(audioPath).readAsBytes();
+      final base64Audio = base64Encode(audioBytes);
+      
+      final transcriptionRes = await client.createChatCompletion(
+        request: CreateChatCompletionRequest(
+          model: ChatCompletionModel.modelId(config.modelName),
+          messages: [
+            ChatCompletionMessage.developer(
+              content: 'Transcribe the following audio to text. Return only the transcribed text without any additional formatting or comments.',
+            ),
+            ChatCompletionMessage.user(
+              content: ChatCompletionUserMessageContent.parts([
+                ChatCompletionMessageContentPart.audio(
+                  inputAudio: ChatCompletionMessageInputAudio(
+                    data: base64Audio,
+                    format: ChatCompletionMessageInputAudioFormat.wav,
+                  ),
+                ),
+              ]),
+            ),
+          ],
+        ),
+      );
+      
+      final transcribedText = transcriptionRes.choices.first.message.content ?? '';
+      
+      // Append transcribed text to the message
+      finalText = text.isEmpty 
+        ? transcribedText 
+        : '$text\n\nTranscribed audio: $transcribedText';
+    }
+    
+    // Build content parts for the final message
+    final contentParts = <ChatCompletionMessageContentPart>[
+      ChatCompletionMessageContentPart.text(text: finalText),
+    ];
+    
+    // Add image if provided
+    if (imagePath != null) {
+      final imageBytes = await File(imagePath).readAsBytes();
+      final base64Image = base64Encode(imageBytes);
+      contentParts.add(
+        ChatCompletionMessageContentPart.image(
+          imageUrl: ChatCompletionMessageImageUrl(
+            url: 'data:image/jpeg;base64,$base64Image',
+          ),
+        ),
+      );
+    }
+    
+    // Add audio directly only if transcribeAudioFirst is false
+    if (audioPath != null && !config.transcribeAudioFirst) {
+      final audioBytes = await File(audioPath).readAsBytes();
+      final base64Audio = base64Encode(audioBytes);
+      contentParts.add(
+        ChatCompletionMessageContentPart.audio(
+          inputAudio: ChatCompletionMessageInputAudio(
+            data: base64Audio,
+            format: ChatCompletionMessageInputAudioFormat.wav,
+          ),
+        ),
+      );
+    }
+
+    // Final chat completion with the selected mode
+    final res = await client.createChatCompletion(
+      request: CreateChatCompletionRequest(
+        model: ChatCompletionModel.modelId(config.modelName),
+        messages: [
+          ChatCompletionMessage.developer(content: selectedMode.prompt),
+          ChatCompletionMessage.user(
+            content: ChatCompletionUserMessageContent.parts(contentParts),
+          ),
+        ],
+      ),
+    );
+    
+    final aiResponse = res.choices.first.message.content ?? '';
+    final aiMessage = Message.fromAI(aiResponse);
+    state = [...state, aiMessage];
+  }
+}
+
+// features/modes/bloc/modes_bloc.dart
+@riverpod
+class ModesBloc extends _$ModesBloc {
+  @override
+  List<Mode> build() {
+    return _getDefaultModes();
+  }
+
+  // Test mode with OpenAI API validation using openai_dart
+  Future<bool> validateMode(Mode mode) async {
+    final config = ref.read(configurationBlocProvider);
+    final client = OpenAIClient(
+      apiKey: config.apiKey,
+      baseUrl: config.baseUrl,
+    );
+    
+    try {
+      // Test the mode with a simple prompt
+      await client.createChatCompletion(
+        request: CreateChatCompletionRequest(
+          model: ChatCompletionModel.modelId(config.modelName),
+          messages: [
+            ChatCompletionMessage.developer(content: mode.prompt),
+            ChatCompletionMessage.user(
+              content: ChatCompletionUserMessageContent.string("Test message"),
+            ),
+          ],
+        ),
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+}
 ```
 
-**Deep Linking Support**:
-- `/config` - Configuration screen
-- `/thread/{id}?mode=quick` - Specific thread with optional quick mode
-- `/thread/{id}/share` - Thread with sharing intent handling
-- Deep links trigger app launch and navigation to correct screen
+**dart_mappable Models**:
+```dart
+// features/configuration/models/configuration.dart
+@MappableClass()
+class Configuration with ConfigurationMappable {
+  final String apiKey;           // Only essential UI fields
+  final String baseUrl;          // No temperature, maxTokens, etc.
+  final String modelName;        // Can add advanced fields later
+  final bool transcribeAudioFirst; // Default: transcribe audio to text first
+  
+  const Configuration({
+    required this.apiKey,
+    required this.baseUrl, 
+    required this.modelName,
+    this.transcribeAudioFirst = true, // Default behavior
+  });
+}
+```
+
+**Feature Integration**:
+- Each feature has its own bloc, models, widgets, utils
+- Blocs call APIs/storage directly (no service layer)
+- Models expose only UI-necessary fields
+- Utils handle complex logic extraction when methods grow
+- Widgets consume bloc state via `ref.watch()`
+
+**Build Commands**:
+```bash
+# Generate all code (mappers + providers + routes)
+dart run build_runner build
+
+# Watch for changes during development  
+dart run build_runner watch
+```
 
 ## Phase 0: Outline & Research
 1. **Extract unknowns from Technical Context** above:
@@ -212,52 +469,62 @@ final GoRouter router = GoRouter(
 ## Phase 1: Design & Contracts
 *Prerequisites: research.md complete*
 
-1. **Extract entities from feature spec** → `data-model.md`:
-   - Entity name, fields, relationships
-   - Validation rules from requirements
-   - State transitions if applicable
+1. **Extract minimalistic entities from feature spec** → `data-model.md`:
+   - Entity name with only UI-exposed fields (3-4 fields max per model)
+   - dart_mappable annotations for code generation
+   - Isar collections for local persistence
+   - No complex relationships initially (flat structure)
 
-2. **Generate API contracts** from functional requirements:
-   - For each user action → endpoint
-   - Use standard REST/GraphQL patterns
-   - Output OpenAPI/GraphQL schema to `/contracts/`
+2. **Generate feature contracts** from functional requirements:
+   - Each user action → bloc method signature
+   - Direct API calls (no service abstraction)
+   - Output method contracts to `/contracts/`
 
-3. **Generate contract tests** from contracts:
-   - One test file per endpoint
-   - Assert request/response schemas
+3. **Generate bloc tests** from contracts:
+   - One test file per bloc
+   - Assert state changes and API calls
    - Tests must fail (no implementation yet)
 
 4. **Extract test scenarios** from user stories:
-   - Each story → integration test scenario
-   - Quickstart test = story validation steps
+   - Each story → widget integration test scenario
+   - Focus on UI interactions and state updates
 
-5. **Update agent file incrementally** (O(1) operation):
-   - Run `/scripts/bash/update-agent-context.sh copilot` for your AI assistant
-   - If exists: Add only NEW tech from current plan
-   - Preserve manual additions between markers
-   - Update recent changes (keep last 3)
-   - Keep under 150 lines for token efficiency
-   - Output to repository root
+5. **Update GitHub Copilot context** (minimalistic approach):
+   - Run update script for `.github/copilot-instructions.md`
+   - Add feature-based structure and dart_mappable patterns
+   - Include Riverpod 3 bloc examples
+   - Keep under 150 lines for efficiency
 
-**Output**: data-model.md, /contracts/*, failing tests, quickstart.md, agent-specific file
+**Output**: data-model.md (minimalistic), /contracts/* (bloc methods), failing tests, quickstart.md, .github/copilot-instructions.md
 
 ## Phase 2: Task Planning Approach
 *This section describes what the /tasks command will do - DO NOT execute during /plan*
 
 **Task Generation Strategy**:
 - Load `/templates/tasks-template.md` as base
-- Generate tasks from Phase 1 design docs (contracts, data model, quickstart)
-- Each contract → contract test task [P]
-- Each entity → model creation task [P] 
-- Each user story → integration test task
-- Implementation tasks to make tests pass
+- Generate tasks from Phase 1 minimalistic design docs
+- Each feature bloc → bloc test task [P] + bloc implementation task
+- Each minimalistic model → model creation task [P] with dart_mappable
+- Each widget → widget test task + widget implementation task
+- Code generation tasks for build_runner execution
 
-**Ordering Strategy**:
-- TDD order: Tests before implementation 
-- Dependency order: Models before services before UI
-- Mark [P] for parallel execution (independent files)
+**Feature-Based Ordering Strategy**:
+- TDD order: Tests before implementation for each feature
+- Feature independence: Most tasks marked [P] for parallel execution  
+- Dependency order within features: Models → Blocs → Widgets
+- Code generation: After model changes, before bloc implementation
 
-**Estimated Output**: 25-30 numbered, ordered tasks in tasks.md
+**Minimalistic Implementation Tasks**:
+1. Setup code generation (build_runner, dart_mappable, riverpod_generator)
+2. Create minimalistic models (3-4 fields each) [P]
+3. Generate mappers and providers via build_runner
+4. Create bloc tests (state changes only) [P] 
+5. Implement blocs with direct API calls [P]
+6. Create widget tests for UI interactions [P]
+7. Implement widgets consuming bloc state [P]
+8. Integration tests for complete user flows
+
+**Estimated Output**: 35-40 numbered, ordered tasks in tasks.md (higher due to feature separation)
 
 **IMPORTANT**: This phase is executed by the /tasks command, NOT by /plan
 

@@ -58,12 +58,13 @@ When creating this spec from a user prompt:
 A user wants to quickly capture and process their thoughts using voice, images, or text input through an AI assistant. They configure the app with their AI service credentials, create conversation threads to organize different topics, and use various modes to generate structured content (specifications, code contexts, or custom outputs) from their multi-modal inputs. The focus is on speed and ease of use, particularly for voice-based thought capture without requiring manual thread naming or complex setup.
 
 ### Acceptance Scenarios
-1. **Given** the app is first launched, **When** user opens the home screen, **Then** they see configuration fields for AI service URL, API key, and model selection with local storage capability
+1. **Given** the app is first launched, **When** user opens the home screen, **Then** they see configuration fields for AI service URL, API key, model selection, and audio processing options with local storage capability
 2. **Given** configuration is completed, **When** user navigates to threads list, **Then** they see an empty list with ability to create new threads and group existing ones
 3. **Given** user creates a new thread, **When** they input content via text, voice, or image, **Then** the thread name is auto-generated from the content and the message is stored
 4. **Given** user is in a thread, **When** they select a quick action mode (spec, code-context, or custom), **Then** the AI processes all thread content with system prompt and mode-specific user prompt to generate markdown output
 5. **Given** AI generates output, **When** user views the result, **Then** they see markdown-formatted content with primary actions to copy or share the output
 6. **Given** user wants to customize generation behavior, **When** they access quick actions configuration, **Then** they can create, edit, or duplicate prompt templates for different output types
+7. **Given** user has audio transcription enabled, **When** they input voice content, **Then** the system transcribes audio using the configured LLM model before processing with selected modes
 
 ### Edge Cases
 - What happens when AI service is unreachable or API key is invalid?
@@ -73,13 +74,16 @@ A user wants to quickly capture and process their thoughts using voice, images, 
 - What happens to local data when the app is updated or reinstalled?
 - How does copy/share functionality work with very large markdown outputs?
 - What happens when sharing fails due to device limitations or app restrictions?
+- How does the system handle audio transcription failures when using the same LLM model?
+- What occurs when the configured model doesn't support multi-modal audio input for transcription?
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
-- **FR-001**: System MUST provide a home screen configuration interface for AI service base URL, API key, and model name selection
+- **FR-001**: System MUST provide a home screen configuration interface for AI service base URL, API key, model name selection, and audio processing options
 - **FR-002**: System MUST store all configuration data locally on the device
 - **FR-003**: System MUST validate that selected AI model supports both audio and text input capabilities
+- **FR-003a**: System MUST provide option to transcribe audio using the same LLM model before processing with selected modes
 - **FR-004**: Users MUST be able to create, view, and organize conversation threads in a list interface
 - **FR-005**: Users MUST be able to group threads with [NEEDS CLARIFICATION: grouping criteria - by topic, date, mode, or user-defined categories?]
 - **FR-006**: System MUST auto-generate thread names from the first message or context without requiring manual input
@@ -96,7 +100,7 @@ A user wants to quickly capture and process their thoughts using voice, images, 
 - **FR-017**: System MUST persist all threads, messages, quick action modes, and configuration locally across app sessions
 
 ### Key Entities *(include if feature involves data)*
-- **Configuration**: Stores AI service connection details (base URL, API key, model name) with local persistence
+- **Configuration**: Stores AI service connection details (base URL, API key, model name, audio processing preferences) with local persistence
 - **Thread**: Represents a conversation session with auto-generated name, creation timestamp, optional grouping, and message history
 - **Message**: Contains user input content (text, audio file reference, or image file reference) with timestamp and input type
 - **Quick Action Mode**: Defines content generation behavior with user prompt template, name, and editability status (default vs custom)

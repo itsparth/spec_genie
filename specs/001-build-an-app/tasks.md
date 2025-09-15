@@ -1,9 +1,201 @@
 # Tasks: Multi-Modal AI Chat Assistant App
 
-**Input**: Design documents from `/specs/001-build-an-app/`
-**Prerequisites**: plan.md (✓), research.md (✓), spec.md (✓)
+**Input**: Design documents from `/home/parth/Work/spec_genie/specs/001-build-an-app/`
+**Prerequisites**: plan.md (required), research.md, spec.md
 
 ## Execution Flow (main)
+```
+1. Load plan.md from feature directory
+   → Extract: Flutter + Riverpod + dart_mappable + openai_dart stack
+   → Structure: Feature-based architecture with code generation
+2. Load spec.md for user requirements:
+   → Extract: Configuration, threads, chat, modes, media features
+   → Generate: Model, bloc, widget, and test tasks per feature
+3. Generate tasks by category:
+   → Setup: Flutter project init, dependencies, code generation
+   → Tests: Widget tests, bloc tests, integration tests
+   → Models: dart_mappable models with Isar collections
+   → Blocs: Riverpod class-based notifiers with OpenAI integration
+   → Widgets: Feature screens and components
+   → Integration: Navigation, storage, permissions
+   → Polish: Golden tests, error handling, performance
+4. Apply Flutter-specific task rules:
+   → Different features = mark [P] for parallel
+   → Code generation dependencies
+   → Widget tests before widget implementation (TDD)
+5. Number tasks sequentially (T001, T002...)
+6. Generate parallel execution examples for feature development
+```
+
+## Format: `[ID] [P?] Description`
+- **[P]**: Can run in parallel (different features/files, no dependencies)
+- Include exact file paths for Flutter lib/ structure
+
+## Phase 3.1: Project Setup & Dependencies
+- [ ] T001 Initialize Flutter project with Dart 3.5+ and configure pubspec.yaml dependencies
+- [ ] T002 Setup code generation tools: build_runner, dart_mappable_builder, riverpod_generator, go_router_builder
+- [ ] T003 [P] Configure Flutter linting rules and analysis_options.yaml
+- [ ] T004 [P] Setup project structure with feature-based directories in lib/features/
+- [ ] T005 [P] Configure Android permissions for microphone, camera, storage in android/app/src/main/AndroidManifest.xml
+- [ ] T006 [P] Configure iOS permissions for microphone, camera, storage in ios/Runner/Info.plist
+
+## Phase 3.2: Model Tests & Models (TDD) ⚠️ TESTS MUST FAIL FIRST
+**CRITICAL: These tests MUST be written and MUST FAIL before ANY model implementation**
+
+### Configuration Feature Tests & Models
+- [ ] T007 [P] Widget test for configuration screen in test/features/configuration/widgets/configuration_screen_test.dart
+- [ ] T008 [P] Bloc test for configuration bloc in test/features/configuration/bloc/configuration_bloc_test.dart  
+- [ ] T009 [P] Configuration model with dart_mappable in lib/features/configuration/models/configuration.dart
+- [ ] T010 [P] Configuration bloc with Riverpod generator in lib/features/configuration/bloc/configuration_bloc.dart
+
+### Threads Feature Tests & Models  
+- [ ] T011 [P] Widget test for threads screen in test/features/threads/widgets/threads_screen_test.dart
+- [ ] T012 [P] Bloc test for threads bloc in test/features/threads/bloc/threads_bloc_test.dart
+- [ ] T013 [P] Thread model with dart_mappable and Isar collection in lib/features/threads/models/thread.dart
+- [ ] T014 [P] Threads bloc with Riverpod generator in lib/features/threads/bloc/threads_bloc.dart
+
+### Chat Feature Tests & Models
+- [ ] T015 [P] Widget test for chat screen in test/features/chat/widgets/chat_screen_test.dart
+- [ ] T016 [P] Bloc test for chat bloc with OpenAI integration in test/features/chat/bloc/chat_bloc_test.dart
+- [ ] T017 [P] Message model with dart_mappable and content union types in lib/features/chat/models/message.dart
+- [ ] T018 [P] Chat bloc with OpenAI client integration in lib/features/chat/bloc/chat_bloc.dart
+
+### Modes Feature Tests & Models
+- [ ] T019 [P] Widget test for modes screen in test/features/modes/widgets/modes_screen_test.dart
+- [ ] T020 [P] Bloc test for modes bloc in test/features/modes/bloc/modes_bloc_test.dart
+- [ ] T021 [P] Mode model with dart_mappable for AI generation modes in lib/features/modes/models/mode.dart
+- [ ] T022 [P] Modes bloc with OpenAI validation in lib/features/modes/bloc/modes_bloc.dart
+
+### Media Feature Tests & Models
+- [ ] T023 [P] Widget test for media components in test/features/media/widgets/media_widgets_test.dart
+- [ ] T024 [P] Bloc test for media bloc in test/features/media/bloc/media_bloc_test.dart
+- [ ] T025 [P] MediaAttachment model with dart_mappable in lib/features/media/models/media_attachment.dart
+- [ ] T026 [P] Media bloc for file/audio/image handling in lib/features/media/bloc/media_bloc.dart
+
+## Phase 3.3: Code Generation & Routing
+- [ ] T027 Run dart run build_runner build to generate mappers and providers
+- [ ] T028 [P] App router with go_router_builder type-safe routes in lib/routing/app_router.dart
+- [ ] T029 [P] Route definitions for all features in lib/routing/routes/
+
+## Phase 3.4: Core Widgets Implementation (ONLY after tests are failing)
+
+### Configuration Feature Widgets
+- [ ] T030 [P] Configuration screen with form validation in lib/features/configuration/widgets/configuration_screen.dart
+- [ ] T031 [P] API settings form component in lib/features/configuration/widgets/api_settings_form.dart
+- [ ] T032 [P] Model selector component in lib/features/configuration/widgets/model_selector.dart
+
+### Threads Feature Widgets  
+- [ ] T033 [P] Threads list screen with create functionality in lib/features/threads/widgets/threads_screen.dart
+- [ ] T034 [P] Thread list item component in lib/features/threads/widgets/thread_list_item.dart
+- [ ] T035 [P] Create thread button with auto-naming in lib/features/threads/widgets/create_thread_button.dart
+
+### Chat Feature Widgets
+- [ ] T036 Chat screen with message display and input in lib/features/chat/widgets/chat_screen.dart
+- [ ] T037 [P] Message input component with multi-modal support in lib/features/chat/widgets/message_input.dart
+- [ ] T038 [P] Voice recorder component with background support in lib/features/chat/widgets/voice_recorder.dart
+- [ ] T039 [P] Message bubble component with markdown rendering in lib/features/chat/widgets/message_bubble.dart
+
+### Modes Feature Widgets
+- [ ] T040 [P] Modes management screen in lib/features/modes/widgets/modes_screen.dart
+- [ ] T041 [P] Mode selector component for quick actions in lib/features/modes/widgets/mode_selector.dart
+- [ ] T042 [P] Custom mode form for prompt editing in lib/features/modes/widgets/custom_mode_form.dart
+
+### Media Feature Widgets
+- [ ] T043 [P] Image picker button component in lib/features/media/widgets/image_picker_button.dart
+- [ ] T044 [P] Audio recorder component with permissions in lib/features/media/widgets/audio_recorder.dart
+- [ ] T045 [P] File picker button component in lib/features/media/widgets/file_picker_button.dart
+
+## Phase 3.5: Shared Components & Utilities
+- [ ] T046 [P] Loading indicator component in lib/features/shared/widgets/loading_indicator.dart
+- [ ] T047 [P] Error widget component in lib/features/shared/widgets/error_widget.dart
+- [ ] T048 [P] Empty state component in lib/features/shared/widgets/empty_state.dart
+- [ ] T049 [P] Extension utilities in lib/features/shared/utils/extensions.dart
+- [ ] T050 [P] App constants in lib/features/shared/utils/constants.dart
+
+## Phase 3.6: Integration & Storage
+- [ ] T051 Setup Isar database initialization and schema in lib/main.dart
+- [ ] T052 [P] Validation utilities for configuration in lib/features/configuration/utils/validation_utils.dart
+- [ ] T053 [P] Thread utilities for auto-naming in lib/features/threads/utils/thread_utils.dart
+- [ ] T054 [P] Message utilities for content processing in lib/features/chat/utils/message_utils.dart
+- [ ] T055 [P] Prompt utilities for mode templates in lib/features/modes/utils/prompt_utils.dart
+- [ ] T056 [P] File utilities for media handling in lib/features/media/utils/file_utils.dart
+
+## Phase 3.7: Main App & Navigation
+- [ ] T057 Main app widget with theme and router configuration in lib/app/app.dart
+- [ ] T058 App entry point with Riverpod providers in lib/main.dart
+- [ ] T059 Route guard for configuration validation in lib/routing/guards/config_guard.dart
+
+## Phase 3.8: Integration Tests
+- [ ] T060 [P] End-to-end test for voice-to-AI workflow in test/integration/voice_to_ai_flow_test.dart
+- [ ] T061 [P] Integration test for thread management in test/integration/thread_management_test.dart
+- [ ] T062 [P] Integration test for multi-modal message flow in test/integration/multimodal_message_test.dart
+
+## Phase 3.9: Polish & Performance
+- [ ] T063 [P] Golden tests for configuration screen in test/golden/configuration_screen_test.dart
+- [ ] T064 [P] Golden tests for thread list in test/golden/thread_list_test.dart
+- [ ] T065 [P] Performance test for audio recording startup (<2s) in test/performance/audio_performance_test.dart
+- [ ] T066 [P] Error handling for OpenAI API failures across all blocs
+- [ ] T067 [P] Background audio permission handling and fallbacks
+- [ ] T068 [P] Share functionality implementation with copy/share actions
+- [ ] T069 [P] Audio transcription with same LLM model implementation
+- [ ] T070 Final code generation run and cleanup
+
+## Dependencies
+- Code Generation (T027) depends on Models (T009, T013, T017, T021, T025)
+- Widget Implementation (T030-T045) depends on Tests (T007, T011, T015, T019, T023) failing
+- Blocs (T010, T014, T018, T022, T026) depend on Models being created
+- Integration (T051-T056) depends on Core Implementation (T030-T045)
+- Main App (T057-T059) depends on all features being implemented
+- Polish (T063-T070) depends on everything else
+
+## Parallel Execution Examples
+
+### Phase 3.2 - All Feature Tests (Run Together):
+```bash
+# All model tests can run in parallel since they're in different files
+Task: "Widget test for configuration screen in test/features/configuration/widgets/configuration_screen_test.dart"
+Task: "Widget test for threads screen in test/features/threads/widgets/threads_screen_test.dart"  
+Task: "Widget test for chat screen in test/features/chat/widgets/chat_screen_test.dart"
+Task: "Widget test for modes screen in test/features/modes/widgets/modes_screen_test.dart"
+Task: "Widget test for media components in test/features/media/widgets/media_widgets_test.dart"
+```
+
+### Phase 3.2 - All Models (Run Together After Tests):
+```bash
+# All models can be created in parallel since they're independent
+Task: "Configuration model with dart_mappable in lib/features/configuration/models/configuration.dart"
+Task: "Thread model with dart_mappable and Isar collection in lib/features/threads/models/thread.dart"
+Task: "Message model with dart_mappable and content union types in lib/features/chat/models/message.dart"
+Task: "Mode model with dart_mappable for AI generation modes in lib/features/modes/models/mode.dart" 
+Task: "MediaAttachment model with dart_mappable in lib/features/media/models/media_attachment.dart"
+```
+
+### Phase 3.4 - Feature Widget Implementation (Run Together):
+```bash
+# Feature widgets can be implemented in parallel since they're in different features
+Task: "Configuration screen with form validation in lib/features/configuration/widgets/configuration_screen.dart"
+Task: "Threads list screen with create functionality in lib/features/threads/widgets/threads_screen.dart"
+Task: "Modes management screen in lib/features/modes/widgets/modes_screen.dart"
+# Note: Chat screen not parallel as it depends on Media components
+```
+
+## Notes
+- [P] tasks = different features/files, no dependencies between them
+- Always verify widget tests fail before implementing widgets (TDD)
+- Run `dart run build_runner build` after model changes
+- Commit after each completed task
+- Feature isolation allows maximum parallelization
+- Chat feature may depend on Media feature for multi-modal input
+- OpenAI integration in Chat and Modes blocs requires valid configuration
+
+## Flutter-Specific Task Generation Rules
+- Widget tests before widgets (TDD)
+- Models before blocs (dependency)  
+- Blocs before widgets (state dependency)
+- Code generation after model changes
+- Integration tests after individual features work
+- Golden tests for UI consistency
+- Performance tests for audio/AI response times
 ```
 1. Load plan.md from feature directory
    → Found: Flutter mobile app with Riverpod + Isar + go_router
