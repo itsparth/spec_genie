@@ -80,7 +80,7 @@ class ChatInputBloc extends _$ChatInputBloc {
 
       // Generate unique filename
       final directory = await getApplicationCacheDirectory();
-      final fileName = 'audio_${_uuid.v4()}.m4a';
+      final fileName = 'audio_${_uuid.v4()}.mp3';
       final filePath = path.join(directory.path, 'recordings', fileName);
 
       // Ensure recordings directory exists

@@ -1,6 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'config.dart';
 import 'config_provider.dart';
 import 'util.dart';
 
