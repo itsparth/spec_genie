@@ -15,7 +15,11 @@ part 'modes_bloc.g.dart';
 @riverpod
 class ModesBloc extends _$ModesBloc {
   static const _defaultModes = [
-    Mode(id: Isar.autoIncrement, name: 'Default Mode', prompt: 'You are a helpful assistant.', isEditable: false),
+    Mode(
+        id: Isar.autoIncrement,
+        name: 'Default Mode',
+        prompt: 'You are a helpful assistant.',
+        isEditable: false),
   ];
 
   @override
@@ -81,9 +85,9 @@ class ModesBloc extends _$ModesBloc {
   /// Update an existing editable mode.
   Future<bool> update(int id, {String? name, String? prompt}) async {
     final isar = ref.read(isarProvider);
-  final idx = state.modes.indexWhere((m) => m.id == id);
-  if (idx == -1) return false;
-  final original = state.modes[idx];
+    final idx = state.modes.indexWhere((m) => m.id == id);
+    if (idx == -1) return false;
+    final original = state.modes[idx];
     if (!original.isEditable) return false;
     final updated = original.copyWith(
       name: name ?? original.name,
@@ -108,7 +112,8 @@ class ModesBloc extends _$ModesBloc {
     return await isar.writeTxn(() async {
       final deleted = await isar.modes.delete(id);
       if (deleted) {
-        final remaining = state.modes.where((m) => m.id != id).toList(growable: false);
+        final remaining =
+            state.modes.where((m) => m.id != id).toList(growable: false);
         int? newSelected = state.selectedId;
         if (newSelected == id) {
           newSelected = remaining.isEmpty ? null : remaining.first.id;
