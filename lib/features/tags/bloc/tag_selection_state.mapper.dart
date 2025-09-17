@@ -14,6 +14,7 @@ class TagSelectionStateMapper extends ClassMapperBase<TagSelectionState> {
   static TagSelectionStateMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = TagSelectionStateMapper._());
+      TagMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -21,8 +22,8 @@ class TagSelectionStateMapper extends ClassMapperBase<TagSelectionState> {
   @override
   final String id = 'TagSelectionState';
 
-  static IList<String> _$selectedTags(TagSelectionState v) => v.selectedTags;
-  static const Field<TagSelectionState, IList<String>> _f$selectedTags = Field(
+  static IList<Tag> _$selectedTags(TagSelectionState v) => v.selectedTags;
+  static const Field<TagSelectionState, IList<Tag>> _f$selectedTags = Field(
     'selectedTags',
     _$selectedTags,
     opt: true,
@@ -120,7 +121,7 @@ abstract class TagSelectionStateCopyWith<
   $Out
 >
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({IList<String>? selectedTags, bool? isLoading});
+  $R call({IList<Tag>? selectedTags, bool? isLoading});
   TagSelectionStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -135,7 +136,7 @@ class _TagSelectionStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<TagSelectionState> $mapper =
       TagSelectionStateMapper.ensureInitialized();
   @override
-  $R call({IList<String>? selectedTags, bool? isLoading}) => $apply(
+  $R call({IList<Tag>? selectedTags, bool? isLoading}) => $apply(
     FieldCopyWithData({
       if (selectedTags != null) #selectedTags: selectedTags,
       if (isLoading != null) #isLoading: isLoading,

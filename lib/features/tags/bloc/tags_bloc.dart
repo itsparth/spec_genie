@@ -61,17 +61,18 @@ class TagsBloc extends _$TagsBloc {
   }
 
   /// Create a new editable tag and persist it.
-  Future<void> create(
+  Future<Tag?> create(
       {required String name, required String description}) async {
     state = state.copyWith(isSaving: true);
+    Tag? stored;
     try {
       final isar = ref.read(isarProvider);
       final tag = Tag(name: name, description: description, isEditable: true);
       await isar.writeTxn(() async {
         final id = await isar.tags.put(tag);
-        final stored = await isar.tags.get(id);
+        stored = await isar.tags.get(id);
         if (stored != null) {
-          final updated = state.tags.add(stored);
+          final updated = state.tags.add(stored!);
           state = state.copyWith(
             tags: updated,
             isSaving: false,
@@ -83,6 +84,7 @@ class TagsBloc extends _$TagsBloc {
         state = state.copyWith(isSaving: false);
       }
     }
+    return stored;
   }
 
   /// Update an existing editable tag.

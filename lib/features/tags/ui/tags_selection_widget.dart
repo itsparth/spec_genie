@@ -6,7 +6,7 @@ import '../models/tag.dart';
 import '../utils/tag_color_utils.dart';
 import 'tag_dialog.dart';
 
-class TagsSelectionWidget extends ConsumerStatefulWidget {
+class TagsSelectionWidget extends ConsumerWidget {
   final String selectionKey;
   final void Function(List<String>)? onTagsChanged;
   final void Function(List<Tag>)? onTagObjectsChanged;
@@ -25,37 +25,8 @@ class TagsSelectionWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<TagsSelectionWidget> createState() =>
-      _TagsSelectionWidgetState();
-}
-
-class _TagsSelectionWidgetState extends ConsumerState<TagsSelectionWidget> {
-  @override
-  Widget build(BuildContext context) {
-    final tagState = ref.watch(tagsBlocProvider);
-    final selectionState =
-        ref.watch(tagSelectionBlocProvider(widget.selectionKey));
-    final selectionBloc =
-        ref.read(tagSelectionBlocProvider(widget.selectionKey).notifier);
-
-    // Set up the callback for tag changes
-    selectionBloc.setOnTagsChanged(widget.onTagsChanged);
-
-    // Synchronize selected tags with available tags when tags change
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      selectionBloc.syncWithAvailableTags();
-    });
-
-    // If we have Tag objects callback, also set up a listener
-    if (widget.onTagObjectsChanged != null) {
-      final selectedTagObjects = tagState.tags
-          .where((tag) => selectionState.selectedTags.contains(tag.name))
-          .toList();
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.onTagObjectsChanged!(selectedTagObjects);
-      });
-    }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectionState = ref.watch(tagSelectionBlocProvider(selectionKey));
 
     return InkWell(
       onTap: () => _showTagSelectionPopup(context),
@@ -65,38 +36,42 @@ class _TagsSelectionWidgetState extends ConsumerState<TagsSelectionWidget> {
           border: Border.all(color: Colors.grey.shade300),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.label_outline,
-              size: 16,
-              color: Colors.grey.shade600,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: selectionState.selectedTags.isEmpty
-                  ? Text(
-                      widget.title ?? 'Select Tags',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 14,
+        child: SizedBox(
+          width: 200,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.label_outline,
+                size: 16,
+                color: Colors.grey.shade600,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: selectionState.selectedTags.isEmpty
+                    ? Text(
+                        title ?? 'Select Tags',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 14,
+                        ),
+                      )
+                    : Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: selectionState.selectedTags.map((tag) {
+                          return _CompactTagChip(tag: tag);
+                        }).toList(),
                       ),
-                    )
-                  : Wrap(
-                      spacing: 4,
-                      runSpacing: 4,
-                      children: selectionState.selectedTags.map((tagName) {
-                        return _CompactTagChip(tagName: tagName);
-                      }).toList(),
-                    ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 20,
-              color: Colors.grey.shade600,
-            ),
-          ],
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.arrow_drop_down,
+                size: 20,
+                color: Colors.grey.shade600,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -106,23 +81,23 @@ class _TagsSelectionWidgetState extends ConsumerState<TagsSelectionWidget> {
     showDialog<void>(
       context: context,
       builder: (context) => _TagSelectionPopup(
-        selectionKey: widget.selectionKey,
-        title: widget.title ?? 'Select Tags',
-        showCreateButton: widget.showCreateButton,
-        maxSelections: widget.maxSelections,
+        selectionKey: selectionKey,
+        title: title ?? 'Select Tags',
+        showCreateButton: showCreateButton,
+        maxSelections: maxSelections,
       ),
     );
   }
 }
 
 class _CompactTagChip extends StatelessWidget {
-  final String tagName;
+  final Tag tag;
 
-  const _CompactTagChip({required this.tagName});
+  const _CompactTagChip({required this.tag});
 
   @override
   Widget build(BuildContext context) {
-    final color = TagColorUtils.getTagColor(tagName);
+    final color = TagColorUtils.getTagColor(tag.name);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -132,7 +107,7 @@ class _CompactTagChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        tagName,
+        tag.name,
         style: TextStyle(
           color: color,
           fontSize: 12,
@@ -248,7 +223,7 @@ class _TagSelectionPopupState extends ConsumerState<_TagSelectionPopup> {
                   // Available tags
                   ...filteredTags.map((tag) {
                     final isSelected =
-                        selectionState.selectedTags.contains(tag.name);
+                        selectionState.selectedTags.any((t) => t.id == tag.id);
                     final canSelect = widget.maxSelections == null ||
                         selectionState.selectedTags.length <
                             widget.maxSelections! ||
@@ -260,9 +235,9 @@ class _TagSelectionPopupState extends ConsumerState<_TagSelectionPopup> {
                       canSelect: canSelect,
                       onTap: () {
                         if (isSelected) {
-                          selectionBloc.removeTag(tag.name);
+                          selectionBloc.removeTag(tag);
                         } else if (canSelect) {
-                          selectionBloc.addTag(tag.name);
+                          selectionBloc.addTag(tag);
                         }
                       },
                     );
@@ -307,9 +282,12 @@ class _TagSelectionPopupState extends ConsumerState<_TagSelectionPopup> {
       builder: (context) => TagDialog(
         tag: null,
         onSave: (String name, String description) async {
-          await tagsBloc.create(name: name, description: description);
+          final tag =
+              await tagsBloc.create(name: name, description: description);
           // Auto-select the newly created tag
-          selectionBloc.addTag(name);
+          if (tag != null) {
+            selectionBloc.addTag(tag);
+          }
           if (context.mounted) {
             Navigator.of(context).pop();
           }
