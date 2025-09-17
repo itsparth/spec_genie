@@ -58,7 +58,7 @@ final class ModesBlocProvider extends $NotifierProvider<ModesBloc, ModeState> {
   }
 }
 
-String _$modesBlocHash() => r'3c109f060f6e47ed3bd5be1226725a0653a979be';
+String _$modesBlocHash() => r'a4eb472b23a528f01440801c1fffe29b52889b14';
 
 /// Bloc responsible for managing modes list & persistence.
 /// Capabilities:

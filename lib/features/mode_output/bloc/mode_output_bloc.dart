@@ -1,12 +1,12 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:isar_community/isar.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:spec_genie/features/shared/isar/isar_provider.dart';
 
 import '../models/mode_output.dart';
 import '../../threads/models/thread.dart';
 import '../../modes/models/mode.dart';
-import '../../shared/isar_provider.dart';
-import 'mode_output_state.dart';
+import 'mode_outputs_state.dart';
 
 part 'mode_output_bloc.g.dart';
 
@@ -17,11 +17,11 @@ class ModeOutputBloc extends _$ModeOutputBloc {
   int? _modeId;
 
   @override
-  ModeOutputState build(int threadId, int modeId) {
+  ModeOutputsState build(int threadId, int modeId) {
     _threadId = threadId;
     _modeId = modeId;
     _loadOutputs(threadId, modeId);
-    return const ModeOutputState(isLoading: true);
+    return const ModeOutputsState(isLoading: true);
   }
 
   /// Load all outputs for the thread and mode combination
@@ -39,7 +39,6 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       state = state.copyWith(
         outputs: outputs.toIList(),
         isLoading: false,
-        isGenerating: false,
         currentIndex: outputs.isNotEmpty
             ? outputs.length - 1
             : 0, // Show latest by default
@@ -47,8 +46,6 @@ class ModeOutputBloc extends _$ModeOutputBloc {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        isGenerating: false,
-        error: e.toString(),
       );
     }
   }
@@ -57,8 +54,6 @@ class ModeOutputBloc extends _$ModeOutputBloc {
   Future<void> generateOutput({String? customPrompt}) async {
     final threadId = _threadId!;
     final modeId = _modeId!;
-
-    state = state.copyWith(isGenerating: true, error: null);
 
     try {
       final isar = ref.read(isarProvider);
@@ -93,10 +88,8 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       // Reload outputs to get the updated state
       await _loadOutputs(threadId, modeId);
     } catch (e) {
-      state = state.copyWith(
-        isGenerating: false,
-        error: e.toString(),
-      );
+      // Let the caller handle errors
+      rethrow;
     }
   }
 
@@ -152,12 +145,8 @@ class ModeOutputBloc extends _$ModeOutputBloc {
         currentIndex: newIndex.clamp(0, updatedOutputs.length - 1),
       );
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      // Let errors bubble up to be handled at a higher level
+      rethrow;
     }
-  }
-
-  /// Clear error state
-  void clearError() {
-    state = state.copyWith(error: null);
   }
 }

@@ -1,5 +1,4 @@
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 import '../models/mode_output.dart';
 
@@ -7,34 +6,37 @@ part 'mode_output_state.mapper.dart';
 
 @MappableClass()
 class ModeOutputState with ModeOutputStateMappable {
-  final IList<ModeOutput> outputs;
-  final bool isLoading;
+  final ModeOutput? output;
   final bool isGenerating;
   final String? error;
-  final int currentIndex;
 
   const ModeOutputState({
-    this.outputs = const IListConst([]),
-    this.isLoading = false,
+    this.output,
     this.isGenerating = false,
     this.error,
-    this.currentIndex = 0,
   });
 
-  /// Get the current mode output being displayed
-  ModeOutput? get currentOutput {
-    if (outputs.isEmpty || currentIndex < 0 || currentIndex >= outputs.length) {
-      return null;
-    }
-    return outputs[currentIndex];
-  }
+  /// Create a loading state while generating
+  const ModeOutputState.generating({
+    this.output,
+    this.error,
+  }) : isGenerating = true;
 
-  /// Check if we can navigate to previous output
-  bool get canGoBack => currentIndex > 0;
+  /// Create a completed state with output
+  const ModeOutputState.completed({
+    required this.output,
+    this.error,
+  }) : isGenerating = false;
 
-  /// Check if we can navigate to next output
-  bool get canGoForward => currentIndex < outputs.length - 1;
+  /// Create an error state
+  const ModeOutputState.error({
+    this.output,
+    required this.error,
+  }) : isGenerating = false;
 
-  /// Get the total number of outputs
-  int get totalOutputs => outputs.length;
+  /// Check if we have valid output
+  bool get hasOutput => output != null;
+
+  /// Check if we're in a ready state (not loading, no errors)
+  bool get isReady => !isGenerating && error == null;
 }

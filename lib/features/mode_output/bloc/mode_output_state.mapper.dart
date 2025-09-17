@@ -22,19 +22,11 @@ class ModeOutputStateMapper extends ClassMapperBase<ModeOutputState> {
   @override
   final String id = 'ModeOutputState';
 
-  static IList<ModeOutput> _$outputs(ModeOutputState v) => v.outputs;
-  static const Field<ModeOutputState, IList<ModeOutput>> _f$outputs = Field(
-    'outputs',
-    _$outputs,
+  static ModeOutput? _$output(ModeOutputState v) => v.output;
+  static const Field<ModeOutputState, ModeOutput> _f$output = Field(
+    'output',
+    _$output,
     opt: true,
-    def: const IListConst([]),
-  );
-  static bool _$isLoading(ModeOutputState v) => v.isLoading;
-  static const Field<ModeOutputState, bool> _f$isLoading = Field(
-    'isLoading',
-    _$isLoading,
-    opt: true,
-    def: false,
   );
   static bool _$isGenerating(ModeOutputState v) => v.isGenerating;
   static const Field<ModeOutputState, bool> _f$isGenerating = Field(
@@ -49,58 +41,33 @@ class ModeOutputStateMapper extends ClassMapperBase<ModeOutputState> {
     _$error,
     opt: true,
   );
-  static int _$currentIndex(ModeOutputState v) => v.currentIndex;
-  static const Field<ModeOutputState, int> _f$currentIndex = Field(
-    'currentIndex',
-    _$currentIndex,
-    opt: true,
-    def: 0,
-  );
-  static ModeOutput? _$currentOutput(ModeOutputState v) => v.currentOutput;
-  static const Field<ModeOutputState, ModeOutput> _f$currentOutput = Field(
-    'currentOutput',
-    _$currentOutput,
+  static bool _$hasOutput(ModeOutputState v) => v.hasOutput;
+  static const Field<ModeOutputState, bool> _f$hasOutput = Field(
+    'hasOutput',
+    _$hasOutput,
     mode: FieldMode.member,
   );
-  static bool _$canGoBack(ModeOutputState v) => v.canGoBack;
-  static const Field<ModeOutputState, bool> _f$canGoBack = Field(
-    'canGoBack',
-    _$canGoBack,
-    mode: FieldMode.member,
-  );
-  static bool _$canGoForward(ModeOutputState v) => v.canGoForward;
-  static const Field<ModeOutputState, bool> _f$canGoForward = Field(
-    'canGoForward',
-    _$canGoForward,
-    mode: FieldMode.member,
-  );
-  static int _$totalOutputs(ModeOutputState v) => v.totalOutputs;
-  static const Field<ModeOutputState, int> _f$totalOutputs = Field(
-    'totalOutputs',
-    _$totalOutputs,
+  static bool _$isReady(ModeOutputState v) => v.isReady;
+  static const Field<ModeOutputState, bool> _f$isReady = Field(
+    'isReady',
+    _$isReady,
     mode: FieldMode.member,
   );
 
   @override
   final MappableFields<ModeOutputState> fields = const {
-    #outputs: _f$outputs,
-    #isLoading: _f$isLoading,
+    #output: _f$output,
     #isGenerating: _f$isGenerating,
     #error: _f$error,
-    #currentIndex: _f$currentIndex,
-    #currentOutput: _f$currentOutput,
-    #canGoBack: _f$canGoBack,
-    #canGoForward: _f$canGoForward,
-    #totalOutputs: _f$totalOutputs,
+    #hasOutput: _f$hasOutput,
+    #isReady: _f$isReady,
   };
 
   static ModeOutputState _instantiate(DecodingData data) {
     return ModeOutputState(
-      outputs: data.dec(_f$outputs),
-      isLoading: data.dec(_f$isLoading),
+      output: data.dec(_f$output),
       isGenerating: data.dec(_f$isGenerating),
       error: data.dec(_f$error),
-      currentIndex: data.dec(_f$currentIndex),
     );
   }
 
@@ -166,13 +133,8 @@ extension ModeOutputStateValueCopy<$R, $Out>
 
 abstract class ModeOutputStateCopyWith<$R, $In extends ModeOutputState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({
-    IList<ModeOutput>? outputs,
-    bool? isLoading,
-    bool? isGenerating,
-    String? error,
-    int? currentIndex,
-  });
+  ModeOutputCopyWith<$R, ModeOutput, ModeOutput>? get output;
+  $R call({ModeOutput? output, bool? isGenerating, String? error});
   ModeOutputStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -187,28 +149,25 @@ class _ModeOutputStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<ModeOutputState> $mapper =
       ModeOutputStateMapper.ensureInitialized();
   @override
+  ModeOutputCopyWith<$R, ModeOutput, ModeOutput>? get output =>
+      $value.output?.copyWith.$chain((v) => call(output: v));
+  @override
   $R call({
-    IList<ModeOutput>? outputs,
-    bool? isLoading,
+    Object? output = $none,
     bool? isGenerating,
     Object? error = $none,
-    int? currentIndex,
   }) => $apply(
     FieldCopyWithData({
-      if (outputs != null) #outputs: outputs,
-      if (isLoading != null) #isLoading: isLoading,
+      if (output != $none) #output: output,
       if (isGenerating != null) #isGenerating: isGenerating,
       if (error != $none) #error: error,
-      if (currentIndex != null) #currentIndex: currentIndex,
     }),
   );
   @override
   ModeOutputState $make(CopyWithData data) => ModeOutputState(
-    outputs: data.get(#outputs, or: $value.outputs),
-    isLoading: data.get(#isLoading, or: $value.isLoading),
+    output: data.get(#output, or: $value.output),
     isGenerating: data.get(#isGenerating, or: $value.isGenerating),
     error: data.get(#error, or: $value.error),
-    currentIndex: data.get(#currentIndex, or: $value.currentIndex),
   );
 
   @override

@@ -15,7 +15,7 @@ const modeOutputBlocProvider = ModeOutputBlocFamily._();
 
 /// Manages mode outputs for a specific thread and mode combination
 final class ModeOutputBlocProvider
-    extends $NotifierProvider<ModeOutputBloc, ModeOutputState> {
+    extends $NotifierProvider<ModeOutputBloc, ModeOutputsState> {
   /// Manages mode outputs for a specific thread and mode combination
   const ModeOutputBlocProvider._(
       {required ModeOutputBlocFamily super.from,
@@ -47,10 +47,10 @@ final class ModeOutputBlocProvider
   ModeOutputBloc create() => ModeOutputBloc();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ModeOutputState value) {
+  Override overrideWithValue(ModeOutputsState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<ModeOutputState>(value),
+      providerOverride: $SyncValueProvider<ModeOutputsState>(value),
     );
   }
 
@@ -65,7 +65,7 @@ final class ModeOutputBlocProvider
   }
 }
 
-String _$modeOutputBlocHash() => r'8b82b2530bf10b80339325466af85a7a097f61a6';
+String _$modeOutputBlocHash() => r'3481790488b348be19164deec2102f497ffa2cd8';
 
 /// Manages mode outputs for a specific thread and mode combination
 
@@ -73,9 +73,9 @@ final class ModeOutputBlocFamily extends $Family
     with
         $ClassFamilyOverride<
             ModeOutputBloc,
-            ModeOutputState,
-            ModeOutputState,
-            ModeOutputState,
+            ModeOutputsState,
+            ModeOutputsState,
+            ModeOutputsState,
             (
               int,
               int,
@@ -106,7 +106,7 @@ final class ModeOutputBlocFamily extends $Family
 
 /// Manages mode outputs for a specific thread and mode combination
 
-abstract class _$ModeOutputBloc extends $Notifier<ModeOutputState> {
+abstract class _$ModeOutputBloc extends $Notifier<ModeOutputsState> {
   late final _$args = ref.$arg as (
     int,
     int,
@@ -114,7 +114,7 @@ abstract class _$ModeOutputBloc extends $Notifier<ModeOutputState> {
   int get threadId => _$args.$1;
   int get modeId => _$args.$2;
 
-  ModeOutputState build(
+  ModeOutputsState build(
     int threadId,
     int modeId,
   );
@@ -125,10 +125,10 @@ abstract class _$ModeOutputBloc extends $Notifier<ModeOutputState> {
       _$args.$1,
       _$args.$2,
     );
-    final ref = this.ref as $Ref<ModeOutputState, ModeOutputState>;
+    final ref = this.ref as $Ref<ModeOutputsState, ModeOutputsState>;
     final element = ref.element as $ClassProviderElement<
-        AnyNotifier<ModeOutputState, ModeOutputState>,
-        ModeOutputState,
+        AnyNotifier<ModeOutputsState, ModeOutputsState>,
+        ModeOutputsState,
         Object?,
         Object?>;
     element.handleValue(ref, created);

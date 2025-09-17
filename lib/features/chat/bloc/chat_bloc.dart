@@ -1,11 +1,11 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:isar_community/isar.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:spec_genie/features/shared/isar/isar_provider.dart';
 import 'package:spec_genie/features/threads/models/thread.dart';
 
 import '../models/message.dart';
 import '../../tags/models/tag.dart';
-import '../../shared/isar_provider.dart';
 import 'chat_state.dart';
 import 'message_state.dart';
 

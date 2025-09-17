@@ -1,7 +1,7 @@
 import 'package:isar_community/isar.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:spec_genie/features/shared/isar/isar_provider.dart';
 import '../models/configuration.dart';
-import '../../shared/isar_provider.dart';
 
 part 'configuration_bloc.g.dart';
 

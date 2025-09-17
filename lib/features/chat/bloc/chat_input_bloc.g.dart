@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'media_bloc.dart';
+part of 'chat_input_bloc.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,50 +9,50 @@ part of 'media_bloc.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(MediaBloc)
-const mediaBlocProvider = MediaBlocProvider._();
+@ProviderFor(ChatInputBloc)
+const chatInputBlocProvider = ChatInputBlocProvider._();
 
-final class MediaBlocProvider
-    extends $NotifierProvider<MediaBloc, List<MediaAttachment>> {
-  const MediaBlocProvider._()
+final class ChatInputBlocProvider
+    extends $NotifierProvider<ChatInputBloc, ChatInputState> {
+  const ChatInputBlocProvider._()
       : super(
           from: null,
           argument: null,
           retry: null,
-          name: r'mediaBlocProvider',
+          name: r'chatInputBlocProvider',
           isAutoDispose: true,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
 
   @override
-  String debugGetCreateSourceHash() => _$mediaBlocHash();
+  String debugGetCreateSourceHash() => _$chatInputBlocHash();
 
   @$internal
   @override
-  MediaBloc create() => MediaBloc();
+  ChatInputBloc create() => ChatInputBloc();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<MediaAttachment> value) {
+  Override overrideWithValue(ChatInputState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<List<MediaAttachment>>(value),
+      providerOverride: $SyncValueProvider<ChatInputState>(value),
     );
   }
 }
 
-String _$mediaBlocHash() => r'8c96bd44b1fe2d6e58a490fff7176c3bc3feddbc';
+String _$chatInputBlocHash() => r'c7a9671efb21bd3ceec8d344c37deab60b5ae1be';
 
-abstract class _$MediaBloc extends $Notifier<List<MediaAttachment>> {
-  List<MediaAttachment> build();
+abstract class _$ChatInputBloc extends $Notifier<ChatInputState> {
+  ChatInputState build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<List<MediaAttachment>, List<MediaAttachment>>;
+    final ref = this.ref as $Ref<ChatInputState, ChatInputState>;
     final element = ref.element as $ClassProviderElement<
-        AnyNotifier<List<MediaAttachment>, List<MediaAttachment>>,
-        List<MediaAttachment>,
+        AnyNotifier<ChatInputState, ChatInputState>,
+        ChatInputState,
         Object?,
         Object?>;
     element.handleValue(ref, created);
