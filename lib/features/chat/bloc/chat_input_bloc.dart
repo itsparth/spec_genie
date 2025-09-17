@@ -12,10 +12,15 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 import '../models/chat_input.dart';
 import '../utils/input_utils.dart';
+import '../utils/chat_input_converter.dart';
 import 'chat_input_state.dart';
+import 'chat_bloc.dart';
+import '../../shared/isar/isar_provider.dart';
+import '../../threads/models/thread.dart';
 
 part 'chat_input_bloc.g.dart';
 
+/// Manages chat input state for a specific thread
 @riverpod
 class ChatInputBloc extends _$ChatInputBloc {
   static const _uuid = Uuid();
@@ -348,6 +353,40 @@ class ChatInputBloc extends _$ChatInputBloc {
       currentMode: ChatInputMode.text,
       audioState: const AudioRecordingState(),
     );
+  }
+
+  /// Send all prepared inputs as messages to the specified thread
+  Future<void> sendMessage(int threadId) async {
+    // Get the prepared inputs
+    final inputs = prepareInputsForSending();
+
+    if (inputs.isEmpty) return;
+
+    // Clear inputs immediately to provide responsive UI
+    clearAllInputs();
+
+    try {
+      // Get the chat bloc and the thread
+      final chatBloc = ref.read(chatBlocProvider(threadId).notifier);
+      final isar = ref.read(isarProvider);
+      final thread = await isar.threads.get(threadId);
+
+      if (thread == null) {
+        throw Exception('Thread not found');
+      }
+
+      // Convert each input to a message and link to thread
+      for (final input in inputs) {
+        final message = ChatInputConverter.convertChatInputToMessage(input);
+        // Link message to thread
+        message.thread.value = thread;
+        await chatBloc.addMessage(message);
+      }
+    } catch (e) {
+      // TODO: Handle error - maybe show a snackbar or add to error state
+      // For now, just rethrow
+      rethrow;
+    }
   }
 
   // Private helper methods

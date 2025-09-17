@@ -4,12 +4,12 @@ import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:spec_genie/features/shared/isar/isar_provider.dart';
 import 'package:spec_genie/features/tags/models/tag.dart';
+import 'package:spec_genie/routing/app_router.dart';
 import 'features/configuration/models/configuration.dart';
 import 'features/chat/models/message.dart';
 import 'features/threads/models/thread.dart';
 import 'features/modes/models/mode.dart';
 import 'features/mode_output/models/mode_output.dart';
-import 'features/chat/widgets/chat_input_test_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,13 +43,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Spec Genie - Chat Input Test',
+    return MaterialApp.router(
+      title: 'Spec Genie',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const SizedBox(),
+      routerConfig: AppRouter.router,
       debugShowCheckedModeBanner: false,
     );
   }

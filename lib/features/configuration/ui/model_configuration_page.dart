@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../routing/routes/app_routes.dart';
 import '../bloc/configuration_bloc.dart';
 
 class ModelConfigurationPage extends ConsumerWidget {
@@ -65,7 +66,8 @@ class ModelConfigurationPage extends ConsumerWidget {
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.of(context).pop();
+          // Navigate to threads page after successful configuration
+          const ThreadsRoute().go(context);
         }
       } catch (e) {
         if (context.mounted) {

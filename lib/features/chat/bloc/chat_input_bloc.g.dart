@@ -8,12 +8,15 @@ part of 'chat_input_bloc.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Manages chat input state for a specific thread
 
 @ProviderFor(ChatInputBloc)
 const chatInputBlocProvider = ChatInputBlocProvider._();
 
+/// Manages chat input state for a specific thread
 final class ChatInputBlocProvider
     extends $NotifierProvider<ChatInputBloc, ChatInputState> {
+  /// Manages chat input state for a specific thread
   const ChatInputBlocProvider._()
       : super(
           from: null,
@@ -41,7 +44,9 @@ final class ChatInputBlocProvider
   }
 }
 
-String _$chatInputBlocHash() => r'2c70f9ce0704736b60d3013516ec0df468b7cfa5';
+String _$chatInputBlocHash() => r'ba3291d64f4e129963a912271da75cfb4f2cdd10';
+
+/// Manages chat input state for a specific thread
 
 abstract class _$ChatInputBloc extends $Notifier<ChatInputState> {
   ChatInputState build();

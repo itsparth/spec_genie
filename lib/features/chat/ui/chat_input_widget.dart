@@ -11,12 +11,14 @@ import '../models/chat_input.dart';
 /// Secondary actions: File selection, image selection
 /// Text input always available
 class ChatInputWidget extends ConsumerStatefulWidget {
+  final int threadId;
   final VoidCallback? onSend;
   final String? hintText;
   final EdgeInsets? padding;
 
   const ChatInputWidget({
     super.key,
+    required this.threadId,
     this.onSend,
     this.hintText,
     this.padding,
@@ -484,20 +486,25 @@ class _ChatInputWidgetState extends ConsumerState<ChatInputWidget>
     });
   }
 
-  void _handleSend(ChatInputBloc chatInputBloc) {
+  void _handleSend(ChatInputBloc chatInputBloc) async {
+    // Check if there are inputs to send
     final inputs = chatInputBloc.prepareInputsForSending();
     if (inputs.isNotEmpty) {
       // Clear the text controller
       _textController.clear();
 
-      // Clear all inputs
-      chatInputBloc.clearAllInputs();
+      try {
+        // Send the message using the bloc
+        await chatInputBloc.sendMessage(widget.threadId);
 
-      // Call the onSend callback if provided
-      widget.onSend?.call();
-
-      // TODO: Send inputs to chat service
-      // This would typically involve calling a chat service or API
+        // Call the onSend callback if provided
+        widget.onSend?.call();
+      } catch (e) {
+        // Handle error - for now just clear the inputs and rethrow
+        chatInputBloc.clearAllInputs();
+        // TODO: Show error message to user
+        rethrow;
+      }
     }
   }
 
