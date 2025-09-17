@@ -15,7 +15,7 @@ part 'modes_bloc.g.dart';
 ///  - (Selection removed per current requirements)
 @riverpod
 class ModesBloc extends _$ModesBloc {
-  static const _defaultModes = [
+  final _defaultModes = [
     Mode(
         id: Isar.autoIncrement,
         name: 'Default Mode',

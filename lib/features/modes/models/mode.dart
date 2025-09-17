@@ -1,6 +1,8 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../mode_output/models/mode_output.dart';
+
 part 'mode.mapper.dart';
 part 'mode.g.dart';
 
@@ -12,7 +14,10 @@ class Mode with ModeMappable {
   final String prompt;
   final bool isEditable;
 
-  const Mode({
+  @Backlink(to: 'mode')
+  final modeOutputs = IsarLinks<ModeOutput>();
+
+  Mode({
     this.id = Isar.autoIncrement,
     required this.name,
     required this.prompt,

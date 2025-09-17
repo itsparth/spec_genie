@@ -46,6 +46,12 @@ class ThreadMapper extends ClassMapperBase<Thread> {
     _$messages,
     mode: FieldMode.member,
   );
+  static IsarLinks<ModeOutput> _$modeOutputs(Thread v) => v.modeOutputs;
+  static const Field<Thread, IsarLinks<ModeOutput>> _f$modeOutputs = Field(
+    'modeOutputs',
+    _$modeOutputs,
+    mode: FieldMode.member,
+  );
 
   @override
   final MappableFields<Thread> fields = const {
@@ -53,6 +59,7 @@ class ThreadMapper extends ClassMapperBase<Thread> {
     #name: _f$name,
     #createdAt: _f$createdAt,
     #messages: _f$messages,
+    #modeOutputs: _f$modeOutputs,
   };
 
   static Thread _instantiate(DecodingData data) {

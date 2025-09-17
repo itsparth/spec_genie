@@ -39,6 +39,12 @@ class ModeMapper extends ClassMapperBase<Mode> {
     opt: true,
     def: true,
   );
+  static IsarLinks<ModeOutput> _$modeOutputs(Mode v) => v.modeOutputs;
+  static const Field<Mode, IsarLinks<ModeOutput>> _f$modeOutputs = Field(
+    'modeOutputs',
+    _$modeOutputs,
+    mode: FieldMode.member,
+  );
 
   @override
   final MappableFields<Mode> fields = const {
@@ -46,6 +52,7 @@ class ModeMapper extends ClassMapperBase<Mode> {
     #name: _f$name,
     #prompt: _f$prompt,
     #isEditable: _f$isEditable,
+    #modeOutputs: _f$modeOutputs,
   };
 
   static Mode _instantiate(DecodingData data) {
@@ -115,22 +122,23 @@ class _ModeCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Mode, $Out>
   late final ClassMapperBase<Mode> $mapper = ModeMapper.ensureInitialized();
   @override
   $R call({int? id, String? name, String? prompt, bool? isEditable}) => $apply(
-        FieldCopyWithData({
-          if (id != null) #id: id,
-          if (name != null) #name: name,
-          if (prompt != null) #prompt: prompt,
-          if (isEditable != null) #isEditable: isEditable,
-        }),
-      );
+    FieldCopyWithData({
+      if (id != null) #id: id,
+      if (name != null) #name: name,
+      if (prompt != null) #prompt: prompt,
+      if (isEditable != null) #isEditable: isEditable,
+    }),
+  );
   @override
   Mode $make(CopyWithData data) => Mode(
-        id: data.get(#id, or: $value.id),
-        name: data.get(#name, or: $value.name),
-        prompt: data.get(#prompt, or: $value.prompt),
-        isEditable: data.get(#isEditable, or: $value.isEditable),
-      );
+    id: data.get(#id, or: $value.id),
+    name: data.get(#name, or: $value.name),
+    prompt: data.get(#prompt, or: $value.prompt),
+    isEditable: data.get(#isEditable, or: $value.isEditable),
+  );
 
   @override
   ModeCopyWith<$R2, Mode, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
       _ModeCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
+

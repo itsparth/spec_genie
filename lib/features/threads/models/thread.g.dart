@@ -41,6 +41,13 @@ const ThreadSchema = CollectionSchema(
       target: r'Message',
       single: false,
       linkName: r'thread',
+    ),
+    r'modeOutputs': LinkSchema(
+      id: 1397954209724524950,
+      name: r'modeOutputs',
+      target: r'ModeOutput',
+      single: false,
+      linkName: r'thread',
     )
   },
   embeddedSchemas: {},
@@ -105,12 +112,14 @@ Id _threadGetId(Thread object) {
 }
 
 List<IsarLinkBase<dynamic>> _threadGetLinks(Thread object) {
-  return [object.messages];
+  return [object.messages, object.modeOutputs];
 }
 
 void _threadAttach(IsarCollection<dynamic> col, Id id, Thread object) {
   object.id = id;
   object.messages.attach(col, col.isar.collection<Message>(), r'messages', id);
+  object.modeOutputs
+      .attach(col, col.isar.collection<ModeOutput>(), r'modeOutputs', id);
 }
 
 extension ThreadQueryWhereSort on QueryBuilder<Thread, Thread, QWhere> {
@@ -480,6 +489,63 @@ extension ThreadQueryLinks on QueryBuilder<Thread, Thread, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(
           r'messages', lower, includeLower, upper, includeUpper);
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> modeOutputs(
+      FilterQuery<ModeOutput> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'modeOutputs');
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> modeOutputsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'modeOutputs', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> modeOutputsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'modeOutputs', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> modeOutputsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'modeOutputs', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> modeOutputsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'modeOutputs', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition>
+      modeOutputsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'modeOutputs', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> modeOutputsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'modeOutputs', lower, includeLower, upper, includeUpper);
     });
   }
 }

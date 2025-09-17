@@ -39,7 +39,15 @@ const ModeSchema = CollectionSchema(
   deserializeProp: _modeDeserializeProp,
   idName: r'id',
   indexes: {},
-  links: {},
+  links: {
+    r'modeOutputs': LinkSchema(
+      id: -8722592588047217114,
+      name: r'modeOutputs',
+      target: r'ModeOutput',
+      single: false,
+      linkName: r'mode',
+    )
+  },
   embeddedSchemas: {},
   getId: _modeGetId,
   getLinks: _modeGetLinks,
@@ -107,10 +115,13 @@ Id _modeGetId(Mode object) {
 }
 
 List<IsarLinkBase<dynamic>> _modeGetLinks(Mode object) {
-  return [];
+  return [object.modeOutputs];
 }
 
-void _modeAttach(IsarCollection<dynamic> col, Id id, Mode object) {}
+void _modeAttach(IsarCollection<dynamic> col, Id id, Mode object) {
+  object.modeOutputs
+      .attach(col, col.isar.collection<ModeOutput>(), r'modeOutputs', id);
+}
 
 extension ModeQueryWhereSort on QueryBuilder<Mode, Mode, QWhere> {
   QueryBuilder<Mode, Mode, QAfterWhere> anyId() {
@@ -509,7 +520,63 @@ extension ModeQueryFilter on QueryBuilder<Mode, Mode, QFilterCondition> {
 
 extension ModeQueryObject on QueryBuilder<Mode, Mode, QFilterCondition> {}
 
-extension ModeQueryLinks on QueryBuilder<Mode, Mode, QFilterCondition> {}
+extension ModeQueryLinks on QueryBuilder<Mode, Mode, QFilterCondition> {
+  QueryBuilder<Mode, Mode, QAfterFilterCondition> modeOutputs(
+      FilterQuery<ModeOutput> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'modeOutputs');
+    });
+  }
+
+  QueryBuilder<Mode, Mode, QAfterFilterCondition> modeOutputsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'modeOutputs', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<Mode, Mode, QAfterFilterCondition> modeOutputsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'modeOutputs', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Mode, Mode, QAfterFilterCondition> modeOutputsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'modeOutputs', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Mode, Mode, QAfterFilterCondition> modeOutputsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'modeOutputs', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<Mode, Mode, QAfterFilterCondition> modeOutputsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'modeOutputs', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<Mode, Mode, QAfterFilterCondition> modeOutputsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'modeOutputs', lower, includeLower, upper, includeUpper);
+    });
+  }
+}
 
 extension ModeQuerySortBy on QueryBuilder<Mode, Mode, QSortBy> {
   QueryBuilder<Mode, Mode, QAfterSortBy> sortByIsEditable() {

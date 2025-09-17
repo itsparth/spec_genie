@@ -77,7 +77,8 @@ class ModeOutputBloc extends _$ModeOutputBloc {
 
       // Create the completed output with generated content
       final completedOutput = ModeOutput.completed(
-        content: 'Generated content for mode "${mode.name}" in thread "${thread.name}".\n\nThis is placeholder content that would be replaced with actual AI-generated content.',
+        content:
+            'Generated content for mode "${mode.name}" in thread "${thread.name}".\n\nThis is placeholder content that would be replaced with actual AI-generated content.',
       );
 
       // Save to database and link relationships
