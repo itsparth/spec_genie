@@ -17,23 +17,18 @@ const ModeSchema = CollectionSchema(
   name: r'Mode',
   id: 3076873523501394021,
   properties: {
-    r'isDefault': PropertySchema(
-      id: 0,
-      name: r'isDefault',
-      type: IsarType.bool,
-    ),
     r'isEditable': PropertySchema(
-      id: 1,
+      id: 0,
       name: r'isEditable',
       type: IsarType.bool,
     ),
     r'name': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'name',
       type: IsarType.string,
     ),
     r'prompt': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'prompt',
       type: IsarType.string,
     )
@@ -69,10 +64,9 @@ void _modeSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeBool(offsets[0], object.isDefault);
-  writer.writeBool(offsets[1], object.isEditable);
-  writer.writeString(offsets[2], object.name);
-  writer.writeString(offsets[3], object.prompt);
+  writer.writeBool(offsets[0], object.isEditable);
+  writer.writeString(offsets[1], object.name);
+  writer.writeString(offsets[2], object.prompt);
 }
 
 Mode _modeDeserialize(
@@ -83,9 +77,9 @@ Mode _modeDeserialize(
 ) {
   final object = Mode(
     id: id,
-    isDefault: reader.readBoolOrNull(offsets[0]) ?? false,
-    name: reader.readString(offsets[2]),
-    prompt: reader.readString(offsets[3]),
+    isEditable: reader.readBoolOrNull(offsets[0]) ?? true,
+    name: reader.readString(offsets[1]),
+    prompt: reader.readString(offsets[2]),
   );
   return object;
 }
@@ -98,12 +92,10 @@ P _modeDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
+      return (reader.readBoolOrNull(offset) ?? true) as P;
     case 1:
-      return (reader.readBool(offset)) as P;
-    case 2:
       return (reader.readString(offset)) as P;
-    case 3:
+    case 2:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -244,15 +236,6 @@ extension ModeQueryFilter on QueryBuilder<Mode, Mode, QFilterCondition> {
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Mode, Mode, QAfterFilterCondition> isDefaultEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isDefault',
-        value: value,
       ));
     });
   }
@@ -529,18 +512,6 @@ extension ModeQueryObject on QueryBuilder<Mode, Mode, QFilterCondition> {}
 extension ModeQueryLinks on QueryBuilder<Mode, Mode, QFilterCondition> {}
 
 extension ModeQuerySortBy on QueryBuilder<Mode, Mode, QSortBy> {
-  QueryBuilder<Mode, Mode, QAfterSortBy> sortByIsDefault() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isDefault', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Mode, Mode, QAfterSortBy> sortByIsDefaultDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isDefault', Sort.desc);
-    });
-  }
-
   QueryBuilder<Mode, Mode, QAfterSortBy> sortByIsEditable() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isEditable', Sort.asc);
@@ -591,18 +562,6 @@ extension ModeQuerySortThenBy on QueryBuilder<Mode, Mode, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Mode, Mode, QAfterSortBy> thenByIsDefault() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isDefault', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Mode, Mode, QAfterSortBy> thenByIsDefaultDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isDefault', Sort.desc);
-    });
-  }
-
   QueryBuilder<Mode, Mode, QAfterSortBy> thenByIsEditable() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isEditable', Sort.asc);
@@ -641,12 +600,6 @@ extension ModeQuerySortThenBy on QueryBuilder<Mode, Mode, QSortThenBy> {
 }
 
 extension ModeQueryWhereDistinct on QueryBuilder<Mode, Mode, QDistinct> {
-  QueryBuilder<Mode, Mode, QDistinct> distinctByIsDefault() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isDefault');
-    });
-  }
-
   QueryBuilder<Mode, Mode, QDistinct> distinctByIsEditable() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isEditable');
@@ -672,12 +625,6 @@ extension ModeQueryProperty on QueryBuilder<Mode, Mode, QQueryProperty> {
   QueryBuilder<Mode, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
-    });
-  }
-
-  QueryBuilder<Mode, bool, QQueryOperations> isDefaultProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isDefault');
     });
   }
 

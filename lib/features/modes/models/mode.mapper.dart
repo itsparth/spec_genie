@@ -32,18 +32,12 @@ class ModeMapper extends ClassMapperBase<Mode> {
   static const Field<Mode, String> _f$name = Field('name', _$name);
   static String _$prompt(Mode v) => v.prompt;
   static const Field<Mode, String> _f$prompt = Field('prompt', _$prompt);
-  static bool _$isDefault(Mode v) => v.isDefault;
-  static const Field<Mode, bool> _f$isDefault = Field(
-    'isDefault',
-    _$isDefault,
-    opt: true,
-    def: false,
-  );
   static bool _$isEditable(Mode v) => v.isEditable;
   static const Field<Mode, bool> _f$isEditable = Field(
     'isEditable',
     _$isEditable,
-    mode: FieldMode.member,
+    opt: true,
+    def: true,
   );
 
   @override
@@ -51,7 +45,6 @@ class ModeMapper extends ClassMapperBase<Mode> {
     #id: _f$id,
     #name: _f$name,
     #prompt: _f$prompt,
-    #isDefault: _f$isDefault,
     #isEditable: _f$isEditable,
   };
 
@@ -60,7 +53,7 @@ class ModeMapper extends ClassMapperBase<Mode> {
       id: data.dec(_f$id),
       name: data.dec(_f$name),
       prompt: data.dec(_f$prompt),
-      isDefault: data.dec(_f$isDefault),
+      isEditable: data.dec(_f$isEditable),
     );
   }
 
@@ -110,7 +103,7 @@ extension ModeValueCopy<$R, $Out> on ObjectCopyWith<$R, Mode, $Out> {
 
 abstract class ModeCopyWith<$R, $In extends Mode, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({int? id, String? name, String? prompt, bool? isDefault});
+  $R call({int? id, String? name, String? prompt, bool? isEditable});
   ModeCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -121,12 +114,12 @@ class _ModeCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Mode, $Out>
   @override
   late final ClassMapperBase<Mode> $mapper = ModeMapper.ensureInitialized();
   @override
-  $R call({int? id, String? name, String? prompt, bool? isDefault}) => $apply(
+  $R call({int? id, String? name, String? prompt, bool? isEditable}) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
       if (name != null) #name: name,
       if (prompt != null) #prompt: prompt,
-      if (isDefault != null) #isDefault: isDefault,
+      if (isEditable != null) #isEditable: isEditable,
     }),
   );
   @override
@@ -134,7 +127,7 @@ class _ModeCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Mode, $Out>
     id: data.get(#id, or: $value.id),
     name: data.get(#name, or: $value.name),
     prompt: data.get(#prompt, or: $value.prompt),
-    isDefault: data.get(#isDefault, or: $value.isDefault),
+    isEditable: data.get(#isEditable, or: $value.isEditable),
   );
 
   @override

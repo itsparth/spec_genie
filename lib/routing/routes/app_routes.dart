@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../features/home/home_screen.dart';
-import '../../features/configuration/configuration_screen.dart';
-import '../../features/chat/chat_screen.dart';
-
 part 'app_routes.g.dart';
 
 @TypedGoRoute<HomeScreenRoute>(
@@ -23,7 +18,7 @@ class HomeScreenRoute extends GoRouteData with $HomeScreenRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const HomeScreen();
+    return const SizedBox();
   }
 }
 
@@ -32,7 +27,7 @@ class ConfigurationRoute extends GoRouteData with $ConfigurationRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const ConfigurationScreen();
+    return const SizedBox();
   }
 }
 
@@ -43,6 +38,6 @@ class ChatRoute extends GoRouteData with $ChatRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return ChatScreen(threadId: threadId);
+    return const SizedBox();
   }
 }
