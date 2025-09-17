@@ -35,8 +35,6 @@ class Message with MessageMappable {
     this.transcript,
     this.fileName,
   });
-
-
 }
 
 @MappableEnum()

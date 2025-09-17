@@ -39,6 +39,9 @@ dependencies:
   # Code Generation (Runtime)
   dart_mappable: ^4.6.1
 
+  # Fast Immutable Collections
+  fast_immutable_collections: ^11.0.4
+
   # AI Integration
   openai_dart: ^0.5.5
   http: ^1.3.0

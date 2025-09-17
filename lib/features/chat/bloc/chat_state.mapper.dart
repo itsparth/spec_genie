@@ -14,7 +14,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
   static ChatStateMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = ChatStateMapper._());
-      MessageMapper.ensureInitialized();
+      MessageStateMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -22,8 +22,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
   @override
   final String id = 'ChatState';
 
-  static IList<Message> _$messages(ChatState v) => v.messages;
-  static const Field<ChatState, IList<Message>> _f$messages = Field(
+  static IList<MessageState> _$messages(ChatState v) => v.messages;
+  static const Field<ChatState, IList<MessageState>> _f$messages = Field(
     'messages',
     _$messages,
     opt: true,
@@ -36,26 +36,17 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: false,
   );
-  static bool _$isSaving(ChatState v) => v.isSaving;
-  static const Field<ChatState, bool> _f$isSaving = Field(
-    'isSaving',
-    _$isSaving,
-    opt: true,
-    def: false,
-  );
 
   @override
   final MappableFields<ChatState> fields = const {
     #messages: _f$messages,
     #isLoading: _f$isLoading,
-    #isSaving: _f$isSaving,
   };
 
   static ChatState _instantiate(DecodingData data) {
     return ChatState(
       messages: data.dec(_f$messages),
       isLoading: data.dec(_f$isLoading),
-      isSaving: data.dec(_f$isSaving),
     );
   }
 
@@ -118,7 +109,7 @@ extension ChatStateValueCopy<$R, $Out> on ObjectCopyWith<$R, ChatState, $Out> {
 
 abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({IList<Message>? messages, bool? isLoading, bool? isSaving});
+  $R call({IList<MessageState>? messages, bool? isLoading});
   ChatStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -131,19 +122,16 @@ class _ChatStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<ChatState> $mapper =
       ChatStateMapper.ensureInitialized();
   @override
-  $R call({IList<Message>? messages, bool? isLoading, bool? isSaving}) =>
-      $apply(
-        FieldCopyWithData({
-          if (messages != null) #messages: messages,
-          if (isLoading != null) #isLoading: isLoading,
-          if (isSaving != null) #isSaving: isSaving,
-        }),
-      );
+  $R call({IList<MessageState>? messages, bool? isLoading}) => $apply(
+    FieldCopyWithData({
+      if (messages != null) #messages: messages,
+      if (isLoading != null) #isLoading: isLoading,
+    }),
+  );
   @override
   ChatState $make(CopyWithData data) => ChatState(
     messages: data.get(#messages, or: $value.messages),
     isLoading: data.get(#isLoading, or: $value.isLoading),
-    isSaving: data.get(#isSaving, or: $value.isSaving),
   );
 
   @override

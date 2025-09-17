@@ -10,7 +10,7 @@ part 'mode_state.mapper.dart';
 class ModeState with ModeStateMappable {
   /// All modes (persisted + defaults). Immutable list.
   final IList<Mode> modes;
-  
+
   /// Whether a save operation is currently in progress.
   final bool isSaving;
 
@@ -19,7 +19,9 @@ class ModeState with ModeStateMappable {
     this.isSaving = false,
   });
 
-  const ModeState.initial() : modes = const IListConst([]), isSaving = false;
+  const ModeState.initial()
+      : modes = const IListConst([]),
+        isSaving = false;
 
   static const empty = ModeState.initial();
 }

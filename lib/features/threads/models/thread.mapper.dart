@@ -40,17 +40,10 @@ class ThreadMapper extends ClassMapperBase<Thread> {
     'createdAt',
     _$createdAt,
   );
-  static int _$messageCount(Thread v) => v.messageCount;
-  static const Field<Thread, int> _f$messageCount = Field(
-    'messageCount',
-    _$messageCount,
-    opt: true,
-    def: 0,
-  );
-  static bool _$hasCustomName(Thread v) => v.hasCustomName;
-  static const Field<Thread, bool> _f$hasCustomName = Field(
-    'hasCustomName',
-    _$hasCustomName,
+  static IsarLinks<Message> _$messages(Thread v) => v.messages;
+  static const Field<Thread, IsarLinks<Message>> _f$messages = Field(
+    'messages',
+    _$messages,
     mode: FieldMode.member,
   );
 
@@ -59,8 +52,7 @@ class ThreadMapper extends ClassMapperBase<Thread> {
     #id: _f$id,
     #name: _f$name,
     #createdAt: _f$createdAt,
-    #messageCount: _f$messageCount,
-    #hasCustomName: _f$hasCustomName,
+    #messages: _f$messages,
   };
 
   static Thread _instantiate(DecodingData data) {
@@ -68,7 +60,6 @@ class ThreadMapper extends ClassMapperBase<Thread> {
       id: data.dec(_f$id),
       name: data.dec(_f$name),
       createdAt: data.dec(_f$createdAt),
-      messageCount: data.dec(_f$messageCount),
     );
   }
 
@@ -118,7 +109,7 @@ extension ThreadValueCopy<$R, $Out> on ObjectCopyWith<$R, Thread, $Out> {
 
 abstract class ThreadCopyWith<$R, $In extends Thread, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({int? id, String? name, DateTime? createdAt, int? messageCount});
+  $R call({int? id, String? name, DateTime? createdAt});
   ThreadCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -129,21 +120,18 @@ class _ThreadCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Thread, $Out>
   @override
   late final ClassMapperBase<Thread> $mapper = ThreadMapper.ensureInitialized();
   @override
-  $R call({int? id, String? name, DateTime? createdAt, int? messageCount}) =>
-      $apply(
-        FieldCopyWithData({
-          if (id != null) #id: id,
-          if (name != null) #name: name,
-          if (createdAt != null) #createdAt: createdAt,
-          if (messageCount != null) #messageCount: messageCount,
-        }),
-      );
+  $R call({int? id, String? name, DateTime? createdAt}) => $apply(
+    FieldCopyWithData({
+      if (id != null) #id: id,
+      if (name != null) #name: name,
+      if (createdAt != null) #createdAt: createdAt,
+    }),
+  );
   @override
   Thread $make(CopyWithData data) => Thread(
     id: data.get(#id, or: $value.id),
     name: data.get(#name, or: $value.name),
     createdAt: data.get(#createdAt, or: $value.createdAt),
-    messageCount: data.get(#messageCount, or: $value.messageCount),
   );
 
   @override

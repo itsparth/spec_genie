@@ -14,7 +14,7 @@ part 'tags_bloc.g.dart';
 ///  - CRUD operations for editable tags only.
 @riverpod
 class TagsBloc extends _$TagsBloc {
-  static const _defaultTags = [
+  final _defaultTags = [
     Tag(
         id: Isar.autoIncrement,
         name: 'General',
@@ -61,7 +61,8 @@ class TagsBloc extends _$TagsBloc {
   }
 
   /// Create a new editable tag and persist it.
-  Future<void> create({required String name, required String description}) async {
+  Future<void> create(
+      {required String name, required String description}) async {
     state = state.copyWith(isSaving: true);
     try {
       final isar = ref.read(isarProvider);

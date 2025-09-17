@@ -148,12 +148,12 @@ mixin MediaAttachmentMappable {
   }
 
   MediaAttachmentCopyWith<MediaAttachment, MediaAttachment, MediaAttachment>
-  get copyWith =>
-      _MediaAttachmentCopyWithImpl<MediaAttachment, MediaAttachment>(
-        this as MediaAttachment,
-        $identity,
-        $identity,
-      );
+      get copyWith =>
+          _MediaAttachmentCopyWithImpl<MediaAttachment, MediaAttachment>(
+            this as MediaAttachment,
+            $identity,
+            $identity,
+          );
   @override
   String toString() {
     return MediaAttachmentMapper.ensureInitialized().stringifyValue(
@@ -201,22 +201,22 @@ class _MediaAttachmentCopyWithImpl<$R, $Out>
       MediaAttachmentMapper.ensureInitialized();
   @override
   $R call({String? path, MediaType? type, int? size}) => $apply(
-    FieldCopyWithData({
-      if (path != null) #path: path,
-      if (type != null) #type: type,
-      if (size != null) #size: size,
-    }),
-  );
+        FieldCopyWithData({
+          if (path != null) #path: path,
+          if (type != null) #type: type,
+          if (size != null) #size: size,
+        }),
+      );
   @override
   MediaAttachment $make(CopyWithData data) => MediaAttachment(
-    path: data.get(#path, or: $value.path),
-    type: data.get(#type, or: $value.type),
-    size: data.get(#size, or: $value.size),
-  );
+        path: data.get(#path, or: $value.path),
+        type: data.get(#type, or: $value.type),
+        size: data.get(#size, or: $value.size),
+      );
 
   @override
   MediaAttachmentCopyWith<$R2, MediaAttachment, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _MediaAttachmentCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _MediaAttachmentCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
-

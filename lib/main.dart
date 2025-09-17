@@ -7,6 +7,7 @@ import 'features/configuration/models/configuration.dart';
 import 'features/chat/models/message.dart';
 import 'features/threads/models/thread.dart';
 import 'features/modes/models/mode.dart';
+import 'features/mode_output/models/mode_output.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,7 @@ void main() async {
       MessageSchema,
       ThreadSchema,
       ModeSchema,
+      ModeOutputSchema,
     ],
     directory: dir.path,
   );

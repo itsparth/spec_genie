@@ -10,7 +10,7 @@ part 'tag_state.mapper.dart';
 class TagState with TagStateMappable {
   /// All tags (persisted + defaults). Immutable list.
   final IList<Tag> tags;
-  
+
   /// Whether a save operation is currently in progress.
   final bool isSaving;
 
@@ -19,7 +19,9 @@ class TagState with TagStateMappable {
     this.isSaving = false,
   });
 
-  const TagState.initial() : tags = const IListConst([]), isSaving = false;
+  const TagState.initial()
+      : tags = const IListConst([]),
+        isSaving = false;
 
   static const empty = TagState.initial();
 }

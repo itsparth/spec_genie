@@ -22,18 +22,8 @@ const ThreadSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'hasCustomName': PropertySchema(
-      id: 1,
-      name: r'hasCustomName',
-      type: IsarType.bool,
-    ),
-    r'messageCount': PropertySchema(
-      id: 2,
-      name: r'messageCount',
-      type: IsarType.long,
-    ),
     r'name': PropertySchema(
-      id: 3,
+      id: 1,
       name: r'name',
       type: IsarType.string,
     )
@@ -44,7 +34,15 @@ const ThreadSchema = CollectionSchema(
   deserializeProp: _threadDeserializeProp,
   idName: r'id',
   indexes: {},
-  links: {},
+  links: {
+    r'messages': LinkSchema(
+      id: 427421777236245903,
+      name: r'messages',
+      target: r'Message',
+      single: false,
+      linkName: r'thread',
+    )
+  },
   embeddedSchemas: {},
   getId: _threadGetId,
   getLinks: _threadGetLinks,
@@ -69,9 +67,7 @@ void _threadSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeBool(offsets[1], object.hasCustomName);
-  writer.writeLong(offsets[2], object.messageCount);
-  writer.writeString(offsets[3], object.name);
+  writer.writeString(offsets[1], object.name);
 }
 
 Thread _threadDeserialize(
@@ -83,8 +79,7 @@ Thread _threadDeserialize(
   final object = Thread(
     createdAt: reader.readDateTime(offsets[0]),
     id: id,
-    messageCount: reader.readLongOrNull(offsets[2]) ?? 0,
-    name: reader.readStringOrNull(offsets[3]) ?? '',
+    name: reader.readStringOrNull(offsets[1]) ?? '',
   );
   return object;
 }
@@ -99,10 +94,6 @@ P _threadDeserializeProp<P>(
     case 0:
       return (reader.readDateTime(offset)) as P;
     case 1:
-      return (reader.readBool(offset)) as P;
-    case 2:
-      return (reader.readLongOrNull(offset) ?? 0) as P;
-    case 3:
       return (reader.readStringOrNull(offset) ?? '') as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -114,10 +105,13 @@ Id _threadGetId(Thread object) {
 }
 
 List<IsarLinkBase<dynamic>> _threadGetLinks(Thread object) {
-  return [];
+  return [object.messages];
 }
 
-void _threadAttach(IsarCollection<dynamic> col, Id id, Thread object) {}
+void _threadAttach(IsarCollection<dynamic> col, Id id, Thread object) {
+  object.id = id;
+  object.messages.attach(col, col.isar.collection<Message>(), r'messages', id);
+}
 
 extension ThreadQueryWhereSort on QueryBuilder<Thread, Thread, QWhere> {
   QueryBuilder<Thread, Thread, QAfterWhere> anyId() {
@@ -248,16 +242,6 @@ extension ThreadQueryFilter on QueryBuilder<Thread, Thread, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Thread, Thread, QAfterFilterCondition> hasCustomNameEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'hasCustomName',
-        value: value,
-      ));
-    });
-  }
-
   QueryBuilder<Thread, Thread, QAfterFilterCondition> idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -302,59 +286,6 @@ extension ThreadQueryFilter on QueryBuilder<Thread, Thread, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Thread, Thread, QAfterFilterCondition> messageCountEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'messageCount',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Thread, Thread, QAfterFilterCondition> messageCountGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'messageCount',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Thread, Thread, QAfterFilterCondition> messageCountLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'messageCount',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Thread, Thread, QAfterFilterCondition> messageCountBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'messageCount',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -495,7 +426,63 @@ extension ThreadQueryFilter on QueryBuilder<Thread, Thread, QFilterCondition> {
 
 extension ThreadQueryObject on QueryBuilder<Thread, Thread, QFilterCondition> {}
 
-extension ThreadQueryLinks on QueryBuilder<Thread, Thread, QFilterCondition> {}
+extension ThreadQueryLinks on QueryBuilder<Thread, Thread, QFilterCondition> {
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> messages(
+      FilterQuery<Message> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'messages');
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> messagesLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'messages', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> messagesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'messages', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> messagesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'messages', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> messagesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'messages', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> messagesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'messages', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<Thread, Thread, QAfterFilterCondition> messagesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'messages', lower, includeLower, upper, includeUpper);
+    });
+  }
+}
 
 extension ThreadQuerySortBy on QueryBuilder<Thread, Thread, QSortBy> {
   QueryBuilder<Thread, Thread, QAfterSortBy> sortByCreatedAt() {
@@ -507,30 +494,6 @@ extension ThreadQuerySortBy on QueryBuilder<Thread, Thread, QSortBy> {
   QueryBuilder<Thread, Thread, QAfterSortBy> sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Thread, Thread, QAfterSortBy> sortByHasCustomName() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hasCustomName', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Thread, Thread, QAfterSortBy> sortByHasCustomNameDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hasCustomName', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Thread, Thread, QAfterSortBy> sortByMessageCount() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'messageCount', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Thread, Thread, QAfterSortBy> sortByMessageCountDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'messageCount', Sort.desc);
     });
   }
 
@@ -560,18 +523,6 @@ extension ThreadQuerySortThenBy on QueryBuilder<Thread, Thread, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Thread, Thread, QAfterSortBy> thenByHasCustomName() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hasCustomName', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Thread, Thread, QAfterSortBy> thenByHasCustomNameDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hasCustomName', Sort.desc);
-    });
-  }
-
   QueryBuilder<Thread, Thread, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -581,18 +532,6 @@ extension ThreadQuerySortThenBy on QueryBuilder<Thread, Thread, QSortThenBy> {
   QueryBuilder<Thread, Thread, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Thread, Thread, QAfterSortBy> thenByMessageCount() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'messageCount', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Thread, Thread, QAfterSortBy> thenByMessageCountDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'messageCount', Sort.desc);
     });
   }
 
@@ -616,18 +555,6 @@ extension ThreadQueryWhereDistinct on QueryBuilder<Thread, Thread, QDistinct> {
     });
   }
 
-  QueryBuilder<Thread, Thread, QDistinct> distinctByHasCustomName() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'hasCustomName');
-    });
-  }
-
-  QueryBuilder<Thread, Thread, QDistinct> distinctByMessageCount() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'messageCount');
-    });
-  }
-
   QueryBuilder<Thread, Thread, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -646,18 +573,6 @@ extension ThreadQueryProperty on QueryBuilder<Thread, Thread, QQueryProperty> {
   QueryBuilder<Thread, DateTime, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
-    });
-  }
-
-  QueryBuilder<Thread, bool, QQueryOperations> hasCustomNameProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'hasCustomName');
-    });
-  }
-
-  QueryBuilder<Thread, int, QQueryOperations> messageCountProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'messageCount');
     });
   }
 
