@@ -155,17 +155,17 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       _startStreaming(newOutputIndex);
 
       // Use OpenAI to generate content with streaming
-      final openAI = ref.read(openAIUtilProvider);
+      final openAI = ref.watch(openAIUtilProvider);
       final systemPrompt = customPrompt ?? mode.prompt;
 
       String finalContent = '';
-      // await for (final content
-      //     in openAI.generateStream(systemPrompt, contentParts)) {
-      //   finalContent = content;
-      //   _updateStreamingContent(content);
-      // }
-
-      finalContent = await openAI.generate(systemPrompt, contentParts);
+      await for (final content
+          in openAI.generateStream(systemPrompt, contentParts)) {
+        finalContent = content;
+        _updateStreamingContent(content);
+      }
+      // finalContent =
+      //     await openAI.generate("sghsdfdsf", contentParts.take(1).toList());
 
       // Complete streaming and save final content
       await _completeStreaming(finalContent, placeholderOutput, isar);

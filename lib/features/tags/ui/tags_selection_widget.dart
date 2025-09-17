@@ -8,25 +8,40 @@ import 'tag_dialog.dart';
 
 class TagsSelectionWidget extends ConsumerWidget {
   final String selectionKey;
-  final void Function(List<String>)? onTagsChanged;
   final void Function(List<Tag>)? onTagObjectsChanged;
   final String? title;
   final bool showCreateButton;
   final int? maxSelections;
+  final List<Tag>? initialTags;
 
   const TagsSelectionWidget({
     super.key,
     required this.selectionKey,
-    this.onTagsChanged,
     this.onTagObjectsChanged,
     this.title,
     this.showCreateButton = true,
     this.maxSelections,
+    this.initialTags,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectionState = ref.watch(tagSelectionBlocProvider(selectionKey));
+    final selectionBloc =
+        ref.read(tagSelectionBlocProvider(selectionKey).notifier);
+
+    // Initialize with provided tags if they haven't been set yet
+    if (initialTags != null &&
+        initialTags!.isNotEmpty &&
+        selectionState.selectedTags.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        selectionBloc.setTags(initialTags!);
+      });
+    }
+
+    ref.listen(tagSelectionBlocProvider(selectionKey), (previous, next) {
+      onTagObjectsChanged?.call(next.selectedTags.toList());
+    });
 
     return InkWell(
       onTap: () => _showTagSelectionPopup(context),

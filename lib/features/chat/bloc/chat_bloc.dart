@@ -63,21 +63,16 @@ class ChatBloc extends _$ChatBloc {
     if (state.threadId == null) {
       final name = threadName ?? _generateThreadName(message);
       final newThreadId = await createThread(name);
-
-      // Link the message to the new thread
-      final isar = ref.read(isarProvider);
-      final thread = await isar.threads.get(newThreadId);
-      if (thread != null) {
-        message.thread.value = thread;
-      }
+      state = state.copyWith(threadId: newThreadId);
     }
-
+    final isar = ref.read(isarProvider);
+    final thread = await isar.threads.get(state.threadId!);
+    message.thread.value = thread;
     final newMessageState = MessageState(message: message, isSaving: true);
     final updated = state.messages.add(newMessageState);
     state = state.copyWith(messages: updated);
 
     try {
-      final isar = ref.read(isarProvider);
       await isar.writeTxn(() async {
         await isar.messages.put(message);
         await message.thread.save();
@@ -105,8 +100,8 @@ class ChatBloc extends _$ChatBloc {
     return 'New Thread';
   }
 
-  /// Add a tag to a message
-  Future<bool> addMessageTag(int messageId, int tagId) async {
+  /// Update tags for a message
+  Future<bool> updateMessageTags(int messageId, List<Tag> newTags) async {
     final idx = state.messages.indexWhere((m) => m.message.id == messageId);
     if (idx == -1) return false;
 
@@ -114,47 +109,6 @@ class ChatBloc extends _$ChatBloc {
     final updatedMessageState = currentMessageState.copyWith(isSaving: true);
     final tempUpdated = state.messages.replace(idx, updatedMessageState);
     state = state.copyWith(messages: tempUpdated);
-
-    try {
-      final isar = ref.read(isarProvider);
-      final message = await isar.messages.get(messageId);
-      final tag = await isar.tags.get(tagId);
-
-      if (message == null || tag == null) {
-        final errorMessageState = updatedMessageState.copyWith(isSaving: false);
-        final errorUpdated = state.messages.replace(idx, errorMessageState);
-        state = state.copyWith(messages: errorUpdated);
-        return false;
-      }
-
-      await isar.writeTxn(() async {
-        message.tags.add(tag);
-        await message.tags.save();
-      });
-
-      final finalMessageState = MessageState(message: message, isSaving: false);
-      final finalUpdated = state.messages.replace(idx, finalMessageState);
-      state = state.copyWith(messages: finalUpdated);
-
-      return true;
-    } catch (e) {
-      final errorMessageState = updatedMessageState.copyWith(isSaving: false);
-      final errorUpdated = state.messages.replace(idx, errorMessageState);
-      state = state.copyWith(messages: errorUpdated);
-      rethrow;
-    }
-  }
-
-  /// Remove a tag from a message
-  Future<bool> removeMessageTag(int messageId, int tagId) async {
-    final idx = state.messages.indexWhere((m) => m.message.id == messageId);
-    if (idx == -1) return false;
-
-    final currentMessageState = state.messages[idx];
-    final updatedMessageState = currentMessageState.copyWith(isSaving: true);
-    final tempUpdated = state.messages.replace(idx, updatedMessageState);
-    state = state.copyWith(messages: tempUpdated);
-
     try {
       final isar = ref.read(isarProvider);
       final message = await isar.messages.get(messageId);
@@ -167,7 +121,10 @@ class ChatBloc extends _$ChatBloc {
       }
 
       await isar.writeTxn(() async {
-        message.tags.removeWhere((tag) => tag.id == tagId);
+        // Clear existing tags and add new ones
+        message.tags.clear();
+        await message.tags.save();
+        message.tags.addAll(newTags);
         await message.tags.save();
       });
 

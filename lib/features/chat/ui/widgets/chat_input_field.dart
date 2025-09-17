@@ -18,10 +18,9 @@ class ChatInputField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chatInputBloc = ref.read(chatInputBlocProvider.notifier);
-    final state = ref.watch(chatInputBlocProvider);
 
     return TextFormField(
-      initialValue: state.textInput,
+      controller: chatInputBloc.textController,
       decoration: InputDecoration(
         hintText: hintText ?? 'Type a message...',
         border: OutlineInputBorder(
@@ -39,7 +38,6 @@ class ChatInputField extends ConsumerWidget {
       maxLines: 4,
       minLines: 1,
       textCapitalization: TextCapitalization.sentences,
-      onChanged: chatInputBloc.updateTextInput,
       onFieldSubmitted: canSend ? (_) => onSubmit?.call() : null,
     );
   }

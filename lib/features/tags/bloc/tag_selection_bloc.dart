@@ -2,7 +2,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:spec_genie/features/tags/models/tag.dart';
 import 'tag_selection_state.dart';
-import 'tags_bloc.dart';
 
 part 'tag_selection_bloc.g.dart';
 
@@ -48,6 +47,13 @@ class TagSelectionBloc extends _$TagSelectionBloc {
   void clearTags() {
     state = state.copyWith(
       selectedTags: const IListConst([]),
+    );
+  }
+
+  /// Set the selected tags to the provided list (replaces current selection)
+  void setTags(List<Tag> tags) {
+    state = state.copyWith(
+      selectedTags: tags.toIList(),
     );
   }
 }

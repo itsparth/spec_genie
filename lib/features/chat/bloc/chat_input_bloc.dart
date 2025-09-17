@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:record/record.dart';
 import 'package:image_picker/image_picker.dart' as picker;
@@ -25,6 +26,7 @@ class ChatInputBloc extends _$ChatInputBloc {
   static const _uuid = Uuid();
   late final AudioRecorder _audioRecorder;
   late final picker.ImagePicker _imagePicker;
+  late final TextEditingController _textController;
   Timer? _recordingTimer;
   Timer? _amplitudeTimer;
 
@@ -32,10 +34,19 @@ class ChatInputBloc extends _$ChatInputBloc {
   ChatInputState build() {
     _audioRecorder = AudioRecorder();
     _imagePicker = picker.ImagePicker();
+    _textController = TextEditingController();
+
+    // Listen to text changes from the controller
+    _textController.addListener(() {
+      if (state.textInput != _textController.text) {
+        state = state.copyWith(textInput: _textController.text);
+      }
+    });
 
     // Clean up resources when the provider is disposed
     ref.onDispose(() {
       _audioRecorder.dispose();
+      _textController.dispose();
       _recordingTimer?.cancel();
       _amplitudeTimer?.cancel();
     });
@@ -43,13 +54,20 @@ class ChatInputBloc extends _$ChatInputBloc {
     return const ChatInputState();
   }
 
+  // Getter for text controller
+  TextEditingController get textController => _textController;
+
   // Text input methods
   void updateTextInput(String text) {
     state = state.copyWith(textInput: text);
+    if (_textController.text != text) {
+      _textController.text = text;
+    }
   }
 
   void clearTextInput() {
     state = state.copyWith(textInput: '');
+    _textController.clear();
   }
 
   // Tag management methods

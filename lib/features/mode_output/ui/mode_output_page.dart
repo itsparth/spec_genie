@@ -221,62 +221,10 @@ class _ModeOutputPageState extends ConsumerState<ModeOutputPage> {
 
                 // Main content
                 Card(
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Streaming control buttons
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                _streamingController.isAnimating
-                                    ? Icons.pause
-                                    : Icons.play_arrow,
-                                size: 16,
-                              ),
-                              onPressed: () {
-                                if (_streamingController.isAnimating) {
-                                  _streamingController.pause();
-                                } else {
-                                  _streamingController.resume();
-                                }
-                                setState(() {}); // Refresh button icon
-                              },
-                              tooltip: _streamingController.isAnimating
-                                  ? 'Pause'
-                                  : 'Resume',
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.skip_next, size: 16),
-                              onPressed: () => _streamingController.skipToEnd(),
-                              tooltip: 'Skip to end',
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.refresh, size: 16),
-                              onPressed: () => _streamingController.restart(),
-                              tooltip: 'Restart animation',
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Streaming text content
-                        StreamingTextMarkdown.claude(
-                          key: ValueKey(currentOutput
-                              .id), // Restart animation when content changes
-                          text: currentOutput.content,
-                          controller: _streamingController,
-                          markdownEnabled: true,
-                          onComplete: () {
-                            // Update state when animation completes
-                            if (mounted) setState(() {});
-                          },
-                        ),
-                      ],
-                    ),
+                  child: StreamingTextMarkdown.claude(
+                    text: currentOutput.content,
+                    markdownEnabled: true,
+                    animationsEnabled: false,
                   ),
                 ),
               ],

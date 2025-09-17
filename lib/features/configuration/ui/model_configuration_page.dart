@@ -33,13 +33,10 @@ class ModelConfigurationPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final config = ref.watch(configurationBlocProvider);
+    final configNotifier = ref.read(configurationBlocProvider.notifier);
 
-    // Create controllers and initialize with current config values
+    // Create form key - controllers are now managed by the bloc
     final formKey = GlobalKey<FormState>();
-    final apiKeyController = TextEditingController(text: config.apiKey);
-    final modelNameController = TextEditingController(text: config.modelName);
-    final baseUrlController = TextEditingController(text: config.baseUrl ?? '');
 
     Future<void> saveConfiguration() async {
       if (!formKey.currentState!.validate()) {
@@ -49,12 +46,12 @@ class ModelConfigurationPage extends ConsumerWidget {
       try {
         final notifier = ref.read(configurationBlocProvider.notifier);
 
-        // Update the configuration state
-        notifier.updateApiKey(apiKeyController.text.trim());
-        notifier.updateModelName(modelNameController.text.trim());
-        notifier.updateBaseUrl(baseUrlController.text.trim().isEmpty
+        // Update the configuration state - the controllers are already synced via listeners
+        notifier.updateApiKey(configNotifier.apiKeyController.text.trim());
+        notifier.updateModelName(configNotifier.modelNameController.text.trim());
+        notifier.updateBaseUrl(configNotifier.baseUrlController.text.trim().isEmpty
             ? null
-            : baseUrlController.text.trim());
+            : configNotifier.baseUrlController.text.trim());
 
         // Save to database
         await notifier.save();
@@ -105,7 +102,7 @@ class ModelConfigurationPage extends ConsumerWidget {
 
                     // API Key Field
                     TextFormField(
-                      controller: apiKeyController,
+                      controller: configNotifier.apiKeyController,
                       decoration: const InputDecoration(
                         labelText: 'API Key *',
                         hintText: 'sk-...',
@@ -120,7 +117,7 @@ class ModelConfigurationPage extends ConsumerWidget {
 
                     // Model Name Field
                     TextFormField(
-                      controller: modelNameController,
+                      controller: configNotifier.modelNameController,
                       decoration: const InputDecoration(
                         labelText: 'Model Name *',
                         hintText: 'gpt-4o-mini',
@@ -134,7 +131,7 @@ class ModelConfigurationPage extends ConsumerWidget {
 
                     // Base URL Field
                     TextFormField(
-                      controller: baseUrlController,
+                      controller: configNotifier.baseUrlController,
                       decoration: const InputDecoration(
                         labelText: 'Base URL (Optional)',
                         hintText: 'https://api.openai.com',

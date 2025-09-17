@@ -4,19 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../bloc/message_state.dart';
 import '../models/message.dart';
+import '../../tags/models/tag.dart';
+import '../../tags/ui/tags_selection_widget.dart';
 
 /// Widget to display a single message in the chat
 class MessageItemWidget extends ConsumerWidget {
   final MessageState messageState;
-  final void Function(int tagId)? onTagAdd;
-  final void Function(int tagId)? onTagRemove;
+  final void Function(List<Tag> tags)? onTagsUpdate;
   final VoidCallback? onDelete;
 
   const MessageItemWidget({
     super.key,
     required this.messageState,
-    this.onTagAdd,
-    this.onTagRemove,
+    this.onTagsUpdate,
     this.onDelete,
   });
 
@@ -45,9 +45,6 @@ class MessageItemWidget extends ConsumerWidget {
 
           // Message content
           _buildMessageContent(context, message),
-
-          // Tags section
-          if (message.tags.isNotEmpty) _buildTagsSection(context, message),
 
           // Message actions
           if (!messageState.isSaving) _buildMessageActions(context),
@@ -83,15 +80,16 @@ class MessageItemWidget extends ConsumerWidget {
 
         const Spacer(),
 
-        // Message actions button
+        // Delete message button
         IconButton(
-          icon: const Icon(Icons.more_vert, size: 18),
-          onPressed: () => _showMessageActions(context),
+          icon: const Icon(Icons.delete_outline, size: 18),
+          onPressed: () => onDelete?.call(),
           constraints: const BoxConstraints(
             minHeight: 32,
             minWidth: 32,
           ),
           padding: EdgeInsets.zero,
+          color: Theme.of(context).colorScheme.error,
         ),
       ],
     );
@@ -212,46 +210,24 @@ class MessageItemWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildTagsSection(BuildContext context, Message message) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Wrap(
-        spacing: 4,
-        runSpacing: 4,
-        children: message.tags.map((tag) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              tag.name,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).primaryColor,
-                  ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   Widget _buildMessageActions(BuildContext context) {
+    final message = messageState.message;
+    final selectionKey = 'message_${message.id}';
+
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          TextButton.icon(
-            onPressed: () => _showTagsDialog(context),
-            icon: const Icon(Icons.tag, size: 16),
-            label: const Text('Tag'),
-            style: TextButton.styleFrom(
-              textStyle: Theme.of(context).textTheme.bodySmall,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            ),
-          ),
+          TagsSelectionWidget(
+            selectionKey: selectionKey,
+            title: 'Select Tags',
+            showCreateButton: true,
+            initialTags: messageState.message.tags.toList(),
+            onTagObjectsChanged: (selectedTags) {
+              onTagsUpdate?.call(selectedTags);
+            },
+          )
         ],
       ),
     );
@@ -338,53 +314,5 @@ class MessageItemWidget extends ConsumerWidget {
     } else {
       return 'Just now';
     }
-  }
-
-  void _showMessageActions(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.tag),
-              title: const Text('Manage Tags'),
-              onTap: () {
-                Navigator.pop(context);
-                _showTagsDialog(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Delete Message'),
-              textColor: Colors.red,
-              onTap: () {
-                Navigator.pop(context);
-                onDelete?.call();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showTagsDialog(BuildContext context) {
-    // TODO: Implement tags management dialog
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Manage Tags'),
-        content: const Text('Tag management not yet implemented'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
   }
 }

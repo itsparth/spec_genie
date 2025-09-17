@@ -24,7 +24,7 @@ class ThreadsBloc extends _$ThreadsBloc {
     late Thread savedThread;
     await isar.writeTxn(() async {
       final id = await isar.threads.put(newThread);
-      savedThread = await isar.threads.get(id) ?? newThread;
+      savedThread = (await isar.threads.get(id))!;
     });
 
     // Update state with the new thread

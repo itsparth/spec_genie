@@ -67,7 +67,7 @@ final class TagSelectionBlocProvider
   }
 }
 
-String _$tagSelectionBlocHash() => r'082803c2161ad1196d377d26c4ecc879d3a9a873';
+String _$tagSelectionBlocHash() => r'c34def4f9b6412c9353a40345e6ff15720bd700e';
 
 /// Bloc for managing selected tags in a specific context (identified by key)
 /// Supports adding/removing tags with deduplication

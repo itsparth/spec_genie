@@ -52,7 +52,14 @@ class ChatInputWidget extends ConsumerWidget {
             // Pending inputs preview
             ChatPendingInputsPreview(
                 pendingInputs: state.pendingInputs.toList()),
-
+            // Tags selection widget with onChange handler
+            TagsSelectionWidget(
+              selectionKey: 'input',
+              onTagObjectsChanged: (selectedTags) {
+                final chatInputBloc = ref.read(chatInputBlocProvider.notifier);
+                chatInputBloc.setTags(selectedTags);
+              },
+            ),
             // Main input row
             Row(
               children: [
@@ -78,16 +85,6 @@ class ChatInputWidget extends ConsumerWidget {
                 ),
 
                 const SizedBox(width: 8),
-
-                // Tags selection widget with onChange handler
-                TagsSelectionWidget(
-                  selectionKey: 'input',
-                  onTagObjectsChanged: (selectedTags) {
-                    final chatInputBloc =
-                        ref.read(chatInputBlocProvider.notifier);
-                    chatInputBloc.setTags(selectedTags);
-                  },
-                ),
 
                 const SizedBox(width: 8),
 

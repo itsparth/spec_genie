@@ -85,10 +85,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
         final messageState = chatState.messages[index];
         return MessageItemWidget(
           messageState: messageState,
-          onTagAdd: (int tagId) =>
-              chatBloc.addMessageTag(messageState.message.id, tagId),
-          onTagRemove: (int tagId) =>
-              chatBloc.removeMessageTag(messageState.message.id, tagId),
+          onTagsUpdate: (tags) =>
+              chatBloc.updateMessageTags(messageState.message.id, tags),
           onDelete: () => chatBloc.removeMessage(messageState.message.id),
         );
       },
