@@ -1,11 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_community/isar.dart';
 import 'package:spec_genie/features/shared/isar/isar_provider.dart';
 import 'package:spec_genie/features/tags/models/tag.dart';
 import 'package:spec_genie/main.dart';
-import 'package:spec_genie/routing/routes/app_routes.dart';
 import 'package:spec_genie/features/configuration/models/configuration.dart';
 import 'package:spec_genie/features/chat/models/message.dart';
 import 'package:spec_genie/features/threads/models/thread.dart';

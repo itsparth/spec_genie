@@ -43,10 +43,35 @@ class ModeOutputsStateMapper extends ClassMapperBase<ModeOutputsState> {
     opt: true,
     def: 0,
   );
+  static bool _$isGenerating(ModeOutputsState v) => v.isGenerating;
+  static const Field<ModeOutputsState, bool> _f$isGenerating = Field(
+    'isGenerating',
+    _$isGenerating,
+    opt: true,
+    def: false,
+  );
+  static String? _$streamingContent(ModeOutputsState v) => v.streamingContent;
+  static const Field<ModeOutputsState, String> _f$streamingContent = Field(
+    'streamingContent',
+    _$streamingContent,
+    opt: true,
+  );
+  static int? _$streamingIndex(ModeOutputsState v) => v.streamingIndex;
+  static const Field<ModeOutputsState, int> _f$streamingIndex = Field(
+    'streamingIndex',
+    _$streamingIndex,
+    opt: true,
+  );
   static ModeOutput? _$currentOutput(ModeOutputsState v) => v.currentOutput;
   static const Field<ModeOutputsState, ModeOutput> _f$currentOutput = Field(
     'currentOutput',
     _$currentOutput,
+    mode: FieldMode.member,
+  );
+  static String? _$currentContent(ModeOutputsState v) => v.currentContent;
+  static const Field<ModeOutputsState, String> _f$currentContent = Field(
+    'currentContent',
+    _$currentContent,
     mode: FieldMode.member,
   );
   static bool _$canGoBack(ModeOutputsState v) => v.canGoBack;
@@ -73,7 +98,11 @@ class ModeOutputsStateMapper extends ClassMapperBase<ModeOutputsState> {
     #outputs: _f$outputs,
     #isLoading: _f$isLoading,
     #currentIndex: _f$currentIndex,
+    #isGenerating: _f$isGenerating,
+    #streamingContent: _f$streamingContent,
+    #streamingIndex: _f$streamingIndex,
     #currentOutput: _f$currentOutput,
+    #currentContent: _f$currentContent,
     #canGoBack: _f$canGoBack,
     #canGoForward: _f$canGoForward,
     #totalOutputs: _f$totalOutputs,
@@ -84,6 +113,9 @@ class ModeOutputsStateMapper extends ClassMapperBase<ModeOutputsState> {
       outputs: data.dec(_f$outputs),
       isLoading: data.dec(_f$isLoading),
       currentIndex: data.dec(_f$currentIndex),
+      isGenerating: data.dec(_f$isGenerating),
+      streamingContent: data.dec(_f$streamingContent),
+      streamingIndex: data.dec(_f$streamingIndex),
     );
   }
 
@@ -149,7 +181,14 @@ extension ModeOutputsStateValueCopy<$R, $Out>
 
 abstract class ModeOutputsStateCopyWith<$R, $In extends ModeOutputsState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({IList<ModeOutput>? outputs, bool? isLoading, int? currentIndex});
+  $R call({
+    IList<ModeOutput>? outputs,
+    bool? isLoading,
+    int? currentIndex,
+    bool? isGenerating,
+    String? streamingContent,
+    int? streamingIndex,
+  });
   ModeOutputsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -164,19 +203,31 @@ class _ModeOutputsStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<ModeOutputsState> $mapper =
       ModeOutputsStateMapper.ensureInitialized();
   @override
-  $R call({IList<ModeOutput>? outputs, bool? isLoading, int? currentIndex}) =>
-      $apply(
-        FieldCopyWithData({
-          if (outputs != null) #outputs: outputs,
-          if (isLoading != null) #isLoading: isLoading,
-          if (currentIndex != null) #currentIndex: currentIndex,
-        }),
-      );
+  $R call({
+    IList<ModeOutput>? outputs,
+    bool? isLoading,
+    int? currentIndex,
+    bool? isGenerating,
+    Object? streamingContent = $none,
+    Object? streamingIndex = $none,
+  }) => $apply(
+    FieldCopyWithData({
+      if (outputs != null) #outputs: outputs,
+      if (isLoading != null) #isLoading: isLoading,
+      if (currentIndex != null) #currentIndex: currentIndex,
+      if (isGenerating != null) #isGenerating: isGenerating,
+      if (streamingContent != $none) #streamingContent: streamingContent,
+      if (streamingIndex != $none) #streamingIndex: streamingIndex,
+    }),
+  );
   @override
   ModeOutputsState $make(CopyWithData data) => ModeOutputsState(
     outputs: data.get(#outputs, or: $value.outputs),
     isLoading: data.get(#isLoading, or: $value.isLoading),
     currentIndex: data.get(#currentIndex, or: $value.currentIndex),
+    isGenerating: data.get(#isGenerating, or: $value.isGenerating),
+    streamingContent: data.get(#streamingContent, or: $value.streamingContent),
+    streamingIndex: data.get(#streamingIndex, or: $value.streamingIndex),
   );
 
   @override

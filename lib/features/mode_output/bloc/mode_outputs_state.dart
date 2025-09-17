@@ -10,11 +10,17 @@ class ModeOutputsState with ModeOutputsStateMappable {
   final IList<ModeOutput> outputs;
   final bool isLoading;
   final int currentIndex;
+  final bool isGenerating;
+  final String? streamingContent;
+  final int? streamingIndex;
 
   const ModeOutputsState({
     this.outputs = const IListConst([]),
     this.isLoading = false,
     this.currentIndex = 0,
+    this.isGenerating = false,
+    this.streamingContent,
+    this.streamingIndex,
   });
 
   /// Get the current mode output being displayed
@@ -23,6 +29,22 @@ class ModeOutputsState with ModeOutputsStateMappable {
       return null;
     }
     return outputs[currentIndex];
+  }
+
+  /// Get the effective content for the current output (streaming or completed)
+  String? get currentContent {
+    final output = currentOutput;
+    if (output == null) return null;
+
+    // If we're generating and this is the streaming output, return streaming content
+    if (isGenerating &&
+        streamingIndex == currentIndex &&
+        streamingContent != null) {
+      return streamingContent;
+    }
+
+    // Otherwise return the completed content
+    return output.content;
   }
 
   /// Check if we can navigate to previous output

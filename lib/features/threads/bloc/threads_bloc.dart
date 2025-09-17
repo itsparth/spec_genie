@@ -1,5 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:isar_community/isar.dart';
 import '../models/thread.dart';
+import '../../shared/isar/isar_provider.dart';
 
 part 'threads_bloc.g.dart';
 
@@ -7,55 +9,69 @@ part 'threads_bloc.g.dart';
 class ThreadsBloc extends _$ThreadsBloc {
   @override
   List<Thread> build() {
-    // Return sample data for testing
-    // TODO: Load from Isar database when integrated
-    return [
-      Thread(
-        id: 1,
-        name: 'Flutter UI Design Discussion',
-        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      Thread(
-        id: 2,
-        name: 'Backend API Integration',
-        createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-      Thread(
-        id: 3,
-        name: 'Performance Optimization Ideas',
-        createdAt: DateTime.now().subtract(const Duration(days: 3)),
-      ),
-      Thread(
-        id: 4,
-        name: '', // Test empty name
-        createdAt: DateTime.now().subtract(const Duration(days: 7)),
-      ),
-    ];
+    final isar = ref.read(isarProvider);
+    final threads = isar.threads.where().sortByCreatedAtDesc().findAllSync();
+    return threads;
   }
 
-  void addThread(String name) {
+  Future<Thread> addThread(String name) async {
+    final isar = ref.read(isarProvider);
     final newThread = Thread(
-      id: state.length + 1,
       name: name,
       createdAt: DateTime.now(),
     );
-    state = [...state, newThread];
+
+    late Thread savedThread;
+    await isar.writeTxn(() async {
+      final id = await isar.threads.put(newThread);
+      savedThread = await isar.threads.get(id) ?? newThread;
+    });
+
+    // Update state with the new thread
+    state = [...state, savedThread];
+    return savedThread;
   }
 
-  void updateThread(int id, String name) {
-    state = state.map((thread) {
-      if (thread.id == id) {
-        return Thread(
-          id: thread.id,
-          name: name,
-          createdAt: thread.createdAt,
-        );
-      }
-      return thread;
-    }).toList();
+  Future<void> updateThread(int id, String name) async {
+    final isar = ref.read(isarProvider);
+    final existingThread = isar.threads.getSync(id);
+
+    if (existingThread != null) {
+      final updatedThread = Thread(
+        id: existingThread.id,
+        name: name,
+        createdAt: existingThread.createdAt,
+      );
+
+      await isar.writeTxn(() async {
+        await isar.threads.put(updatedThread);
+      });
+
+      // Update state
+      state = state.map((thread) {
+        if (thread.id == id) {
+          return updatedThread;
+        }
+        return thread;
+      }).toList();
+    }
   }
 
-  void deleteThread(int id) {
+  Future<void> deleteThread(int id) async {
+    final isar = ref.read(isarProvider);
+
+    await isar.writeTxn(() async {
+      await isar.threads.delete(id);
+    });
+
+    // Update state
     state = state.where((thread) => thread.id != id).toList();
+  }
+
+  /// Reload threads from database
+  void reload() {
+    final isar = ref.read(isarProvider);
+    final threads = isar.threads.where().sortByCreatedAtDesc().findAllSync();
+    state = threads;
   }
 }

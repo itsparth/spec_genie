@@ -10,13 +10,12 @@ import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
+import '../../tags/models/tag.dart';
 import '../models/chat_input.dart';
 import '../utils/input_utils.dart';
 import '../utils/chat_input_converter.dart';
 import 'chat_input_state.dart';
 import 'chat_bloc.dart';
-import '../../shared/isar/isar_provider.dart';
-import '../../threads/models/thread.dart';
 
 part 'chat_input_bloc.g.dart';
 
@@ -51,6 +50,25 @@ class ChatInputBloc extends _$ChatInputBloc {
 
   void clearTextInput() {
     state = state.copyWith(textInput: '');
+  }
+
+  // Tag management methods
+  void addTag(Tag tag) {
+    if (state.selectedTags.any((t) => t.id == tag.id)) return;
+    state = state.copyWith(selectedTags: state.selectedTags.add(tag));
+  }
+
+  void removeTag(Tag tag) {
+    state = state.copyWith(
+        selectedTags: state.selectedTags.removeWhere((t) => t.id == tag.id));
+  }
+
+  void setTags(List<Tag> tags) {
+    state = state.copyWith(selectedTags: tags.toIList());
+  }
+
+  void clearTags() {
+    state = state.copyWith(selectedTags: const IListConst([]));
   }
 
   // Mode switching
@@ -355,10 +373,21 @@ class ChatInputBloc extends _$ChatInputBloc {
     );
   }
 
-  /// Send all prepared inputs as messages to the specified thread
-  Future<void> sendMessage(int threadId) async {
+  void clearAllInputsIncludingTags() {
+    state = state.copyWith(
+      textInput: '',
+      pendingInputs: const IListConst([]),
+      currentMode: ChatInputMode.text,
+      audioState: const AudioRecordingState(),
+      selectedTags: const IListConst([]),
+    );
+  }
+
+  /// Send all prepared inputs as messages, creating a thread if none exists
+  Future<void> sendMessage(int? threadId) async {
     // Get the prepared inputs
     final inputs = prepareInputsForSending();
+    final selectedTags = state.selectedTags;
 
     if (inputs.isEmpty) return;
 
@@ -366,21 +395,37 @@ class ChatInputBloc extends _$ChatInputBloc {
     clearAllInputs();
 
     try {
-      // Get the chat bloc and the thread
+      // Get the chat bloc
       final chatBloc = ref.read(chatBlocProvider(threadId).notifier);
-      final isar = ref.read(isarProvider);
-      final thread = await isar.threads.get(threadId);
 
-      if (thread == null) {
-        throw Exception('Thread not found');
+      // Get or create tags if any are selected
+      List<Tag> tagsToAttach = [];
+      if (selectedTags.isNotEmpty) {
+        // Tags are already Tag objects, so we can use them directly
+        tagsToAttach = selectedTags.toList();
       }
 
-      // Convert each input to a message and link to thread
+      // Convert each input to a message and let ChatBloc handle thread creation
       for (final input in inputs) {
         final message = ChatInputConverter.convertChatInputToMessage(input);
-        // Link message to thread
-        message.thread.value = thread;
-        await chatBloc.addMessage(message);
+
+        // Attach tags to the message
+        if (tagsToAttach.isNotEmpty) {
+          message.tags.addAll(tagsToAttach);
+        }
+
+        // For the first message, generate thread name from text input if available
+        String? threadName;
+        if (threadId == null &&
+            input is TextChatInput &&
+            input.text.isNotEmpty) {
+          threadName = input.text.length <= 50
+              ? input.text
+              : '${input.text.substring(0, 47)}...';
+        }
+
+        // ChatBloc will handle thread creation if needed
+        await chatBloc.addMessage(message, threadName: threadName);
       }
     } catch (e) {
       // TODO: Handle error - maybe show a snackbar or add to error state

@@ -21,12 +21,8 @@ class ThreadsPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              // TODO: Implement add thread functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Add thread - Coming soon'),
-                ),
-              );
+              // Navigate to new chat page
+              const ChatRoute(threadId: 'new').push(context);
             },
           ),
           PopupMenuButton<String>(

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_streaming_text_markdown/flutter_streaming_text_markdown.dart';
 
 import '../bloc/mode_output_bloc.dart';
 import '../bloc/mode_outputs_state.dart';
 
 /// Main mode output page that displays generated outputs for a specific thread and mode
-class ModeOutputPage extends ConsumerWidget {
+class ModeOutputPage extends ConsumerStatefulWidget {
   final int threadId;
   final int modeId;
 
@@ -16,10 +17,41 @@ class ModeOutputPage extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final outputState = ref.watch(modeOutputBlocProvider(threadId, modeId));
-    final outputBloc =
-        ref.read(modeOutputBlocProvider(threadId, modeId).notifier);
+  ConsumerState<ModeOutputPage> createState() => _ModeOutputPageState();
+}
+
+class _ModeOutputPageState extends ConsumerState<ModeOutputPage> {
+  late StreamingTextController _streamingController;
+  int? _lastOutputId; // Track the last output ID to restart animation on change
+
+  @override
+  void initState() {
+    super.initState();
+    _streamingController = StreamingTextController();
+  }
+
+  @override
+  void dispose() {
+    _streamingController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final outputState =
+        ref.watch(modeOutputBlocProvider(widget.threadId, widget.modeId));
+    final outputBloc = ref
+        .read(modeOutputBlocProvider(widget.threadId, widget.modeId).notifier);
+
+    // Check if output changed and restart animation
+    final currentOutput = outputState.currentOutput;
+    if (currentOutput != null && _lastOutputId != currentOutput.id) {
+      _lastOutputId = currentOutput.id;
+      // Schedule controller restart for next frame to avoid build-time modifications
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _streamingController.restart();
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -192,9 +224,58 @@ class ModeOutputPage extends ConsumerWidget {
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
-                    child: SelectableText(
-                      currentOutput.content,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Streaming control buttons
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                _streamingController.isAnimating
+                                    ? Icons.pause
+                                    : Icons.play_arrow,
+                                size: 16,
+                              ),
+                              onPressed: () {
+                                if (_streamingController.isAnimating) {
+                                  _streamingController.pause();
+                                } else {
+                                  _streamingController.resume();
+                                }
+                                setState(() {}); // Refresh button icon
+                              },
+                              tooltip: _streamingController.isAnimating
+                                  ? 'Pause'
+                                  : 'Resume',
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.skip_next, size: 16),
+                              onPressed: () => _streamingController.skipToEnd(),
+                              tooltip: 'Skip to end',
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.refresh, size: 16),
+                              onPressed: () => _streamingController.restart(),
+                              tooltip: 'Restart animation',
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // Streaming text content
+                        StreamingTextMarkdown.claude(
+                          key: ValueKey(currentOutput
+                              .id), // Restart animation when content changes
+                          text: currentOutput.content,
+                          controller: _streamingController,
+                          markdownEnabled: true,
+                          onComplete: () {
+                            // Update state when animation completes
+                            if (mounted) setState(() {});
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ),

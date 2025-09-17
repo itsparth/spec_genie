@@ -2,6 +2,7 @@ import 'package:dart_mappable/dart_mappable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 import '../models/chat_input.dart';
+import '../../tags/models/tag.dart';
 
 part 'chat_input_state.mapper.dart';
 
@@ -26,6 +27,9 @@ class ChatInputState with ChatInputStateMappable {
   final bool isCapturingImage;
   final IList<String> selectedImagePaths;
 
+  // Tags state
+  final IList<Tag> selectedTags;
+
   const ChatInputState({
     this.currentMode = ChatInputMode.text,
     this.textInput = '',
@@ -39,25 +43,18 @@ class ChatInputState with ChatInputStateMappable {
     this.selectedFilePaths = const IListConst([]),
     this.isCapturingImage = false,
     this.selectedImagePaths = const IListConst([]),
+    this.selectedTags = const IListConst([]),
   });
 
   /// Check if we can send the current inputs
   bool get canSend {
     if (isLoading || error != null) return false;
 
-    switch (currentMode) {
-      case ChatInputMode.text:
-        return textInput.trim().isNotEmpty;
-      case ChatInputMode.audio:
-        return audioState.status == RecordingStatus.stopped &&
-            audioState.filePath != null;
-      case ChatInputMode.image:
-        return selectedImagePaths.isNotEmpty;
-      case ChatInputMode.file:
-        return selectedFilePaths.isNotEmpty;
-      case ChatInputMode.mixed:
-        return textInput.trim().isNotEmpty || pendingInputs.isNotEmpty;
-    }
+    // Allow sending if there's text, pending inputs (audio/images/files), or completed audio recording
+    return textInput.trim().isNotEmpty ||
+        pendingInputs.isNotEmpty ||
+        (audioState.status == RecordingStatus.stopped &&
+            audioState.filePath != null);
   }
 
   /// Check if recording is in progress

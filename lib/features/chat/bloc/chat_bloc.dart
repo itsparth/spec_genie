@@ -3,6 +3,7 @@ import 'package:isar_community/isar.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:spec_genie/features/shared/isar/isar_provider.dart';
 import 'package:spec_genie/features/threads/models/thread.dart';
+import 'package:spec_genie/features/threads/bloc/threads_bloc.dart';
 
 import '../models/message.dart';
 import '../../tags/models/tag.dart';
@@ -15,9 +16,22 @@ part 'chat_bloc.g.dart';
 @riverpod
 class ChatBloc extends _$ChatBloc {
   @override
-  ChatState build(int threadId) {
-    _loadMessages(threadId);
-    return const ChatState(isLoading: true);
+  ChatState build(int? threadId) {
+    if (threadId != null) {
+      _loadMessages(threadId);
+    }
+    return ChatState(threadId: threadId, isLoading: threadId != null);
+  }
+
+  /// Create a new thread with the given name
+  Future<int> createThread(String threadName) async {
+    final threadsBloc = ref.read(threadsBlocProvider.notifier);
+    final newThread = await threadsBloc.addThread(threadName);
+
+    // Update our state with the new thread ID
+    state = state.copyWith(threadId: newThread.id);
+
+    return newThread.id;
   }
 
   /// Load messages for the thread
@@ -43,8 +57,21 @@ class ChatBloc extends _$ChatBloc {
     }
   }
 
-  /// Add a new message to the chat
-  Future<void> addMessage(Message message) async {
+  /// Add a new message to the chat, creating a thread if none exists
+  Future<void> addMessage(Message message, {String? threadName}) async {
+    // If no thread exists, create one first
+    if (state.threadId == null) {
+      final name = threadName ?? _generateThreadName(message);
+      final newThreadId = await createThread(name);
+
+      // Link the message to the new thread
+      final isar = ref.read(isarProvider);
+      final thread = await isar.threads.get(newThreadId);
+      if (thread != null) {
+        message.thread.value = thread;
+      }
+    }
+
     final newMessageState = MessageState(message: message, isSaving: true);
     final updated = state.messages.add(newMessageState);
     state = state.copyWith(messages: updated);
@@ -67,6 +94,15 @@ class ChatBloc extends _$ChatBloc {
       state = state.copyWith(messages: errorUpdated);
       rethrow;
     }
+  }
+
+  /// Generate a thread name from a message
+  String _generateThreadName(Message message) {
+    final text = message.text;
+    if (text.isNotEmpty) {
+      return text.length <= 50 ? text : '${text.substring(0, 47)}...';
+    }
+    return 'New Thread';
   }
 
   /// Add a tag to a message

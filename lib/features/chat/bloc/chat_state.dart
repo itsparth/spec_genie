@@ -7,10 +7,12 @@ part 'chat_state.mapper.dart';
 
 @MappableClass()
 class ChatState with ChatStateMappable {
+  final int? threadId;
   final IList<MessageState> messages;
   final bool isLoading;
 
   const ChatState({
+    this.threadId,
     this.messages = const IListConst([]),
     this.isLoading = false,
   });

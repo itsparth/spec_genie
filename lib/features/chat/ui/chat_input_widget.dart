@@ -2,16 +2,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../tags/ui/tags_selection_widget.dart';
 import '../bloc/chat_input_bloc.dart';
 import '../bloc/chat_input_state.dart';
 import '../models/chat_input.dart';
+import 'widgets/chat_input_field.dart';
+import 'widgets/chat_recording_controls.dart';
+import 'widgets/chat_pending_inputs_preview.dart';
 
-/// Production chat input widget with minimalistic design
-/// Primary action: Audio recording
+/// Simplified chat input widget with minimalistic design
+/// Primary action: Audio recording with pause/resume
 /// Secondary actions: File selection, image selection
 /// Text input always available
-class ChatInputWidget extends ConsumerStatefulWidget {
-  final int threadId;
+class ChatInputWidget extends ConsumerWidget {
+  final int? threadId;
   final VoidCallback? onSend;
   final String? hintText;
   final EdgeInsets? padding;
@@ -25,74 +29,13 @@ class ChatInputWidget extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ChatInputWidget> createState() => _ChatInputWidgetState();
-}
-
-class _ChatInputWidgetState extends ConsumerState<ChatInputWidget>
-    with TickerProviderStateMixin {
-  final TextEditingController _textController = TextEditingController();
-  final FocusNode _textFocusNode = FocusNode();
-
-  late AnimationController _recordingAnimationController;
-  late Animation<double> _recordingScaleAnimation;
-  late Animation<Color?> _recordingColorAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _setupAnimations();
-  }
-
-  void _setupAnimations() {
-    _recordingAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-
-    _recordingScaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.2,
-    ).animate(CurvedAnimation(
-      parent: _recordingAnimationController,
-      curve: Curves.easeInOut,
-    ));
-
-    _recordingColorAnimation = ColorTween(
-      begin: Colors.red,
-      end: Colors.red.shade300,
-    ).animate(CurvedAnimation(
-      parent: _recordingAnimationController,
-      curve: Curves.easeInOut,
-    ));
-  }
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    _textFocusNode.dispose();
-    _recordingAnimationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final chatInputBloc = ref.read(chatInputBlocProvider.notifier);
     final state = ref.watch(chatInputBlocProvider);
 
-    // Handle recording animation
-    ref.listen<ChatInputState>(chatInputBlocProvider, (previous, next) {
-      if (next.isRecording && !_recordingAnimationController.isAnimating) {
-        _recordingAnimationController.repeat(reverse: true);
-      } else if (!next.isRecording &&
-          _recordingAnimationController.isAnimating) {
-        _recordingAnimationController.stop();
-        _recordingAnimationController.reset();
-      }
-    });
-
     return Container(
-      padding: widget.padding ??
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding:
+          padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(
@@ -107,18 +50,19 @@ class _ChatInputWidgetState extends ConsumerState<ChatInputWidget>
           mainAxisSize: MainAxisSize.min,
           children: [
             // Pending inputs preview
-            if (state.pendingInputs.isNotEmpty)
-              _buildPendingInputsPreview(state),
+            ChatPendingInputsPreview(
+                pendingInputs: state.pendingInputs.toList()),
 
             // Main input row
             Row(
               children: [
                 // File selection button
                 _buildActionButton(
+                  context: context,
                   icon: Icons.attach_file,
                   onPressed: state.isLoading
                       ? null
-                      : () => _showFileOptions(chatInputBloc),
+                      : () => _showFileOptions(context, chatInputBloc),
                   tooltip: 'Attach file',
                 ),
 
@@ -126,113 +70,67 @@ class _ChatInputWidgetState extends ConsumerState<ChatInputWidget>
 
                 // Text input field
                 Expanded(
-                  child: _buildTextInput(chatInputBloc, state),
+                  child: ChatInputField(
+                    hintText: hintText,
+                    canSend: state.canSend,
+                    onSubmit: () => _handleSend(context, ref, chatInputBloc),
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                // Tags selection widget with onChange handler
+                TagsSelectionWidget(
+                  selectionKey: 'input',
+                  onTagObjectsChanged: (selectedTags) {
+                    final chatInputBloc =
+                        ref.read(chatInputBlocProvider.notifier);
+                    chatInputBloc.setTags(selectedTags);
+                  },
                 ),
 
                 const SizedBox(width: 8),
 
                 // Image selection button
                 _buildActionButton(
+                  context: context,
                   icon: Icons.image_outlined,
                   onPressed: state.isLoading
                       ? null
-                      : () => _showImageOptions(chatInputBloc),
+                      : () => _showImageOptions(context, chatInputBloc),
                   tooltip: 'Add image',
                 ),
 
                 const SizedBox(width: 8),
 
-                // Primary action: Audio recording or Send
-                _buildPrimaryAction(chatInputBloc, state),
+                // Mic button for recording
+                _buildMicButton(context, ref, chatInputBloc, state),
+
+                const SizedBox(width: 8),
+
+                // Send button (always visible when there's content to send)
+                _buildSendButton(context, ref, chatInputBloc, state),
               ],
             ),
 
             // Recording controls (shown when recording)
             if (state.isRecording || state.isRecordingPaused)
-              _buildRecordingControls(chatInputBloc, state),
+              ChatRecordingControls(
+                recordingDuration: state.audioState.duration,
+                isRecordingPaused: state.isRecordingPaused,
+                onPauseResume: state.isRecordingPaused
+                    ? () => chatInputBloc.resumeRecording()
+                    : () => chatInputBloc.pauseRecording(),
+                onCancel: () => _handleCancelRecording(chatInputBloc),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPendingInputsPreview(ChatInputState state) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: state.pendingInputs.map((input) {
-            return Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _getInputIcon(input),
-                    size: 16,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _getInputPreviewText(input),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: () => ref
-                        .read(chatInputBlocProvider.notifier)
-                        .removePendingInput(input.id),
-                    child: Icon(
-                      Icons.close,
-                      size: 14,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextInput(ChatInputBloc chatInputBloc, ChatInputState state) {
-    return TextField(
-      controller: _textController,
-      focusNode: _textFocusNode,
-      decoration: InputDecoration(
-        hintText: widget.hintText ?? 'Type a message...',
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(24),
-          borderSide: BorderSide.none,
-        ),
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.surface,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-        isDense: true,
-      ),
-      maxLines: 4,
-      minLines: 1,
-      textCapitalization: TextCapitalization.sentences,
-      onChanged: chatInputBloc.updateTextInput,
-      onSubmitted: state.canSend ? (_) => _handleSend(chatInputBloc) : null,
-    );
-  }
-
   Widget _buildActionButton({
+    required BuildContext context,
     required IconData icon,
     required VoidCallback? onPressed,
     required String tooltip,
@@ -255,144 +153,62 @@ class _ChatInputWidgetState extends ConsumerState<ChatInputWidget>
     );
   }
 
-  Widget _buildPrimaryAction(
+  Widget _buildMicButton(BuildContext context, WidgetRef ref,
       ChatInputBloc chatInputBloc, ChatInputState state) {
-    if (state.canSend) {
-      // Send button when there's content to send
-      return Material(
-        color: Theme.of(context).primaryColor,
+    // Mic button for recording with visual feedback
+    return Material(
+      color: state.isRecording
+          ? Colors.red
+          : Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(20),
+      elevation: state.isRecording ? 4 : 0,
+      child: InkWell(
+        onTap: state.isLoading
+            ? null
+            : () => _handleMicAction(chatInputBloc, state),
         borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          onTap: () => _handleSend(chatInputBloc),
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            child: Icon(
-              Icons.send,
-              color: Theme.of(context).colorScheme.onPrimary,
-              size: 20,
-            ),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          child: Icon(
+            state.isRecording ? Icons.stop : Icons.mic,
+            color: state.isRecording
+                ? Colors.white
+                : Theme.of(context).colorScheme.onSurface,
+            size: 20,
           ),
         ),
-      );
+      ),
+    );
+  }
+
+  Widget _buildSendButton(BuildContext context, WidgetRef ref,
+      ChatInputBloc chatInputBloc, ChatInputState state) {
+    // Show send button only when there's content to send
+    if (!state.canSend) {
+      return const SizedBox.shrink();
     }
 
-    // Audio recording button as primary action
-    return AnimatedBuilder(
-      animation: _recordingAnimationController,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: state.isRecording ? _recordingScaleAnimation.value : 1.0,
-          child: Material(
-            color: state.isRecording
-                ? _recordingColorAnimation.value
-                : Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(20),
-            elevation: state.isRecording ? 4 : 0,
-            child: InkWell(
-              onTap: state.isLoading
-                  ? null
-                  : () => _handleAudioAction(chatInputBloc, state),
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                child: Icon(
-                  state.isRecording ? Icons.stop : Icons.mic,
-                  color: state.isRecording
-                      ? Colors.white
-                      : Theme.of(context).colorScheme.onSurface,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildRecordingControls(
-      ChatInputBloc chatInputBloc, ChatInputState state) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
+    return Material(
+      color: Theme.of(context).primaryColor,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: state.isLoading
+            ? null
+            : () => _handleSend(context, ref, chatInputBloc),
         borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Recording indicator and duration
-          Row(
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                _formatDuration(state.audioState.duration),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: Colors.red,
-                ),
-              ),
-            ],
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          child: Icon(
+            Icons.send,
+            color: Theme.of(context).colorScheme.onPrimary,
+            size: 20,
           ),
-
-          // Control buttons
-          Row(
-            children: [
-              // Pause/Resume button
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: state.isRecordingPaused
-                      ? () => chatInputBloc.resumeRecording()
-                      : () => chatInputBloc.pauseRecording(),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Icon(
-                      state.isRecordingPaused ? Icons.play_arrow : Icons.pause,
-                      color: Colors.red,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 8),
-
-              // Cancel button
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => _handleCancelRecording(chatInputBloc),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: const Icon(
-                      Icons.close,
-                      color: Colors.red,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  void _showFileOptions(ChatInputBloc chatInputBloc) {
+  void _showFileOptions(BuildContext context, ChatInputBloc chatInputBloc) {
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => Container(
@@ -425,7 +241,7 @@ class _ChatInputWidgetState extends ConsumerState<ChatInputWidget>
     );
   }
 
-  void _showImageOptions(ChatInputBloc chatInputBloc) {
+  void _showImageOptions(BuildContext context, ChatInputBloc chatInputBloc) {
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => Container(
@@ -463,7 +279,7 @@ class _ChatInputWidgetState extends ConsumerState<ChatInputWidget>
     );
   }
 
-  Future<void> _handleAudioAction(
+  Future<void> _handleMicAction(
       ChatInputBloc chatInputBloc, ChatInputState state) async {
     if (state.isRecording) {
       await chatInputBloc.stopRecording();
@@ -474,31 +290,24 @@ class _ChatInputWidgetState extends ConsumerState<ChatInputWidget>
 
   void _handleCancelRecording(ChatInputBloc chatInputBloc) {
     // Stop recording without saving
-    chatInputBloc.stopRecording().then((_) {
-      // Remove the last audio input (the cancelled recording)
-      final state = ref.read(chatInputBlocProvider);
-      if (state.pendingInputs.isNotEmpty) {
-        final lastInput = state.pendingInputs.last;
-        if (lastInput is AudioChatInput) {
-          chatInputBloc.removePendingInput(lastInput.id);
-        }
-      }
-    });
+    chatInputBloc.stopRecording();
+    // Note: The bloc should handle cleanup of cancelled recordings
   }
 
-  void _handleSend(ChatInputBloc chatInputBloc) async {
+  void _handleSend(
+      BuildContext context, WidgetRef ref, ChatInputBloc chatInputBloc) async {
     // Check if there are inputs to send
     final inputs = chatInputBloc.prepareInputsForSending();
     if (inputs.isNotEmpty) {
-      // Clear the text controller
-      _textController.clear();
-
       try {
-        // Send the message using the bloc
-        await chatInputBloc.sendMessage(widget.threadId);
+        // Send the message using the bloc (handles thread creation if needed)
+        await chatInputBloc.sendMessage(threadId);
+
+        // Clear the text input after successful send
+        chatInputBloc.clearTextInput();
 
         // Call the onSend callback if provided
-        widget.onSend?.call();
+        onSend?.call();
       } catch (e) {
         // Handle error - for now just clear the inputs and rethrow
         chatInputBloc.clearAllInputs();
@@ -506,49 +315,5 @@ class _ChatInputWidgetState extends ConsumerState<ChatInputWidget>
         rethrow;
       }
     }
-  }
-
-  IconData _getInputIcon(ChatInput input) {
-    switch (input.type) {
-      case ChatInputType.text:
-        return Icons.text_fields;
-      case ChatInputType.audio:
-        return Icons.mic;
-      case ChatInputType.image:
-        return Icons.image;
-      case ChatInputType.file:
-        final fileInput = input as FileChatInput;
-        return fileInput.fileType == FileInputType.audio
-            ? Icons.audiotrack
-            : Icons.insert_drive_file;
-    }
-  }
-
-  String _getInputPreviewText(ChatInput input) {
-    switch (input.type) {
-      case ChatInputType.text:
-        final textInput = input as TextChatInput;
-        return textInput.text.length > 20
-            ? '${textInput.text.substring(0, 20)}...'
-            : textInput.text;
-      case ChatInputType.audio:
-        final audioInput = input as AudioChatInput;
-        return audioInput.duration != null
-            ? _formatDuration(audioInput.duration!)
-            : 'Audio';
-      case ChatInputType.image:
-        return 'Image';
-      case ChatInputType.file:
-        final fileInput = input as FileChatInput;
-        return fileInput.fileName.length > 15
-            ? '${fileInput.fileName.substring(0, 15)}...'
-            : fileInput.fileName;
-    }
-  }
-
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes.toString().padLeft(2, '0');
-    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
-    return '$minutes:$seconds';
   }
 }

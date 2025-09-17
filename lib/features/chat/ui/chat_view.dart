@@ -10,7 +10,7 @@ import 'message_item_widget.dart';
 
 /// Main chat view page that displays messages and chat input
 class ChatView extends ConsumerStatefulWidget {
-  final int threadId;
+  final int? threadId;
 
   const ChatView({
     super.key,
@@ -32,6 +32,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch the chat bloc for both new and existing chats
     final chatState = ref.watch(chatBlocProvider(widget.threadId));
     final chatBloc = ref.read(chatBlocProvider(widget.threadId).notifier);
 
@@ -170,10 +171,12 @@ class _ChatViewState extends ConsumerState<ChatView> {
                           subtitle: Text(mode.prompt),
                           onTap: () {
                             Navigator.pop(context);
-                            ModeOutputRoute(
-                              threadId: widget.threadId.toString(),
-                              modeId: mode.id.toString(),
-                            ).go(context);
+                            if (widget.threadId != null) {
+                              ModeOutputRoute(
+                                threadId: widget.threadId.toString(),
+                                modeId: mode.id.toString(),
+                              ).go(context);
+                            }
                           },
                         )),
                 ],

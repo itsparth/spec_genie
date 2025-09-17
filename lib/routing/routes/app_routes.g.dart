@@ -209,14 +209,14 @@ mixin $ModeOutputRoute on GoRouteData {
 
 mixin $ChatRoute on GoRouteData {
   static ChatRoute _fromState(GoRouterState state) => ChatRoute(
-        threadId: state.pathParameters['threadId']!,
+        threadId: state.pathParameters['threadId'],
       );
 
   ChatRoute get _self => this as ChatRoute;
 
   @override
   String get location => GoRouteData.$location(
-        '/chat/${Uri.encodeComponent(_self.threadId)}',
+        '/chat/${Uri.encodeComponent(_self.threadId ?? '')}',
       );
 
   @override

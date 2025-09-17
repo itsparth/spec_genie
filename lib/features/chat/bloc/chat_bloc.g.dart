@@ -17,7 +17,7 @@ const chatBlocProvider = ChatBlocFamily._();
 final class ChatBlocProvider extends $NotifierProvider<ChatBloc, ChatState> {
   /// Manages chat messages for a specific thread
   const ChatBlocProvider._(
-      {required ChatBlocFamily super.from, required int super.argument})
+      {required ChatBlocFamily super.from, required int? super.argument})
       : super(
           retry: null,
           name: r'chatBlocProvider',
@@ -59,12 +59,12 @@ final class ChatBlocProvider extends $NotifierProvider<ChatBloc, ChatState> {
   }
 }
 
-String _$chatBlocHash() => r'e3ec5e05774c192223f055dc2cd996fb98b812d1';
+String _$chatBlocHash() => r'200548e513efb6176d627d4cab881e7c0d14c782';
 
 /// Manages chat messages for a specific thread
 
 final class ChatBlocFamily extends $Family
-    with $ClassFamilyOverride<ChatBloc, ChatState, ChatState, ChatState, int> {
+    with $ClassFamilyOverride<ChatBloc, ChatState, ChatState, ChatState, int?> {
   const ChatBlocFamily._()
       : super(
           retry: null,
@@ -77,7 +77,7 @@ final class ChatBlocFamily extends $Family
   /// Manages chat messages for a specific thread
 
   ChatBlocProvider call(
-    int threadId,
+    int? threadId,
   ) =>
       ChatBlocProvider._(argument: threadId, from: this);
 
@@ -88,11 +88,11 @@ final class ChatBlocFamily extends $Family
 /// Manages chat messages for a specific thread
 
 abstract class _$ChatBloc extends $Notifier<ChatState> {
-  late final _$args = ref.$arg as int;
-  int get threadId => _$args;
+  late final _$args = ref.$arg as int?;
+  int? get threadId => _$args;
 
   ChatState build(
-    int threadId,
+    int? threadId,
   );
   @$mustCallSuper
   @override

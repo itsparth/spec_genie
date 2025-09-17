@@ -220,6 +220,7 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
       ChatInputMapper.ensureInitialized();
       AudioRecordingStateMapper.ensureInitialized();
       AudioRecordingConfigMapper.ensureInitialized();
+      TagMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -316,6 +317,13 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
         opt: true,
         def: const IListConst([]),
       );
+  static IList<Tag> _$selectedTags(ChatInputState v) => v.selectedTags;
+  static const Field<ChatInputState, IList<Tag>> _f$selectedTags = Field(
+    'selectedTags',
+    _$selectedTags,
+    opt: true,
+    def: const IListConst([]),
+  );
   static bool _$canSend(ChatInputState v) => v.canSend;
   static const Field<ChatInputState, bool> _f$canSend = Field(
     'canSend',
@@ -361,6 +369,7 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
     #selectedFilePaths: _f$selectedFilePaths,
     #isCapturingImage: _f$isCapturingImage,
     #selectedImagePaths: _f$selectedImagePaths,
+    #selectedTags: _f$selectedTags,
     #canSend: _f$canSend,
     #isRecording: _f$isRecording,
     #isRecordingPaused: _f$isRecordingPaused,
@@ -382,6 +391,7 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
       selectedFilePaths: data.dec(_f$selectedFilePaths),
       isCapturingImage: data.dec(_f$isCapturingImage),
       selectedImagePaths: data.dec(_f$selectedImagePaths),
+      selectedTags: data.dec(_f$selectedTags),
     );
   }
 
@@ -464,6 +474,7 @@ abstract class ChatInputStateCopyWith<$R, $In extends ChatInputState, $Out>
     IList<String>? selectedFilePaths,
     bool? isCapturingImage,
     IList<String>? selectedImagePaths,
+    IList<Tag>? selectedTags,
   });
   ChatInputStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -500,6 +511,7 @@ class _ChatInputStateCopyWithImpl<$R, $Out>
     IList<String>? selectedFilePaths,
     bool? isCapturingImage,
     IList<String>? selectedImagePaths,
+    IList<Tag>? selectedTags,
   }) => $apply(
     FieldCopyWithData({
       if (currentMode != null) #currentMode: currentMode,
@@ -514,6 +526,7 @@ class _ChatInputStateCopyWithImpl<$R, $Out>
       if (selectedFilePaths != null) #selectedFilePaths: selectedFilePaths,
       if (isCapturingImage != null) #isCapturingImage: isCapturingImage,
       if (selectedImagePaths != null) #selectedImagePaths: selectedImagePaths,
+      if (selectedTags != null) #selectedTags: selectedTags,
     }),
   );
   @override
@@ -539,6 +552,7 @@ class _ChatInputStateCopyWithImpl<$R, $Out>
       #selectedImagePaths,
       or: $value.selectedImagePaths,
     ),
+    selectedTags: data.get(#selectedTags, or: $value.selectedTags),
   );
 
   @override

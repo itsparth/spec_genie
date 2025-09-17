@@ -22,6 +22,12 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
   @override
   final String id = 'ChatState';
 
+  static int? _$threadId(ChatState v) => v.threadId;
+  static const Field<ChatState, int> _f$threadId = Field(
+    'threadId',
+    _$threadId,
+    opt: true,
+  );
   static IList<MessageState> _$messages(ChatState v) => v.messages;
   static const Field<ChatState, IList<MessageState>> _f$messages = Field(
     'messages',
@@ -39,12 +45,14 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
 
   @override
   final MappableFields<ChatState> fields = const {
+    #threadId: _f$threadId,
     #messages: _f$messages,
     #isLoading: _f$isLoading,
   };
 
   static ChatState _instantiate(DecodingData data) {
     return ChatState(
+      threadId: data.dec(_f$threadId),
       messages: data.dec(_f$messages),
       isLoading: data.dec(_f$isLoading),
     );
@@ -109,7 +117,7 @@ extension ChatStateValueCopy<$R, $Out> on ObjectCopyWith<$R, ChatState, $Out> {
 
 abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({IList<MessageState>? messages, bool? isLoading});
+  $R call({int? threadId, IList<MessageState>? messages, bool? isLoading});
   ChatStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -122,14 +130,20 @@ class _ChatStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<ChatState> $mapper =
       ChatStateMapper.ensureInitialized();
   @override
-  $R call({IList<MessageState>? messages, bool? isLoading}) => $apply(
+  $R call({
+    Object? threadId = $none,
+    IList<MessageState>? messages,
+    bool? isLoading,
+  }) => $apply(
     FieldCopyWithData({
+      if (threadId != $none) #threadId: threadId,
       if (messages != null) #messages: messages,
       if (isLoading != null) #isLoading: isLoading,
     }),
   );
   @override
   ChatState $make(CopyWithData data) => ChatState(
+    threadId: data.get(#threadId, or: $value.threadId),
     messages: data.get(#messages, or: $value.messages),
     isLoading: data.get(#isLoading, or: $value.isLoading),
   );
