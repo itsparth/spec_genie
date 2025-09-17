@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:isar_community/isar.dart';
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import '../models/mode.dart';
 import '../../shared/isar_provider.dart';
 import 'mode_state.dart';
@@ -11,7 +12,7 @@ part 'modes_bloc.g.dart';
 ///  - Load existing modes from Isar on build.
 ///  - Insert a default (non-editable) mode if database empty.
 ///  - CRUD operations for editable modes only.
-///  - Track selected mode id.
+///  - (Selection removed per current requirements)
 @riverpod
 class ModesBloc extends _$ModesBloc {
   static const _defaultModes = [
@@ -29,8 +30,7 @@ class ModesBloc extends _$ModesBloc {
     final existing = isar.modes.where().findAllSync();
     if (existing.isNotEmpty) {
       return ModeState(
-        modes: List<Mode>.unmodifiable(existing),
-        selectedId: existing.first.id,
+        modes: existing.toIList(),
       );
     }
     // Seed defaults asynchronously so build stays synchronous.
@@ -48,8 +48,7 @@ class ModesBloc extends _$ModesBloc {
         // Update state only if still empty (avoid overwriting user changes during race conditions).
         if (state.modes.isEmpty) {
           state = state.copyWith(
-            modes: List<Mode>.unmodifiable(inserted),
-            selectedId: inserted.first.id,
+            modes: inserted.toIList(),
           );
         }
       }
@@ -57,74 +56,95 @@ class ModesBloc extends _$ModesBloc {
     return ModeState.empty;
   }
 
-  /// Select a mode by id.
-  void select(int id) {
-    if (state.selectedId == id) return; // no-op
-    if (state.modes.any((m) => m.id == id)) {
-      state = state.copyWith(selectedId: id);
-    }
-  }
-
   /// Create a new editable mode and persist it.
   Future<void> create({required String name, required String prompt}) async {
-    final isar = ref.read(isarProvider);
-    final mode = Mode(name: name, prompt: prompt, isEditable: true);
-    await isar.writeTxn(() async {
-      final id = await isar.modes.put(mode);
-      final stored = await isar.modes.get(id);
-      if (stored != null) {
-        final updated = <Mode>[...state.modes, stored];
-        state = state.copyWith(
-          modes: List<Mode>.unmodifiable(updated),
-          selectedId: stored.id,
-        );
+    state = state.copyWith(isSaving: true);
+    try {
+      final isar = ref.read(isarProvider);
+      final mode = Mode(name: name, prompt: prompt, isEditable: true);
+      await isar.writeTxn(() async {
+        final id = await isar.modes.put(mode);
+        final stored = await isar.modes.get(id);
+        if (stored != null) {
+          final updated = state.modes.add(stored);
+          state = state.copyWith(
+            modes: updated,
+            isSaving: false,
+          );
+        }
+      });
+    } finally {
+      if (state.isSaving) {
+        state = state.copyWith(isSaving: false);
       }
-    });
+    }
   }
 
   /// Update an existing editable mode.
   Future<bool> update(int id, {String? name, String? prompt}) async {
-    final isar = ref.read(isarProvider);
-    final idx = state.modes.indexWhere((m) => m.id == id);
-    if (idx == -1) return false;
-    final original = state.modes[idx];
-    if (!original.isEditable) return false;
-    final updated = original.copyWith(
-      name: name ?? original.name,
-      prompt: prompt ?? original.prompt,
-    );
-    return await isar.writeTxn(() async {
-      await isar.modes.put(updated);
-      final list = <Mode>[...state.modes];
-      list[idx] = updated;
-      state = state.copyWith(modes: List<Mode>.unmodifiable(list));
-      return true;
-    });
+    state = state.copyWith(isSaving: true);
+    try {
+      final isar = ref.read(isarProvider);
+      final idx = state.modes.indexWhere((m) => m.id == id);
+      if (idx == -1) {
+        state = state.copyWith(isSaving: false);
+        return false;
+      }
+      final original = state.modes[idx];
+      if (!original.isEditable) {
+        state = state.copyWith(isSaving: false);
+        return false;
+      }
+      final updated = original.copyWith(
+        name: name ?? original.name,
+        prompt: prompt ?? original.prompt,
+      );
+      return await isar.writeTxn(() async {
+        await isar.modes.put(updated);
+        final updatedModes = state.modes.replace(idx, updated);
+        state = state.copyWith(modes: updatedModes, isSaving: false);
+        return true;
+      });
+    } finally {
+      if (state.isSaving) {
+        state = state.copyWith(isSaving: false);
+      }
+    }
   }
 
-  /// Delete a mode (only if editable). Adjust selection if needed.
+  /// Delete a mode (only if editable).
   Future<bool> remove(int id) async {
-    final isar = ref.read(isarProvider);
-    final idx = state.modes.indexWhere((m) => m.id == id);
-    if (idx == -1) return false;
-    final mode = state.modes[idx];
-    if (!mode.isEditable) return false;
-    return await isar.writeTxn(() async {
-      final deleted = await isar.modes.delete(id);
-      if (deleted) {
-        final remaining =
-            state.modes.where((m) => m.id != id).toList(growable: false);
-        int? newSelected = state.selectedId;
-        if (newSelected == id) {
-          newSelected = remaining.isEmpty ? null : remaining.first.id;
-        }
-        state = state.copyWith(
-          modes: List<Mode>.unmodifiable(remaining),
-          selectedId: newSelected,
-        );
+    state = state.copyWith(isSaving: true);
+    try {
+      final isar = ref.read(isarProvider);
+      final idx = state.modes.indexWhere((m) => m.id == id);
+      if (idx == -1) {
+        state = state.copyWith(isSaving: false);
+        return false;
       }
-      return deleted;
-    });
+      final mode = state.modes[idx];
+      if (!mode.isEditable) {
+        state = state.copyWith(isSaving: false);
+        return false;
+      }
+      return await isar.writeTxn(() async {
+        final deleted = await isar.modes.delete(id);
+        if (deleted) {
+          final remaining = state.modes.where((m) => m.id != id).toIList();
+          state = state.copyWith(
+            modes: remaining,
+            isSaving: false,
+          );
+        } else {
+          state = state.copyWith(isSaving: false);
+        }
+        return deleted;
+      });
+    } finally {
+      if (state.isSaving) {
+        state = state.copyWith(isSaving: false);
+      }
+    }
   }
 
   /// Force reload list from persistence.
@@ -132,7 +152,7 @@ class ModesBloc extends _$ModesBloc {
     final isar = ref.read(isarProvider);
     final list = await isar.modes.where().findAll();
     if (list.isNotEmpty) {
-      state = state.copyWith(modes: List<Mode>.unmodifiable(list));
+      state = state.copyWith(modes: list.toIList());
     }
   }
 }

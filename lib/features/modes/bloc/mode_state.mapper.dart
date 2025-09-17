@@ -22,32 +22,26 @@ class ModeStateMapper extends ClassMapperBase<ModeState> {
   @override
   final String id = 'ModeState';
 
-  static List<Mode> _$modes(ModeState v) => v.modes;
-  static const Field<ModeState, List<Mode>> _f$modes = Field('modes', _$modes);
-  static int? _$selectedId(ModeState v) => v.selectedId;
-  static const Field<ModeState, int> _f$selectedId = Field(
-    'selectedId',
-    _$selectedId,
+  static IList<Mode> _$modes(ModeState v) => v.modes;
+  static const Field<ModeState, IList<Mode>> _f$modes = Field('modes', _$modes);
+  static bool _$isSaving(ModeState v) => v.isSaving;
+  static const Field<ModeState, bool> _f$isSaving = Field(
+    'isSaving',
+    _$isSaving,
     opt: true,
-  );
-  static Mode? _$selected(ModeState v) => v.selected;
-  static const Field<ModeState, Mode> _f$selected = Field(
-    'selected',
-    _$selected,
-    mode: FieldMode.member,
+    def: false,
   );
 
   @override
   final MappableFields<ModeState> fields = const {
     #modes: _f$modes,
-    #selectedId: _f$selectedId,
-    #selected: _f$selected,
+    #isSaving: _f$isSaving,
   };
 
   static ModeState _instantiate(DecodingData data) {
     return ModeState(
       modes: data.dec(_f$modes),
-      selectedId: data.dec(_f$selectedId),
+      isSaving: data.dec(_f$isSaving),
     );
   }
 
@@ -110,8 +104,7 @@ extension ModeStateValueCopy<$R, $Out> on ObjectCopyWith<$R, ModeState, $Out> {
 
 abstract class ModeStateCopyWith<$R, $In extends ModeState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  ListCopyWith<$R, Mode, ModeCopyWith<$R, Mode, Mode>> get modes;
-  $R call({List<Mode>? modes, int? selectedId});
+  $R call({IList<Mode>? modes, bool? isSaving});
   ModeStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -124,23 +117,16 @@ class _ModeStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<ModeState> $mapper =
       ModeStateMapper.ensureInitialized();
   @override
-  ListCopyWith<$R, Mode, ModeCopyWith<$R, Mode, Mode>> get modes =>
-      ListCopyWith(
-        $value.modes,
-        (v, t) => v.copyWith.$chain(t),
-        (v) => call(modes: v),
-      );
-  @override
-  $R call({List<Mode>? modes, Object? selectedId = $none}) => $apply(
+  $R call({IList<Mode>? modes, bool? isSaving}) => $apply(
     FieldCopyWithData({
       if (modes != null) #modes: modes,
-      if (selectedId != $none) #selectedId: selectedId,
+      if (isSaving != null) #isSaving: isSaving,
     }),
   );
   @override
   ModeState $make(CopyWithData data) => ModeState(
     modes: data.get(#modes, or: $value.modes),
-    selectedId: data.get(#selectedId, or: $value.selectedId),
+    isSaving: data.get(#isSaving, or: $value.isSaving),
   );
 
   @override

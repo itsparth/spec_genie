@@ -13,7 +13,7 @@ part of 'modes_bloc.dart';
 ///  - Load existing modes from Isar on build.
 ///  - Insert a default (non-editable) mode if database empty.
 ///  - CRUD operations for editable modes only.
-///  - Track selected mode id.
+///  - (Selection removed per current requirements)
 
 @ProviderFor(ModesBloc)
 const modesBlocProvider = ModesBlocProvider._();
@@ -23,14 +23,14 @@ const modesBlocProvider = ModesBlocProvider._();
 ///  - Load existing modes from Isar on build.
 ///  - Insert a default (non-editable) mode if database empty.
 ///  - CRUD operations for editable modes only.
-///  - Track selected mode id.
+///  - (Selection removed per current requirements)
 final class ModesBlocProvider extends $NotifierProvider<ModesBloc, ModeState> {
   /// Bloc responsible for managing modes list & persistence.
   /// Capabilities:
   ///  - Load existing modes from Isar on build.
   ///  - Insert a default (non-editable) mode if database empty.
   ///  - CRUD operations for editable modes only.
-  ///  - Track selected mode id.
+  ///  - (Selection removed per current requirements)
   const ModesBlocProvider._()
       : super(
           from: null,
@@ -58,14 +58,14 @@ final class ModesBlocProvider extends $NotifierProvider<ModesBloc, ModeState> {
   }
 }
 
-String _$modesBlocHash() => r'd65fd0d4d691671deee0d5ef986e5f1eb81b950d';
+String _$modesBlocHash() => r'3c109f060f6e47ed3bd5be1226725a0653a979be';
 
 /// Bloc responsible for managing modes list & persistence.
 /// Capabilities:
 ///  - Load existing modes from Isar on build.
 ///  - Insert a default (non-editable) mode if database empty.
 ///  - CRUD operations for editable modes only.
-///  - Track selected mode id.
+///  - (Selection removed per current requirements)
 
 abstract class _$ModesBloc extends $Notifier<ModeState> {
   ModeState build();
