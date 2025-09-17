@@ -63,7 +63,7 @@ void main() {
     test('should transcribe WAV audio file correctly', () async {
       // Arrange
       final audioFile = File('test/features/shared/assets/tts_output.wav');
-      expect(audioFile.existsSync(), isTrue, 
+      expect(audioFile.existsSync(), isTrue,
           reason: 'WAV audio file should exist');
 
       final audioBytes = await audioFile.readAsBytes();
@@ -79,7 +79,7 @@ void main() {
           .replaceAll(RegExp(r'[^\w\s]'), '') // Remove punctuation
           .trim();
       final expectedText = 'hello this is a test audio file to test the api';
-      
+
       expect(normalizedTranscription, equals(expectedText),
           reason: 'WAV audio should be transcribed as expected text');
     });
@@ -87,7 +87,7 @@ void main() {
     test('should transcribe MP3 audio file correctly', () async {
       // Arrange
       final audioFile = File('test/features/shared/assets/tts_output.mp3');
-      expect(audioFile.existsSync(), isTrue, 
+      expect(audioFile.existsSync(), isTrue,
           reason: 'MP3 audio file should exist');
 
       final audioBytes = await audioFile.readAsBytes();
@@ -103,7 +103,7 @@ void main() {
           .replaceAll(RegExp(r'[^\w\s]'), '') // Remove punctuation
           .trim();
       final expectedText = 'hello this is a test audio file to test the api';
-      
+
       expect(normalizedTranscription, equals(expectedText),
           reason: 'MP3 audio should be transcribed as expected text');
     });
@@ -111,13 +111,14 @@ void main() {
     test('should recognize text on rock image correctly', () async {
       // Arrange
       final imageFile = File('test/features/shared/assets/rock_image_0.jpg');
-      expect(imageFile.existsSync(), isTrue, 
+      expect(imageFile.existsSync(), isTrue,
           reason: 'Rock image file should exist');
 
       final imageBytes = await imageFile.readAsBytes();
       final imagePart = ImagePart(imageBytes, 'image/jpeg');
-      
-      const systemPrompt = 'You are a helpful assistant that can read text in images. '
+
+      const systemPrompt =
+          'You are a helpful assistant that can read text in images. '
           'Extract and return only the text you see in the image, without any additional formatting or comments.';
 
       final parts = [
@@ -136,7 +137,7 @@ void main() {
           .replaceAll(RegExp(r'\s+'), ' ') // Normalize whitespace
           .trim();
       final expectedText = 'this is a test image';
-      
+
       expect(normalizedResponse, equals(expectedText),
           reason: 'Model should recognize the text on the rock image');
     });

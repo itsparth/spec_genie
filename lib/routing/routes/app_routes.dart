@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/configuration/ui/configuration_page.dart';
 part 'app_routes.g.dart';
 
 @TypedGoRoute<HomeScreenRoute>(
@@ -27,7 +28,7 @@ class ConfigurationRoute extends GoRouteData with $ConfigurationRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const SizedBox();
+    return const ConfigurationPage();
   }
 }
 

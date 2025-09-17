@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:record/record.dart';
 import 'package:image_picker/image_picker.dart' as picker;
@@ -12,6 +11,7 @@ import 'package:uuid/uuid.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 import '../models/chat_input.dart';
+import '../utils/input_utils.dart';
 import 'chat_input_state.dart';
 
 part 'chat_input_bloc.g.dart';
@@ -71,18 +71,10 @@ class ChatInputBloc extends _$ChatInputBloc {
 
       // Configure recording
       final recordingConfig = config ?? state.recordingConfig;
-      final recordConfig = RecordConfig(
-        encoder: _getAudioEncoder(recordingConfig.encoder),
-        sampleRate: recordingConfig.sampleRate,
-        bitRate: recordingConfig.bitRate,
-        numChannels: recordingConfig.numChannels,
-        autoGain: recordingConfig.enableNoiseReduction,
-        echoCancel: recordingConfig.enableEchoCancellation,
-        noiseSuppress: recordingConfig.enableNoiseReduction,
-      );
+      const recordConfig = RecordConfig();
 
       // Generate unique filename
-      final directory = await getApplicationDocumentsDirectory();
+      final directory = await getApplicationCacheDirectory();
       final fileName = 'audio_${_uuid.v4()}.m4a';
       final filePath = path.join(directory.path, 'recordings', fileName);
 
@@ -265,7 +257,7 @@ class ChatInputBloc extends _$ChatInputBloc {
       if (filterType == FileInputType.audio) {
         result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
-          allowedExtensions: ['mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac'],
+          allowedExtensions: InputUtils.audioExtensions,
           allowMultiple: allowMultiple,
         );
       } else if (filterType == FileInputType.image) {
@@ -277,12 +269,7 @@ class ChatInputBloc extends _$ChatInputBloc {
         // Allow both audio and image files
         result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
-          allowedExtensions: [
-            // Audio
-            'mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac',
-            // Image
-            'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp',
-          ],
+          allowedExtensions: InputUtils.allSupportedExtensions,
           allowMultiple: allowMultiple,
         );
       }
@@ -292,14 +279,14 @@ class ChatInputBloc extends _$ChatInputBloc {
 
         for (final file in result.files) {
           if (file.path != null) {
-            final fileType = _getFileInputType(file.extension);
+            final fileType = InputUtils.getFileInputType(file.extension);
             final fileInput = FileChatInput(
               id: _uuid.v4(),
               createdAt: DateTime.now(),
               filePath: file.path!,
               fileName: file.name,
               fileSize: file.size,
-              mimeType: _getMimeType(file.extension),
+              mimeType: InputUtils.getMimeType(file.extension),
               fileType: fileType,
             );
             fileInputs.add(fileInput);
@@ -365,37 +352,17 @@ class ChatInputBloc extends _$ChatInputBloc {
 
   // Private helper methods
   Future<bool> _checkMicrophonePermission() async {
+    // On Linux desktop, always return true as permissions are handled at OS level
+    if (Platform.isLinux) {
+      return true;
+    }
+
     final status = await Permission.microphone.status;
     if (status.isDenied) {
       final result = await Permission.microphone.request();
       return result.isGranted;
     }
     return status.isGranted;
-  }
-
-  AudioEncoder _getAudioEncoder(String encoder) {
-    switch (encoder.toLowerCase()) {
-      case 'aacLc':
-        return AudioEncoder.aacLc;
-      case 'aacEld':
-        return AudioEncoder.aacEld;
-      case 'aacHe':
-        return AudioEncoder.aacHe;
-      case 'amrNb':
-        return AudioEncoder.amrNb;
-      case 'amrWb':
-        return AudioEncoder.amrWb;
-      case 'opus':
-        return AudioEncoder.opus;
-      case 'wav':
-        return AudioEncoder.wav;
-      case 'flac':
-        return AudioEncoder.flac;
-      case 'pcm16bits':
-        return AudioEncoder.pcm16bits;
-      default:
-        return AudioEncoder.aacLc;
-    }
   }
 
   Future<void> _selectImage(picker.ImageSource source) async {
@@ -425,58 +392,6 @@ class ChatInputBloc extends _$ChatInputBloc {
         isLoading: false,
         error: 'Failed to capture/select image: $e',
       );
-    }
-  }
-
-  FileInputType _getFileInputType(String? extension) {
-    if (extension == null) return FileInputType.image;
-
-    const audioExtensions = ['mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac'];
-    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
-
-    final ext = extension.toLowerCase();
-    if (audioExtensions.contains(ext)) {
-      return FileInputType.audio;
-    } else if (imageExtensions.contains(ext)) {
-      return FileInputType.image;
-    }
-
-    return FileInputType.image; // default
-  }
-
-  String _getMimeType(String? extension) {
-    if (extension == null) return 'application/octet-stream';
-
-    switch (extension.toLowerCase()) {
-      // Audio
-      case 'mp3':
-        return 'audio/mpeg';
-      case 'm4a':
-        return 'audio/mp4';
-      case 'wav':
-        return 'audio/wav';
-      case 'aac':
-        return 'audio/aac';
-      case 'ogg':
-        return 'audio/ogg';
-      case 'flac':
-        return 'audio/flac';
-
-      // Image
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
-      case 'png':
-        return 'image/png';
-      case 'gif':
-        return 'image/gif';
-      case 'bmp':
-        return 'image/bmp';
-      case 'webp':
-        return 'image/webp';
-
-      default:
-        return 'application/octet-stream';
     }
   }
 

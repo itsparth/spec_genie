@@ -9,6 +9,7 @@
 #include <desktop_drop/desktop_drop_plugin.h>
 #include <file_selector_linux/file_selector_plugin.h>
 #include <irondash_engine_context/irondash_engine_context_plugin.h>
+#include <isar_community_flutter_libs/isar_flutter_libs_plugin.h>
 #include <record_linux/record_linux_plugin.h>
 #include <super_native_extensions/super_native_extensions_plugin.h>
 #include <url_launcher_linux/url_launcher_plugin.h>
@@ -23,6 +24,9 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) irondash_engine_context_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "IrondashEngineContextPlugin");
   irondash_engine_context_plugin_register_with_registrar(irondash_engine_context_registrar);
+  g_autoptr(FlPluginRegistrar) isar_community_flutter_libs_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "IsarFlutterLibsPlugin");
+  isar_flutter_libs_plugin_register_with_registrar(isar_community_flutter_libs_registrar);
   g_autoptr(FlPluginRegistrar) record_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "RecordLinuxPlugin");
   record_linux_plugin_register_with_registrar(record_linux_registrar);

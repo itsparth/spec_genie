@@ -36,6 +36,8 @@ class TestConfig {
   /// Get a configuration value by key
   static String get(String key, {String? defaultValue}) {
     final config = load();
-    return config[key] ?? defaultValue ?? (throw Exception('Missing configuration: $key'));
+    return config[key] ??
+        defaultValue ??
+        (throw Exception('Missing configuration: $key'));
   }
 }

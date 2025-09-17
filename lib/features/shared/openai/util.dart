@@ -48,7 +48,8 @@ class OpenAIUtil {
       model: ChatCompletionModel.modelId(_model),
       messages: [
         ChatCompletionMessage.system(
-          content: 'Transcribe the following audio to text. Return only the transcribed text without any additional formatting or comments.',
+          content:
+              'Transcribe the following audio to text. Return only the transcribed text without any additional formatting or comments.',
         ),
         ChatCompletionMessage.user(
           content: ChatCompletionUserMessageContent.parts([
