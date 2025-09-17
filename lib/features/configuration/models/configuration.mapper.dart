@@ -45,39 +45,6 @@ class ConfigurationMapper extends ClassMapperBase<Configuration> {
   static const Field<Configuration, String> _f$modelName = Field(
     'modelName',
     _$modelName,
-    opt: true,
-    def: 'gpt-4',
-  );
-  static bool _$transcribeAudioFirst(Configuration v) => v.transcribeAudioFirst;
-  static const Field<Configuration, bool> _f$transcribeAudioFirst = Field(
-    'transcribeAudioFirst',
-    _$transcribeAudioFirst,
-    opt: true,
-    def: true,
-  );
-  static bool _$isValid(Configuration v) => v.isValid;
-  static const Field<Configuration, bool> _f$isValid = Field(
-    'isValid',
-    _$isValid,
-    mode: FieldMode.member,
-  );
-  static bool _$hasValidApiKey(Configuration v) => v.hasValidApiKey;
-  static const Field<Configuration, bool> _f$hasValidApiKey = Field(
-    'hasValidApiKey',
-    _$hasValidApiKey,
-    mode: FieldMode.member,
-  );
-  static String _$effectiveBaseUrl(Configuration v) => v.effectiveBaseUrl;
-  static const Field<Configuration, String> _f$effectiveBaseUrl = Field(
-    'effectiveBaseUrl',
-    _$effectiveBaseUrl,
-    mode: FieldMode.member,
-  );
-  static bool _$isCustomEndpoint(Configuration v) => v.isCustomEndpoint;
-  static const Field<Configuration, bool> _f$isCustomEndpoint = Field(
-    'isCustomEndpoint',
-    _$isCustomEndpoint,
-    mode: FieldMode.member,
   );
 
   @override
@@ -86,11 +53,6 @@ class ConfigurationMapper extends ClassMapperBase<Configuration> {
     #apiKey: _f$apiKey,
     #baseUrl: _f$baseUrl,
     #modelName: _f$modelName,
-    #transcribeAudioFirst: _f$transcribeAudioFirst,
-    #isValid: _f$isValid,
-    #hasValidApiKey: _f$hasValidApiKey,
-    #effectiveBaseUrl: _f$effectiveBaseUrl,
-    #isCustomEndpoint: _f$isCustomEndpoint,
   };
 
   static Configuration _instantiate(DecodingData data) {
@@ -99,7 +61,6 @@ class ConfigurationMapper extends ClassMapperBase<Configuration> {
       apiKey: data.dec(_f$apiKey),
       baseUrl: data.dec(_f$baseUrl),
       modelName: data.dec(_f$modelName),
-      transcribeAudioFirst: data.dec(_f$transcribeAudioFirst),
     );
   }
 
@@ -165,13 +126,7 @@ extension ConfigurationValueCopy<$R, $Out>
 
 abstract class ConfigurationCopyWith<$R, $In extends Configuration, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({
-    int? id,
-    String? apiKey,
-    String? baseUrl,
-    String? modelName,
-    bool? transcribeAudioFirst,
-  });
+  $R call({int? id, String? apiKey, String? baseUrl, String? modelName});
   ConfigurationCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -189,15 +144,12 @@ class _ConfigurationCopyWithImpl<$R, $Out>
     String? apiKey,
     Object? baseUrl = $none,
     String? modelName,
-    bool? transcribeAudioFirst,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
       if (apiKey != null) #apiKey: apiKey,
       if (baseUrl != $none) #baseUrl: baseUrl,
       if (modelName != null) #modelName: modelName,
-      if (transcribeAudioFirst != null)
-        #transcribeAudioFirst: transcribeAudioFirst,
     }),
   );
   @override
@@ -206,10 +158,6 @@ class _ConfigurationCopyWithImpl<$R, $Out>
     apiKey: data.get(#apiKey, or: $value.apiKey),
     baseUrl: data.get(#baseUrl, or: $value.baseUrl),
     modelName: data.get(#modelName, or: $value.modelName),
-    transcribeAudioFirst: data.get(
-      #transcribeAudioFirst,
-      or: $value.transcribeAudioFirst,
-    ),
   );
 
   @override

@@ -21,7 +21,6 @@ class ConfigurationBloc extends _$ConfigurationBloc {
       apiKey: apiKey,
       baseUrl: current.baseUrl,
       modelName: current.modelName,
-      transcribeAudioFirst: current.transcribeAudioFirst,
     );
   }
 
@@ -33,7 +32,6 @@ class ConfigurationBloc extends _$ConfigurationBloc {
       apiKey: current.apiKey,
       baseUrl: baseUrl,
       modelName: current.modelName,
-      transcribeAudioFirst: current.transcribeAudioFirst,
     );
   }
 
@@ -45,19 +43,6 @@ class ConfigurationBloc extends _$ConfigurationBloc {
       apiKey: current.apiKey,
       baseUrl: current.baseUrl,
       modelName: modelName,
-      transcribeAudioFirst: current.transcribeAudioFirst,
-    );
-  }
-
-  /// Toggle audio transcription preference
-  void toggleTranscribeAudioFirst() {
-    final current = state;
-    state = Configuration(
-      id: current.id,
-      apiKey: current.apiKey,
-      baseUrl: current.baseUrl,
-      modelName: current.modelName,
-      transcribeAudioFirst: !current.transcribeAudioFirst,
     );
   }
 }

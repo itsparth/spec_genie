@@ -27,35 +27,10 @@ const ConfigurationSchema = CollectionSchema(
       name: r'baseUrl',
       type: IsarType.string,
     ),
-    r'effectiveBaseUrl': PropertySchema(
-      id: 2,
-      name: r'effectiveBaseUrl',
-      type: IsarType.string,
-    ),
-    r'hasValidApiKey': PropertySchema(
-      id: 3,
-      name: r'hasValidApiKey',
-      type: IsarType.bool,
-    ),
-    r'isCustomEndpoint': PropertySchema(
-      id: 4,
-      name: r'isCustomEndpoint',
-      type: IsarType.bool,
-    ),
-    r'isValid': PropertySchema(
-      id: 5,
-      name: r'isValid',
-      type: IsarType.bool,
-    ),
     r'modelName': PropertySchema(
-      id: 6,
+      id: 2,
       name: r'modelName',
       type: IsarType.string,
-    ),
-    r'transcribeAudioFirst': PropertySchema(
-      id: 7,
-      name: r'transcribeAudioFirst',
-      type: IsarType.bool,
     )
   },
   estimateSize: _configurationEstimateSize,
@@ -85,7 +60,6 @@ int _configurationEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
-  bytesCount += 3 + object.effectiveBaseUrl.length * 3;
   bytesCount += 3 + object.modelName.length * 3;
   return bytesCount;
 }
@@ -98,12 +72,7 @@ void _configurationSerialize(
 ) {
   writer.writeString(offsets[0], object.apiKey);
   writer.writeString(offsets[1], object.baseUrl);
-  writer.writeString(offsets[2], object.effectiveBaseUrl);
-  writer.writeBool(offsets[3], object.hasValidApiKey);
-  writer.writeBool(offsets[4], object.isCustomEndpoint);
-  writer.writeBool(offsets[5], object.isValid);
-  writer.writeString(offsets[6], object.modelName);
-  writer.writeBool(offsets[7], object.transcribeAudioFirst);
+  writer.writeString(offsets[2], object.modelName);
 }
 
 Configuration _configurationDeserialize(
@@ -116,8 +85,7 @@ Configuration _configurationDeserialize(
     apiKey: reader.readStringOrNull(offsets[0]) ?? '',
     baseUrl: reader.readStringOrNull(offsets[1]),
     id: id,
-    modelName: reader.readStringOrNull(offsets[6]) ?? 'gpt-4',
-    transcribeAudioFirst: reader.readBoolOrNull(offsets[7]) ?? true,
+    modelName: reader.readString(offsets[2]),
   );
   return object;
 }
@@ -135,16 +103,6 @@ P _configurationDeserializeProp<P>(
       return (reader.readStringOrNull(offset)) as P;
     case 2:
       return (reader.readString(offset)) as P;
-    case 3:
-      return (reader.readBool(offset)) as P;
-    case 4:
-      return (reader.readBool(offset)) as P;
-    case 5:
-      return (reader.readBool(offset)) as P;
-    case 6:
-      return (reader.readStringOrNull(offset) ?? 'gpt-4') as P;
-    case 7:
-      return (reader.readBoolOrNull(offset) ?? true) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -534,152 +492,6 @@ extension ConfigurationQueryFilter
     });
   }
 
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      effectiveBaseUrlEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'effectiveBaseUrl',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      effectiveBaseUrlGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'effectiveBaseUrl',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      effectiveBaseUrlLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'effectiveBaseUrl',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      effectiveBaseUrlBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'effectiveBaseUrl',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      effectiveBaseUrlStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'effectiveBaseUrl',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      effectiveBaseUrlEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'effectiveBaseUrl',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      effectiveBaseUrlContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'effectiveBaseUrl',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      effectiveBaseUrlMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'effectiveBaseUrl',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      effectiveBaseUrlIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'effectiveBaseUrl',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      effectiveBaseUrlIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'effectiveBaseUrl',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      hasValidApiKeyEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'hasValidApiKey',
-        value: value,
-      ));
-    });
-  }
-
   QueryBuilder<Configuration, Configuration, QAfterFilterCondition> idEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
@@ -730,26 +542,6 @@ extension ConfigurationQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      isCustomEndpointEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isCustomEndpoint',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      isValidEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isValid',
-        value: value,
       ));
     });
   }
@@ -889,16 +681,6 @@ extension ConfigurationQueryFilter
       ));
     });
   }
-
-  QueryBuilder<Configuration, Configuration, QAfterFilterCondition>
-      transcribeAudioFirstEqualTo(bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'transcribeAudioFirst',
-        value: value,
-      ));
-    });
-  }
 }
 
 extension ConfigurationQueryObject
@@ -933,60 +715,6 @@ extension ConfigurationQuerySortBy
     });
   }
 
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      sortByEffectiveBaseUrl() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'effectiveBaseUrl', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      sortByEffectiveBaseUrlDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'effectiveBaseUrl', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      sortByHasValidApiKey() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hasValidApiKey', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      sortByHasValidApiKeyDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hasValidApiKey', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      sortByIsCustomEndpoint() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isCustomEndpoint', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      sortByIsCustomEndpointDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isCustomEndpoint', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy> sortByIsValid() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isValid', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy> sortByIsValidDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isValid', Sort.desc);
-    });
-  }
-
   QueryBuilder<Configuration, Configuration, QAfterSortBy> sortByModelName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'modelName', Sort.asc);
@@ -997,20 +725,6 @@ extension ConfigurationQuerySortBy
       sortByModelNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'modelName', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      sortByTranscribeAudioFirst() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'transcribeAudioFirst', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      sortByTranscribeAudioFirstDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'transcribeAudioFirst', Sort.desc);
     });
   }
 }
@@ -1041,34 +755,6 @@ extension ConfigurationQuerySortThenBy
     });
   }
 
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      thenByEffectiveBaseUrl() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'effectiveBaseUrl', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      thenByEffectiveBaseUrlDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'effectiveBaseUrl', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      thenByHasValidApiKey() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hasValidApiKey', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      thenByHasValidApiKeyDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'hasValidApiKey', Sort.desc);
-    });
-  }
-
   QueryBuilder<Configuration, Configuration, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -1078,32 +764,6 @@ extension ConfigurationQuerySortThenBy
   QueryBuilder<Configuration, Configuration, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      thenByIsCustomEndpoint() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isCustomEndpoint', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      thenByIsCustomEndpointDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isCustomEndpoint', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy> thenByIsValid() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isValid', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy> thenByIsValidDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isValid', Sort.desc);
     });
   }
 
@@ -1117,20 +777,6 @@ extension ConfigurationQuerySortThenBy
       thenByModelNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'modelName', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      thenByTranscribeAudioFirst() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'transcribeAudioFirst', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QAfterSortBy>
-      thenByTranscribeAudioFirstDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'transcribeAudioFirst', Sort.desc);
     });
   }
 }
@@ -1151,45 +797,10 @@ extension ConfigurationQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Configuration, Configuration, QDistinct>
-      distinctByEffectiveBaseUrl({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'effectiveBaseUrl',
-          caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QDistinct>
-      distinctByHasValidApiKey() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'hasValidApiKey');
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QDistinct>
-      distinctByIsCustomEndpoint() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isCustomEndpoint');
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QDistinct> distinctByIsValid() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isValid');
-    });
-  }
-
   QueryBuilder<Configuration, Configuration, QDistinct> distinctByModelName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'modelName', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Configuration, Configuration, QDistinct>
-      distinctByTranscribeAudioFirst() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'transcribeAudioFirst');
     });
   }
 }
@@ -1214,42 +825,9 @@ extension ConfigurationQueryProperty
     });
   }
 
-  QueryBuilder<Configuration, String, QQueryOperations>
-      effectiveBaseUrlProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'effectiveBaseUrl');
-    });
-  }
-
-  QueryBuilder<Configuration, bool, QQueryOperations> hasValidApiKeyProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'hasValidApiKey');
-    });
-  }
-
-  QueryBuilder<Configuration, bool, QQueryOperations>
-      isCustomEndpointProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isCustomEndpoint');
-    });
-  }
-
-  QueryBuilder<Configuration, bool, QQueryOperations> isValidProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isValid');
-    });
-  }
-
   QueryBuilder<Configuration, String, QQueryOperations> modelNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'modelName');
-    });
-  }
-
-  QueryBuilder<Configuration, bool, QQueryOperations>
-      transcribeAudioFirstProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'transcribeAudioFirst');
     });
   }
 }
