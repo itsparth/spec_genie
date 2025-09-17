@@ -71,8 +71,8 @@ class ThreadsPage extends ConsumerWidget {
                 return ThreadItemWidget(
                   thread: thread,
                   onTap: () => _onThreadTap(context, thread),
-                  onEdit: () => _onEditThread(context, thread),
-                  onDelete: () => _onDeleteThread(context, thread),
+                  onEdit: () => _onEditThread(context, ref, thread),
+                  onDelete: () => _onDeleteThread(context, ref, thread),
                 );
               },
             ),
@@ -83,16 +83,52 @@ class ThreadsPage extends ConsumerWidget {
     ChatRoute(threadId: thread.id.toString()).go(context);
   }
 
-  void _onEditThread(BuildContext context, Thread thread) {
-    // TODO: Implement edit thread functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Edit thread: ${thread.name}'),
-      ),
+  void _onEditThread(BuildContext context, WidgetRef ref, Thread thread) {
+    final TextEditingController controller =
+        TextEditingController(text: thread.name);
+
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Edit Thread'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'Thread Name',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  ref.read(threadsBlocProvider.notifier).updateThread(
+                        thread.id,
+                        controller.text.trim(),
+                      );
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Thread updated successfully'),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  void _onDeleteThread(BuildContext context, Thread thread) {
+  void _onDeleteThread(BuildContext context, WidgetRef ref, Thread thread) {
     // TODO: Implement delete thread functionality with confirmation dialog
     showDialog<void>(
       context: context,
@@ -108,7 +144,7 @@ class ThreadsPage extends ConsumerWidget {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                // TODO: Actually delete the thread
+                ref.read(threadsBlocProvider.notifier).deleteThread(thread.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Deleted thread: ${thread.name}'),

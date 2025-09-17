@@ -32,4 +32,30 @@ class ThreadsBloc extends _$ThreadsBloc {
       ),
     ];
   }
+
+  void addThread(String name) {
+    final newThread = Thread(
+      id: state.length + 1,
+      name: name,
+      createdAt: DateTime.now(),
+    );
+    state = [...state, newThread];
+  }
+
+  void updateThread(int id, String name) {
+    state = state.map((thread) {
+      if (thread.id == id) {
+        return Thread(
+          id: thread.id,
+          name: name,
+          createdAt: thread.createdAt,
+        );
+      }
+      return thread;
+    }).toList();
+  }
+
+  void deleteThread(int id) {
+    state = state.where((thread) => thread.id != id).toList();
+  }
 }

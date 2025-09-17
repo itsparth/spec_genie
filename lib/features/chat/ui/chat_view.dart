@@ -146,7 +146,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
         return Consumer(
           builder: (context, ref, child) {
             final modeState = ref.watch(modesBlocProvider);
-            
+
             return Container(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -165,17 +165,17 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     )
                   else
                     ...modeState.modes.map((mode) => ListTile(
-                      leading: const Icon(Icons.psychology),
-                      title: Text(mode.name),
-                      subtitle: Text(mode.prompt),
-                      onTap: () {
-                        Navigator.pop(context);
-                        ModeOutputRoute(
-                          threadId: widget.threadId.toString(),
-                          modeId: mode.id.toString(),
-                        ).go(context);
-                      },
-                    )),
+                          leading: const Icon(Icons.psychology),
+                          title: Text(mode.name),
+                          subtitle: Text(mode.prompt),
+                          onTap: () {
+                            Navigator.pop(context);
+                            ModeOutputRoute(
+                              threadId: widget.threadId.toString(),
+                              modeId: mode.id.toString(),
+                            ).go(context);
+                          },
+                        )),
                 ],
               ),
             );
