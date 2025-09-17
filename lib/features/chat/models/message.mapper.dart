@@ -79,10 +79,10 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: Isar.autoIncrement,
   );
-  static String _$content(Message v) => v.content;
-  static const Field<Message, String> _f$content = Field(
-    'content',
-    _$content,
+  static String _$text(Message v) => v.text;
+  static const Field<Message, String> _f$text = Field(
+    'text',
+    _$text,
     opt: true,
     def: '',
   );
@@ -98,35 +98,76 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: MessageType.text,
   );
-  static bool _$isAttachment(Message v) => v.isAttachment;
-  static const Field<Message, bool> _f$isAttachment = Field(
-    'isAttachment',
-    _$isAttachment,
+  static String _$description(Message v) => v.description;
+  static const Field<Message, String> _f$description = Field(
+    'description',
+    _$description,
+    opt: true,
+    def: '',
+  );
+  static List<int>? _$fileData(Message v) => v.fileData;
+  static const Field<Message, List<int>> _f$fileData = Field(
+    'fileData',
+    _$fileData,
+    opt: true,
+  );
+  static String? _$mimeType(Message v) => v.mimeType;
+  static const Field<Message, String> _f$mimeType = Field(
+    'mimeType',
+    _$mimeType,
+    opt: true,
+  );
+  static String? _$transcript(Message v) => v.transcript;
+  static const Field<Message, String> _f$transcript = Field(
+    'transcript',
+    _$transcript,
+    opt: true,
+  );
+  static String? _$fileName(Message v) => v.fileName;
+  static const Field<Message, String> _f$fileName = Field(
+    'fileName',
+    _$fileName,
+    opt: true,
+  );
+  static IsarLink<Thread> _$thread(Message v) => v.thread;
+  static const Field<Message, IsarLink<Thread>> _f$thread = Field(
+    'thread',
+    _$thread,
     mode: FieldMode.member,
   );
-  static String? _$filePath(Message v) => v.filePath;
-  static const Field<Message, String> _f$filePath = Field(
-    'filePath',
-    _$filePath,
+  static IsarLinks<Tag> _$tags(Message v) => v.tags;
+  static const Field<Message, IsarLinks<Tag>> _f$tags = Field(
+    'tags',
+    _$tags,
     mode: FieldMode.member,
   );
 
   @override
   final MappableFields<Message> fields = const {
     #id: _f$id,
-    #content: _f$content,
+    #text: _f$text,
     #timestamp: _f$timestamp,
     #type: _f$type,
-    #isAttachment: _f$isAttachment,
-    #filePath: _f$filePath,
+    #description: _f$description,
+    #fileData: _f$fileData,
+    #mimeType: _f$mimeType,
+    #transcript: _f$transcript,
+    #fileName: _f$fileName,
+    #thread: _f$thread,
+    #tags: _f$tags,
   };
 
   static Message _instantiate(DecodingData data) {
     return Message(
       id: data.dec(_f$id),
-      content: data.dec(_f$content),
+      text: data.dec(_f$text),
       timestamp: data.dec(_f$timestamp),
       type: data.dec(_f$type),
+      description: data.dec(_f$description),
+      fileData: data.dec(_f$fileData),
+      mimeType: data.dec(_f$mimeType),
+      transcript: data.dec(_f$transcript),
+      fileName: data.dec(_f$fileName),
     );
   }
 
@@ -187,7 +228,18 @@ extension MessageValueCopy<$R, $Out> on ObjectCopyWith<$R, Message, $Out> {
 
 abstract class MessageCopyWith<$R, $In extends Message, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({int? id, String? content, DateTime? timestamp, MessageType? type});
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>>? get fileData;
+  $R call({
+    int? id,
+    String? text,
+    DateTime? timestamp,
+    MessageType? type,
+    String? description,
+    List<int>? fileData,
+    String? mimeType,
+    String? transcript,
+    String? fileName,
+  });
   MessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -200,21 +252,49 @@ class _MessageCopyWithImpl<$R, $Out>
   late final ClassMapperBase<Message> $mapper =
       MessageMapper.ensureInitialized();
   @override
-  $R call({int? id, String? content, DateTime? timestamp, MessageType? type}) =>
-      $apply(
-        FieldCopyWithData({
-          if (id != null) #id: id,
-          if (content != null) #content: content,
-          if (timestamp != null) #timestamp: timestamp,
-          if (type != null) #type: type,
-        }),
-      );
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>>? get fileData =>
+      $value.fileData != null
+      ? ListCopyWith(
+          $value.fileData!,
+          (v, t) => ObjectCopyWith(v, $identity, t),
+          (v) => call(fileData: v),
+        )
+      : null;
+  @override
+  $R call({
+    int? id,
+    String? text,
+    DateTime? timestamp,
+    MessageType? type,
+    String? description,
+    Object? fileData = $none,
+    Object? mimeType = $none,
+    Object? transcript = $none,
+    Object? fileName = $none,
+  }) => $apply(
+    FieldCopyWithData({
+      if (id != null) #id: id,
+      if (text != null) #text: text,
+      if (timestamp != null) #timestamp: timestamp,
+      if (type != null) #type: type,
+      if (description != null) #description: description,
+      if (fileData != $none) #fileData: fileData,
+      if (mimeType != $none) #mimeType: mimeType,
+      if (transcript != $none) #transcript: transcript,
+      if (fileName != $none) #fileName: fileName,
+    }),
+  );
   @override
   Message $make(CopyWithData data) => Message(
     id: data.get(#id, or: $value.id),
-    content: data.get(#content, or: $value.content),
+    text: data.get(#text, or: $value.text),
     timestamp: data.get(#timestamp, or: $value.timestamp),
     type: data.get(#type, or: $value.type),
+    description: data.get(#description, or: $value.description),
+    fileData: data.get(#fileData, or: $value.fileData),
+    mimeType: data.get(#mimeType, or: $value.mimeType),
+    transcript: data.get(#transcript, or: $value.transcript),
+    fileName: data.get(#fileName, or: $value.fileName),
   );
 
   @override

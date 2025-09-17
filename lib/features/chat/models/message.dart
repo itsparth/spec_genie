@@ -1,61 +1,42 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../threads/models/thread.dart';
+import '../../tags/models/tag.dart';
+
 part 'message.mapper.dart';
 part 'message.g.dart';
 
 @MappableClass()
 @Collection()
 class Message with MessageMappable {
-  final Id id;
-  final String content;
+  Id id;
+  final String text;
   final DateTime timestamp;
   @Enumerated(EnumType.name)
   final MessageType type;
+  final String description;
+  final List<int>? fileData;
+  final String? mimeType;
+  final String? transcript;
+  final String? fileName;
 
-  const Message({
+  final thread = IsarLink<Thread>();
+  final tags = IsarLinks<Tag>();
+
+  Message({
     this.id = Isar.autoIncrement,
-    this.content = '',
+    this.text = '',
     required this.timestamp,
     this.type = MessageType.text,
+    this.description = '',
+    this.fileData,
+    this.mimeType,
+    this.transcript,
+    this.fileName,
   });
 
-  /// Create a text message
-  factory Message.text(String content) {
-    return Message(
-      content: content,
-      timestamp: DateTime.now(),
-      type: MessageType.text,
-    );
-  }
 
-  /// Create an audio message
-  factory Message.audio(String filePath) {
-    return Message(
-      content: filePath,
-      timestamp: DateTime.now(),
-      type: MessageType.audio,
-    );
-  }
-
-  /// Create an image message
-  factory Message.image(String filePath) {
-    return Message(
-      content: filePath,
-      timestamp: DateTime.now(),
-      type: MessageType.image,
-    );
-  }
-
-  /// Check if message is a file attachment
-  bool get isAttachment {
-    return type != MessageType.text;
-  }
-
-  /// Get file path for attachments
-  String? get filePath {
-    return isAttachment ? content : null;
-  }
 }
 
 @MappableEnum()
