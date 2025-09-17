@@ -42,6 +42,12 @@ class TagMapper extends ClassMapperBase<Tag> {
     opt: true,
     def: true,
   );
+  static IsarLinks<Message> _$messages(Tag v) => v.messages;
+  static const Field<Tag, IsarLinks<Message>> _f$messages = Field(
+    'messages',
+    _$messages,
+    mode: FieldMode.member,
+  );
 
   @override
   final MappableFields<Tag> fields = const {
@@ -49,6 +55,7 @@ class TagMapper extends ClassMapperBase<Tag> {
     #name: _f$name,
     #description: _f$description,
     #isEditable: _f$isEditable,
+    #messages: _f$messages,
   };
 
   static Tag _instantiate(DecodingData data) {

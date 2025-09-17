@@ -39,7 +39,15 @@ const TagSchema = CollectionSchema(
   deserializeProp: _tagDeserializeProp,
   idName: r'id',
   indexes: {},
-  links: {},
+  links: {
+    r'messages': LinkSchema(
+      id: -5328828383464726109,
+      name: r'messages',
+      target: r'Message',
+      single: false,
+      linkName: r'tags',
+    )
+  },
   embeddedSchemas: {},
   getId: _tagGetId,
   getLinks: _tagGetLinks,
@@ -107,10 +115,13 @@ Id _tagGetId(Tag object) {
 }
 
 List<IsarLinkBase<dynamic>> _tagGetLinks(Tag object) {
-  return [];
+  return [object.messages];
 }
 
-void _tagAttach(IsarCollection<dynamic> col, Id id, Tag object) {}
+void _tagAttach(IsarCollection<dynamic> col, Id id, Tag object) {
+  object.id = id;
+  object.messages.attach(col, col.isar.collection<Message>(), r'messages', id);
+}
 
 extension TagQueryWhereSort on QueryBuilder<Tag, Tag, QWhere> {
   QueryBuilder<Tag, Tag, QAfterWhere> anyId() {
@@ -510,7 +521,63 @@ extension TagQueryFilter on QueryBuilder<Tag, Tag, QFilterCondition> {
 
 extension TagQueryObject on QueryBuilder<Tag, Tag, QFilterCondition> {}
 
-extension TagQueryLinks on QueryBuilder<Tag, Tag, QFilterCondition> {}
+extension TagQueryLinks on QueryBuilder<Tag, Tag, QFilterCondition> {
+  QueryBuilder<Tag, Tag, QAfterFilterCondition> messages(
+      FilterQuery<Message> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'messages');
+    });
+  }
+
+  QueryBuilder<Tag, Tag, QAfterFilterCondition> messagesLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'messages', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<Tag, Tag, QAfterFilterCondition> messagesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'messages', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Tag, Tag, QAfterFilterCondition> messagesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'messages', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Tag, Tag, QAfterFilterCondition> messagesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'messages', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<Tag, Tag, QAfterFilterCondition> messagesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'messages', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<Tag, Tag, QAfterFilterCondition> messagesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+          r'messages', lower, includeLower, upper, includeUpper);
+    });
+  }
+}
 
 extension TagQuerySortBy on QueryBuilder<Tag, Tag, QSortBy> {
   QueryBuilder<Tag, Tag, QAfterSortBy> sortByDescription() {
