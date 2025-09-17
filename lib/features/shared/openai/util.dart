@@ -42,6 +42,26 @@ class OpenAIUtil {
     };
   }
 
+  /// Transcribe audio to text
+  Future<String> transcribeAudio(AudioPart audioPart) async {
+    final request = CreateChatCompletionRequest(
+      model: ChatCompletionModel.modelId(_model),
+      messages: [
+        ChatCompletionMessage.system(
+          content: 'Transcribe the following audio to text. Return only the transcribed text without any additional formatting or comments.',
+        ),
+        ChatCompletionMessage.user(
+          content: ChatCompletionUserMessageContent.parts([
+            _convertPart(audioPart),
+          ]),
+        ),
+      ],
+    );
+
+    final response = await _client.createChatCompletion(request: request);
+    return response.choices.first.message.content ?? '';
+  }
+
   /// Generate complete response
   Future<String> generate(String systemPrompt, List<ContentPart> parts) async {
     final request = CreateChatCompletionRequest(

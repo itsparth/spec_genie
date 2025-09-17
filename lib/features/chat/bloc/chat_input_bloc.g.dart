@@ -41,7 +41,7 @@ final class ChatInputBlocProvider
   }
 }
 
-String _$chatInputBlocHash() => r'c7a9671efb21bd3ceec8d344c37deab60b5ae1be';
+String _$chatInputBlocHash() => r'2c70f9ce0704736b60d3013516ec0df468b7cfa5';
 
 abstract class _$ChatInputBloc extends $Notifier<ChatInputState> {
   ChatInputState build();
