@@ -173,7 +173,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                               ModeOutputRoute(
                                 threadId: widget.threadId.toString(),
                                 modeId: mode.id.toString(),
-                              ).go(context);
+                              ).push(context);
                             }
                           },
                         )),

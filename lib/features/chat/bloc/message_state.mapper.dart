@@ -154,25 +154,26 @@ class _MessageStateCopyWithImpl<$R, $Out>
     bool? isSaving,
     bool? isProcessing,
     Object? error = $none,
-  }) => $apply(
-    FieldCopyWithData({
-      if (message != null) #message: message,
-      if (isSaving != null) #isSaving: isSaving,
-      if (isProcessing != null) #isProcessing: isProcessing,
-      if (error != $none) #error: error,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (message != null) #message: message,
+          if (isSaving != null) #isSaving: isSaving,
+          if (isProcessing != null) #isProcessing: isProcessing,
+          if (error != $none) #error: error,
+        }),
+      );
   @override
   MessageState $make(CopyWithData data) => MessageState(
-    message: data.get(#message, or: $value.message),
-    isSaving: data.get(#isSaving, or: $value.isSaving),
-    isProcessing: data.get(#isProcessing, or: $value.isProcessing),
-    error: data.get(#error, or: $value.error),
-  );
+        message: data.get(#message, or: $value.message),
+        isSaving: data.get(#isSaving, or: $value.isSaving),
+        isProcessing: data.get(#isProcessing, or: $value.isProcessing),
+        error: data.get(#error, or: $value.error),
+      );
 
   @override
   MessageStateCopyWith<$R2, MessageState, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _MessageStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _MessageStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
-

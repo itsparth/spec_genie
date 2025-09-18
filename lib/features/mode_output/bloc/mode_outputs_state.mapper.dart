@@ -143,12 +143,12 @@ mixin ModeOutputsStateMappable {
   }
 
   ModeOutputsStateCopyWith<ModeOutputsState, ModeOutputsState, ModeOutputsState>
-  get copyWith =>
-      _ModeOutputsStateCopyWithImpl<ModeOutputsState, ModeOutputsState>(
-        this as ModeOutputsState,
-        $identity,
-        $identity,
-      );
+      get copyWith =>
+          _ModeOutputsStateCopyWithImpl<ModeOutputsState, ModeOutputsState>(
+            this as ModeOutputsState,
+            $identity,
+            $identity,
+          );
   @override
   String toString() {
     return ModeOutputsStateMapper.ensureInitialized().stringifyValue(
@@ -175,8 +175,8 @@ mixin ModeOutputsStateMappable {
 extension ModeOutputsStateValueCopy<$R, $Out>
     on ObjectCopyWith<$R, ModeOutputsState, $Out> {
   ModeOutputsStateCopyWith<$R, ModeOutputsState, $Out>
-  get $asModeOutputsState =>
-      $base.as((v, t, t2) => _ModeOutputsStateCopyWithImpl<$R, $Out>(v, t, t2));
+      get $asModeOutputsState => $base
+          .as((v, t, t2) => _ModeOutputsStateCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
 abstract class ModeOutputsStateCopyWith<$R, $In extends ModeOutputsState, $Out>
@@ -210,29 +210,31 @@ class _ModeOutputsStateCopyWithImpl<$R, $Out>
     bool? isGenerating,
     Object? streamingContent = $none,
     Object? streamingIndex = $none,
-  }) => $apply(
-    FieldCopyWithData({
-      if (outputs != null) #outputs: outputs,
-      if (isLoading != null) #isLoading: isLoading,
-      if (currentIndex != null) #currentIndex: currentIndex,
-      if (isGenerating != null) #isGenerating: isGenerating,
-      if (streamingContent != $none) #streamingContent: streamingContent,
-      if (streamingIndex != $none) #streamingIndex: streamingIndex,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (outputs != null) #outputs: outputs,
+          if (isLoading != null) #isLoading: isLoading,
+          if (currentIndex != null) #currentIndex: currentIndex,
+          if (isGenerating != null) #isGenerating: isGenerating,
+          if (streamingContent != $none) #streamingContent: streamingContent,
+          if (streamingIndex != $none) #streamingIndex: streamingIndex,
+        }),
+      );
   @override
   ModeOutputsState $make(CopyWithData data) => ModeOutputsState(
-    outputs: data.get(#outputs, or: $value.outputs),
-    isLoading: data.get(#isLoading, or: $value.isLoading),
-    currentIndex: data.get(#currentIndex, or: $value.currentIndex),
-    isGenerating: data.get(#isGenerating, or: $value.isGenerating),
-    streamingContent: data.get(#streamingContent, or: $value.streamingContent),
-    streamingIndex: data.get(#streamingIndex, or: $value.streamingIndex),
-  );
+        outputs: data.get(#outputs, or: $value.outputs),
+        isLoading: data.get(#isLoading, or: $value.isLoading),
+        currentIndex: data.get(#currentIndex, or: $value.currentIndex),
+        isGenerating: data.get(#isGenerating, or: $value.isGenerating),
+        streamingContent:
+            data.get(#streamingContent, or: $value.streamingContent),
+        streamingIndex: data.get(#streamingIndex, or: $value.streamingIndex),
+      );
 
   @override
   ModeOutputsStateCopyWith<$R2, ModeOutputsState, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _ModeOutputsStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _ModeOutputsStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
-

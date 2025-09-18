@@ -17,7 +17,7 @@ class ConfigurationBloc extends _$ConfigurationBloc {
     final isar = ref.read(isarProvider);
     final existing = isar.configurations.where().limit(1).findFirstSync();
     final initial = existing ?? const Configuration(modelName: '', apiKey: '');
-    
+
     // Initialize controllers with the current configuration values
     _apiKeyController = TextEditingController(text: initial.apiKey);
     _modelNameController = TextEditingController(text: initial.modelName);
@@ -37,7 +37,8 @@ class ConfigurationBloc extends _$ConfigurationBloc {
     });
 
     _baseUrlController.addListener(() {
-      final newValue = _baseUrlController.text.isEmpty ? null : _baseUrlController.text;
+      final newValue =
+          _baseUrlController.text.isEmpty ? null : _baseUrlController.text;
       if (state.baseUrl != newValue) {
         state = state.copyWith(baseUrl: newValue);
       }
@@ -49,7 +50,7 @@ class ConfigurationBloc extends _$ConfigurationBloc {
       _modelNameController.dispose();
       _baseUrlController.dispose();
     });
-    
+
     return initial;
   }
 

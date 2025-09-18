@@ -142,22 +142,22 @@ class _ModeOutputCopyWithImpl<$R, $Out>
       ModeOutputMapper.ensureInitialized();
   @override
   $R call({int? id, DateTime? createdAt, String? content}) => $apply(
-    FieldCopyWithData({
-      if (id != null) #id: id,
-      if (createdAt != null) #createdAt: createdAt,
-      if (content != null) #content: content,
-    }),
-  );
+        FieldCopyWithData({
+          if (id != null) #id: id,
+          if (createdAt != null) #createdAt: createdAt,
+          if (content != null) #content: content,
+        }),
+      );
   @override
   ModeOutput $make(CopyWithData data) => ModeOutput(
-    id: data.get(#id, or: $value.id),
-    createdAt: data.get(#createdAt, or: $value.createdAt),
-    content: data.get(#content, or: $value.content),
-  );
+        id: data.get(#id, or: $value.id),
+        createdAt: data.get(#createdAt, or: $value.createdAt),
+        content: data.get(#content, or: $value.content),
+      );
 
   @override
   ModeOutputCopyWith<$R2, ModeOutput, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _ModeOutputCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _ModeOutputCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
-

@@ -48,10 +48,12 @@ class ModelConfigurationPage extends ConsumerWidget {
 
         // Update the configuration state - the controllers are already synced via listeners
         notifier.updateApiKey(configNotifier.apiKeyController.text.trim());
-        notifier.updateModelName(configNotifier.modelNameController.text.trim());
-        notifier.updateBaseUrl(configNotifier.baseUrlController.text.trim().isEmpty
-            ? null
-            : configNotifier.baseUrlController.text.trim());
+        notifier
+            .updateModelName(configNotifier.modelNameController.text.trim());
+        notifier.updateBaseUrl(
+            configNotifier.baseUrlController.text.trim().isEmpty
+                ? null
+                : configNotifier.baseUrlController.text.trim());
 
         // Save to database
         await notifier.save();
@@ -165,7 +167,7 @@ class ModelConfigurationPage extends ConsumerWidget {
 
             // Info Card
             Card(
-              color: Theme.of(context).colorScheme.surfaceVariant,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(

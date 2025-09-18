@@ -58,8 +58,8 @@ class TagsPage extends ConsumerWidget {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showTagDialog(context, tagsBloc, null),
-        child: const Icon(Icons.add),
         tooltip: 'Add Tag',
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -113,7 +113,7 @@ class _TagListItem extends StatelessWidget {
           decoration: BoxDecoration(
             color: tag.isEditable
                 ? Theme.of(context).colorScheme.primaryContainer
-                : Theme.of(context).colorScheme.surfaceVariant,
+                : Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(8.0),
           ),
           child: Icon(

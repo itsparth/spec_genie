@@ -254,12 +254,12 @@ class _MessageCopyWithImpl<$R, $Out>
   @override
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>>? get fileData =>
       $value.fileData != null
-      ? ListCopyWith(
-          $value.fileData!,
-          (v, t) => ObjectCopyWith(v, $identity, t),
-          (v) => call(fileData: v),
-        )
-      : null;
+          ? ListCopyWith(
+              $value.fileData!,
+              (v, t) => ObjectCopyWith(v, $identity, t),
+              (v) => call(fileData: v),
+            )
+          : null;
   @override
   $R call({
     int? id,
@@ -271,34 +271,34 @@ class _MessageCopyWithImpl<$R, $Out>
     Object? mimeType = $none,
     Object? transcript = $none,
     Object? fileName = $none,
-  }) => $apply(
-    FieldCopyWithData({
-      if (id != null) #id: id,
-      if (text != null) #text: text,
-      if (timestamp != null) #timestamp: timestamp,
-      if (type != null) #type: type,
-      if (description != null) #description: description,
-      if (fileData != $none) #fileData: fileData,
-      if (mimeType != $none) #mimeType: mimeType,
-      if (transcript != $none) #transcript: transcript,
-      if (fileName != $none) #fileName: fileName,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (id != null) #id: id,
+          if (text != null) #text: text,
+          if (timestamp != null) #timestamp: timestamp,
+          if (type != null) #type: type,
+          if (description != null) #description: description,
+          if (fileData != $none) #fileData: fileData,
+          if (mimeType != $none) #mimeType: mimeType,
+          if (transcript != $none) #transcript: transcript,
+          if (fileName != $none) #fileName: fileName,
+        }),
+      );
   @override
   Message $make(CopyWithData data) => Message(
-    id: data.get(#id, or: $value.id),
-    text: data.get(#text, or: $value.text),
-    timestamp: data.get(#timestamp, or: $value.timestamp),
-    type: data.get(#type, or: $value.type),
-    description: data.get(#description, or: $value.description),
-    fileData: data.get(#fileData, or: $value.fileData),
-    mimeType: data.get(#mimeType, or: $value.mimeType),
-    transcript: data.get(#transcript, or: $value.transcript),
-    fileName: data.get(#fileName, or: $value.fileName),
-  );
+        id: data.get(#id, or: $value.id),
+        text: data.get(#text, or: $value.text),
+        timestamp: data.get(#timestamp, or: $value.timestamp),
+        type: data.get(#type, or: $value.type),
+        description: data.get(#description, or: $value.description),
+        fileData: data.get(#fileData, or: $value.fileData),
+        mimeType: data.get(#mimeType, or: $value.mimeType),
+        transcript: data.get(#transcript, or: $value.transcript),
+        fileName: data.get(#fileName, or: $value.fileName),
+      );
 
   @override
   MessageCopyWith<$R2, Message, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
       _MessageCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
-

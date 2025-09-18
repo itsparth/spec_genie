@@ -280,11 +280,11 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
       v.recordingConfig;
   static const Field<ChatInputState, AudioRecordingConfig> _f$recordingConfig =
       Field(
-        'recordingConfig',
-        _$recordingConfig,
-        opt: true,
-        def: const AudioRecordingConfig(),
-      );
+    'recordingConfig',
+    _$recordingConfig,
+    opt: true,
+    def: const AudioRecordingConfig(),
+  );
   static bool _$isSelectingFile(ChatInputState v) => v.isSelectingFile;
   static const Field<ChatInputState, bool> _f$isSelectingFile = Field(
     'isSelectingFile',
@@ -296,11 +296,11 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
       v.selectedFilePaths;
   static const Field<ChatInputState, IList<String>> _f$selectedFilePaths =
       Field(
-        'selectedFilePaths',
-        _$selectedFilePaths,
-        opt: true,
-        def: const IListConst([]),
-      );
+    'selectedFilePaths',
+    _$selectedFilePaths,
+    opt: true,
+    def: const IListConst([]),
+  );
   static bool _$isCapturingImage(ChatInputState v) => v.isCapturingImage;
   static const Field<ChatInputState, bool> _f$isCapturingImage = Field(
     'isCapturingImage',
@@ -312,11 +312,11 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
       v.selectedImagePaths;
   static const Field<ChatInputState, IList<String>> _f$selectedImagePaths =
       Field(
-        'selectedImagePaths',
-        _$selectedImagePaths,
-        opt: true,
-        def: const IListConst([]),
-      );
+    'selectedImagePaths',
+    _$selectedImagePaths,
+    opt: true,
+    def: const IListConst([]),
+  );
   static IList<Tag> _$selectedTags(ChatInputState v) => v.selectedTags;
   static const Field<ChatInputState, IList<Tag>> _f$selectedTags = Field(
     'selectedTags',
@@ -421,11 +421,12 @@ mixin ChatInputStateMappable {
   }
 
   ChatInputStateCopyWith<ChatInputState, ChatInputState, ChatInputState>
-  get copyWith => _ChatInputStateCopyWithImpl<ChatInputState, ChatInputState>(
-    this as ChatInputState,
-    $identity,
-    $identity,
-  );
+      get copyWith =>
+          _ChatInputStateCopyWithImpl<ChatInputState, ChatInputState>(
+            this as ChatInputState,
+            $identity,
+            $identity,
+          );
   @override
   String toString() {
     return ChatInputStateMapper.ensureInitialized().stringifyValue(
@@ -458,9 +459,9 @@ extension ChatInputStateValueCopy<$R, $Out>
 abstract class ChatInputStateCopyWith<$R, $In extends ChatInputState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   AudioRecordingStateCopyWith<$R, AudioRecordingState, AudioRecordingState>
-  get audioState;
+      get audioState;
   AudioRecordingConfigCopyWith<$R, AudioRecordingConfig, AudioRecordingConfig>
-  get recordingConfig;
+      get recordingConfig;
   $R call({
     ChatInputMode? currentMode,
     String? textInput,
@@ -491,12 +492,12 @@ class _ChatInputStateCopyWithImpl<$R, $Out>
       ChatInputStateMapper.ensureInitialized();
   @override
   AudioRecordingStateCopyWith<$R, AudioRecordingState, AudioRecordingState>
-  get audioState =>
-      $value.audioState.copyWith.$chain((v) => call(audioState: v));
+      get audioState =>
+          $value.audioState.copyWith.$chain((v) => call(audioState: v));
   @override
   AudioRecordingConfigCopyWith<$R, AudioRecordingConfig, AudioRecordingConfig>
-  get recordingConfig =>
-      $value.recordingConfig.copyWith.$chain((v) => call(recordingConfig: v));
+      get recordingConfig => $value.recordingConfig.copyWith
+          .$chain((v) => call(recordingConfig: v));
   @override
   $R call({
     ChatInputMode? currentMode,
@@ -512,53 +513,57 @@ class _ChatInputStateCopyWithImpl<$R, $Out>
     bool? isCapturingImage,
     IList<String>? selectedImagePaths,
     IList<Tag>? selectedTags,
-  }) => $apply(
-    FieldCopyWithData({
-      if (currentMode != null) #currentMode: currentMode,
-      if (textInput != null) #textInput: textInput,
-      if (pendingInputs != null) #pendingInputs: pendingInputs,
-      if (isLoading != null) #isLoading: isLoading,
-      if (error != $none) #error: error,
-      if (audioState != null) #audioState: audioState,
-      if (recordingDuration != null) #recordingDuration: recordingDuration,
-      if (recordingConfig != null) #recordingConfig: recordingConfig,
-      if (isSelectingFile != null) #isSelectingFile: isSelectingFile,
-      if (selectedFilePaths != null) #selectedFilePaths: selectedFilePaths,
-      if (isCapturingImage != null) #isCapturingImage: isCapturingImage,
-      if (selectedImagePaths != null) #selectedImagePaths: selectedImagePaths,
-      if (selectedTags != null) #selectedTags: selectedTags,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (currentMode != null) #currentMode: currentMode,
+          if (textInput != null) #textInput: textInput,
+          if (pendingInputs != null) #pendingInputs: pendingInputs,
+          if (isLoading != null) #isLoading: isLoading,
+          if (error != $none) #error: error,
+          if (audioState != null) #audioState: audioState,
+          if (recordingDuration != null) #recordingDuration: recordingDuration,
+          if (recordingConfig != null) #recordingConfig: recordingConfig,
+          if (isSelectingFile != null) #isSelectingFile: isSelectingFile,
+          if (selectedFilePaths != null) #selectedFilePaths: selectedFilePaths,
+          if (isCapturingImage != null) #isCapturingImage: isCapturingImage,
+          if (selectedImagePaths != null)
+            #selectedImagePaths: selectedImagePaths,
+          if (selectedTags != null) #selectedTags: selectedTags,
+        }),
+      );
   @override
   ChatInputState $make(CopyWithData data) => ChatInputState(
-    currentMode: data.get(#currentMode, or: $value.currentMode),
-    textInput: data.get(#textInput, or: $value.textInput),
-    pendingInputs: data.get(#pendingInputs, or: $value.pendingInputs),
-    isLoading: data.get(#isLoading, or: $value.isLoading),
-    error: data.get(#error, or: $value.error),
-    audioState: data.get(#audioState, or: $value.audioState),
-    recordingDuration: data.get(
-      #recordingDuration,
-      or: $value.recordingDuration,
-    ),
-    recordingConfig: data.get(#recordingConfig, or: $value.recordingConfig),
-    isSelectingFile: data.get(#isSelectingFile, or: $value.isSelectingFile),
-    selectedFilePaths: data.get(
-      #selectedFilePaths,
-      or: $value.selectedFilePaths,
-    ),
-    isCapturingImage: data.get(#isCapturingImage, or: $value.isCapturingImage),
-    selectedImagePaths: data.get(
-      #selectedImagePaths,
-      or: $value.selectedImagePaths,
-    ),
-    selectedTags: data.get(#selectedTags, or: $value.selectedTags),
-  );
+        currentMode: data.get(#currentMode, or: $value.currentMode),
+        textInput: data.get(#textInput, or: $value.textInput),
+        pendingInputs: data.get(#pendingInputs, or: $value.pendingInputs),
+        isLoading: data.get(#isLoading, or: $value.isLoading),
+        error: data.get(#error, or: $value.error),
+        audioState: data.get(#audioState, or: $value.audioState),
+        recordingDuration: data.get(
+          #recordingDuration,
+          or: $value.recordingDuration,
+        ),
+        recordingConfig: data.get(#recordingConfig, or: $value.recordingConfig),
+        isSelectingFile: data.get(#isSelectingFile, or: $value.isSelectingFile),
+        selectedFilePaths: data.get(
+          #selectedFilePaths,
+          or: $value.selectedFilePaths,
+        ),
+        isCapturingImage:
+            data.get(#isCapturingImage, or: $value.isCapturingImage),
+        selectedImagePaths: data.get(
+          #selectedImagePaths,
+          or: $value.selectedImagePaths,
+        ),
+        selectedTags: data.get(#selectedTags, or: $value.selectedTags),
+      );
 
   @override
   ChatInputStateCopyWith<$R2, ChatInputState, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _ChatInputStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _ChatInputStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class AudioRecordingStateMapper extends ClassMapperBase<AudioRecordingState> {
@@ -661,16 +666,10 @@ mixin AudioRecordingStateMappable {
         .encodeMap<AudioRecordingState>(this as AudioRecordingState);
   }
 
-  AudioRecordingStateCopyWith<
-    AudioRecordingState,
-    AudioRecordingState,
-    AudioRecordingState
-  >
-  get copyWith =>
-      _AudioRecordingStateCopyWithImpl<
-        AudioRecordingState,
-        AudioRecordingState
-      >(this as AudioRecordingState, $identity, $identity);
+  AudioRecordingStateCopyWith<AudioRecordingState, AudioRecordingState,
+      AudioRecordingState> get copyWith => _AudioRecordingStateCopyWithImpl<
+          AudioRecordingState, AudioRecordingState>(
+      this as AudioRecordingState, $identity, $identity);
   @override
   String toString() {
     return AudioRecordingStateMapper.ensureInitialized().stringifyValue(
@@ -697,17 +696,13 @@ mixin AudioRecordingStateMappable {
 extension AudioRecordingStateValueCopy<$R, $Out>
     on ObjectCopyWith<$R, AudioRecordingState, $Out> {
   AudioRecordingStateCopyWith<$R, AudioRecordingState, $Out>
-  get $asAudioRecordingState => $base.as(
-    (v, t, t2) => _AudioRecordingStateCopyWithImpl<$R, $Out>(v, t, t2),
-  );
+      get $asAudioRecordingState => $base.as(
+            (v, t, t2) => _AudioRecordingStateCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
-abstract class AudioRecordingStateCopyWith<
-  $R,
-  $In extends AudioRecordingState,
-  $Out
->
-    implements ClassCopyWith<$R, $In, $Out> {
+abstract class AudioRecordingStateCopyWith<$R, $In extends AudioRecordingState,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
   $R call({
     RecordingStatus? status,
     String? filePath,
@@ -737,30 +732,31 @@ class _AudioRecordingStateCopyWithImpl<$R, $Out>
     double? amplitude,
     Object? error = $none,
     bool? hasPermission,
-  }) => $apply(
-    FieldCopyWithData({
-      if (status != null) #status: status,
-      if (filePath != $none) #filePath: filePath,
-      if (duration != null) #duration: duration,
-      if (amplitude != null) #amplitude: amplitude,
-      if (error != $none) #error: error,
-      if (hasPermission != null) #hasPermission: hasPermission,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (status != null) #status: status,
+          if (filePath != $none) #filePath: filePath,
+          if (duration != null) #duration: duration,
+          if (amplitude != null) #amplitude: amplitude,
+          if (error != $none) #error: error,
+          if (hasPermission != null) #hasPermission: hasPermission,
+        }),
+      );
   @override
   AudioRecordingState $make(CopyWithData data) => AudioRecordingState(
-    status: data.get(#status, or: $value.status),
-    filePath: data.get(#filePath, or: $value.filePath),
-    duration: data.get(#duration, or: $value.duration),
-    amplitude: data.get(#amplitude, or: $value.amplitude),
-    error: data.get(#error, or: $value.error),
-    hasPermission: data.get(#hasPermission, or: $value.hasPermission),
-  );
+        status: data.get(#status, or: $value.status),
+        filePath: data.get(#filePath, or: $value.filePath),
+        duration: data.get(#duration, or: $value.duration),
+        amplitude: data.get(#amplitude, or: $value.amplitude),
+        error: data.get(#error, or: $value.error),
+        hasPermission: data.get(#hasPermission, or: $value.hasPermission),
+      );
 
   @override
   AudioRecordingStateCopyWith<$R2, AudioRecordingState, $Out2>
-  $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-      _AudioRecordingStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
+      $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
+          _AudioRecordingStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class ChatInputValidationMapper extends ClassMapperBase<ChatInputValidation> {
@@ -850,16 +846,10 @@ mixin ChatInputValidationMappable {
         .encodeMap<ChatInputValidation>(this as ChatInputValidation);
   }
 
-  ChatInputValidationCopyWith<
-    ChatInputValidation,
-    ChatInputValidation,
-    ChatInputValidation
-  >
-  get copyWith =>
-      _ChatInputValidationCopyWithImpl<
-        ChatInputValidation,
-        ChatInputValidation
-      >(this as ChatInputValidation, $identity, $identity);
+  ChatInputValidationCopyWith<ChatInputValidation, ChatInputValidation,
+      ChatInputValidation> get copyWith => _ChatInputValidationCopyWithImpl<
+          ChatInputValidation, ChatInputValidation>(
+      this as ChatInputValidation, $identity, $identity);
   @override
   String toString() {
     return ChatInputValidationMapper.ensureInitialized().stringifyValue(
@@ -886,17 +876,13 @@ mixin ChatInputValidationMappable {
 extension ChatInputValidationValueCopy<$R, $Out>
     on ObjectCopyWith<$R, ChatInputValidation, $Out> {
   ChatInputValidationCopyWith<$R, ChatInputValidation, $Out>
-  get $asChatInputValidation => $base.as(
-    (v, t, t2) => _ChatInputValidationCopyWithImpl<$R, $Out>(v, t, t2),
-  );
+      get $asChatInputValidation => $base.as(
+            (v, t, t2) => _ChatInputValidationCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
-abstract class ChatInputValidationCopyWith<
-  $R,
-  $In extends ChatInputValidation,
-  $Out
->
-    implements ClassCopyWith<$R, $In, $Out> {
+abstract class ChatInputValidationCopyWith<$R, $In extends ChatInputValidation,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
   $R call({bool? isValid, String? errorMessage, IList<String>? warnings});
   ChatInputValidationCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -916,24 +902,25 @@ class _ChatInputValidationCopyWithImpl<$R, $Out>
     bool? isValid,
     Object? errorMessage = $none,
     IList<String>? warnings,
-  }) => $apply(
-    FieldCopyWithData({
-      if (isValid != null) #isValid: isValid,
-      if (errorMessage != $none) #errorMessage: errorMessage,
-      if (warnings != null) #warnings: warnings,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (isValid != null) #isValid: isValid,
+          if (errorMessage != $none) #errorMessage: errorMessage,
+          if (warnings != null) #warnings: warnings,
+        }),
+      );
   @override
   ChatInputValidation $make(CopyWithData data) => ChatInputValidation(
-    isValid: data.get(#isValid, or: $value.isValid),
-    errorMessage: data.get(#errorMessage, or: $value.errorMessage),
-    warnings: data.get(#warnings, or: $value.warnings),
-  );
+        isValid: data.get(#isValid, or: $value.isValid),
+        errorMessage: data.get(#errorMessage, or: $value.errorMessage),
+        warnings: data.get(#warnings, or: $value.warnings),
+      );
 
   @override
   ChatInputValidationCopyWith<$R2, ChatInputValidation, $Out2>
-  $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-      _ChatInputValidationCopyWithImpl<$R2, $Out2>($value, $cast, t);
+      $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
+          _ChatInputValidationCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class FileSelectionStateMapper extends ClassMapperBase<FileSelectionState> {
@@ -961,11 +948,11 @@ class FileSelectionStateMapper extends ClassMapperBase<FileSelectionState> {
   static IList<String> _$selectedFiles(FileSelectionState v) => v.selectedFiles;
   static const Field<FileSelectionState, IList<String>> _f$selectedFiles =
       Field(
-        'selectedFiles',
-        _$selectedFiles,
-        opt: true,
-        def: const IListConst([]),
-      );
+    'selectedFiles',
+    _$selectedFiles,
+    opt: true,
+    def: const IListConst([]),
+  );
   static String? _$error(FileSelectionState v) => v.error;
   static const Field<FileSelectionState, String> _f$error = Field(
     'error',
@@ -1033,13 +1020,9 @@ mixin FileSelectionStateMappable {
         .encodeMap<FileSelectionState>(this as FileSelectionState);
   }
 
-  FileSelectionStateCopyWith<
-    FileSelectionState,
-    FileSelectionState,
-    FileSelectionState
-  >
-  get copyWith =>
-      _FileSelectionStateCopyWithImpl<FileSelectionState, FileSelectionState>(
+  FileSelectionStateCopyWith<FileSelectionState, FileSelectionState,
+      FileSelectionState> get copyWith => _FileSelectionStateCopyWithImpl<
+          FileSelectionState, FileSelectionState>(
         this as FileSelectionState,
         $identity,
         $identity,
@@ -1070,17 +1053,13 @@ mixin FileSelectionStateMappable {
 extension FileSelectionStateValueCopy<$R, $Out>
     on ObjectCopyWith<$R, FileSelectionState, $Out> {
   FileSelectionStateCopyWith<$R, FileSelectionState, $Out>
-  get $asFileSelectionState => $base.as(
-    (v, t, t2) => _FileSelectionStateCopyWithImpl<$R, $Out>(v, t, t2),
-  );
+      get $asFileSelectionState => $base.as(
+            (v, t, t2) => _FileSelectionStateCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
-abstract class FileSelectionStateCopyWith<
-  $R,
-  $In extends FileSelectionState,
-  $Out
->
-    implements ClassCopyWith<$R, $In, $Out> {
+abstract class FileSelectionStateCopyWith<$R, $In extends FileSelectionState,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
   $R call({
     bool? isSelecting,
     IList<String>? selectedFiles,
@@ -1106,26 +1085,28 @@ class _FileSelectionStateCopyWithImpl<$R, $Out>
     IList<String>? selectedFiles,
     Object? error = $none,
     Object? filterType = $none,
-  }) => $apply(
-    FieldCopyWithData({
-      if (isSelecting != null) #isSelecting: isSelecting,
-      if (selectedFiles != null) #selectedFiles: selectedFiles,
-      if (error != $none) #error: error,
-      if (filterType != $none) #filterType: filterType,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (isSelecting != null) #isSelecting: isSelecting,
+          if (selectedFiles != null) #selectedFiles: selectedFiles,
+          if (error != $none) #error: error,
+          if (filterType != $none) #filterType: filterType,
+        }),
+      );
   @override
   FileSelectionState $make(CopyWithData data) => FileSelectionState(
-    isSelecting: data.get(#isSelecting, or: $value.isSelecting),
-    selectedFiles: data.get(#selectedFiles, or: $value.selectedFiles),
-    error: data.get(#error, or: $value.error),
-    filterType: data.get(#filterType, or: $value.filterType),
-  );
+        isSelecting: data.get(#isSelecting, or: $value.isSelecting),
+        selectedFiles: data.get(#selectedFiles, or: $value.selectedFiles),
+        error: data.get(#error, or: $value.error),
+        filterType: data.get(#filterType, or: $value.filterType),
+      );
 
   @override
   FileSelectionStateCopyWith<$R2, FileSelectionState, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _FileSelectionStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _FileSelectionStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class ImageSelectionStateMapper extends ClassMapperBase<ImageSelectionState> {
@@ -1154,11 +1135,11 @@ class ImageSelectionStateMapper extends ClassMapperBase<ImageSelectionState> {
       v.selectedImages;
   static const Field<ImageSelectionState, IList<String>> _f$selectedImages =
       Field(
-        'selectedImages',
-        _$selectedImages,
-        opt: true,
-        def: const IListConst([]),
-      );
+    'selectedImages',
+    _$selectedImages,
+    opt: true,
+    def: const IListConst([]),
+  );
   static String? _$error(ImageSelectionState v) => v.error;
   static const Field<ImageSelectionState, String> _f$error = Field(
     'error',
@@ -1225,16 +1206,10 @@ mixin ImageSelectionStateMappable {
         .encodeMap<ImageSelectionState>(this as ImageSelectionState);
   }
 
-  ImageSelectionStateCopyWith<
-    ImageSelectionState,
-    ImageSelectionState,
-    ImageSelectionState
-  >
-  get copyWith =>
-      _ImageSelectionStateCopyWithImpl<
-        ImageSelectionState,
-        ImageSelectionState
-      >(this as ImageSelectionState, $identity, $identity);
+  ImageSelectionStateCopyWith<ImageSelectionState, ImageSelectionState,
+      ImageSelectionState> get copyWith => _ImageSelectionStateCopyWithImpl<
+          ImageSelectionState, ImageSelectionState>(
+      this as ImageSelectionState, $identity, $identity);
   @override
   String toString() {
     return ImageSelectionStateMapper.ensureInitialized().stringifyValue(
@@ -1261,17 +1236,13 @@ mixin ImageSelectionStateMappable {
 extension ImageSelectionStateValueCopy<$R, $Out>
     on ObjectCopyWith<$R, ImageSelectionState, $Out> {
   ImageSelectionStateCopyWith<$R, ImageSelectionState, $Out>
-  get $asImageSelectionState => $base.as(
-    (v, t, t2) => _ImageSelectionStateCopyWithImpl<$R, $Out>(v, t, t2),
-  );
+      get $asImageSelectionState => $base.as(
+            (v, t, t2) => _ImageSelectionStateCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
-abstract class ImageSelectionStateCopyWith<
-  $R,
-  $In extends ImageSelectionState,
-  $Out
->
-    implements ClassCopyWith<$R, $In, $Out> {
+abstract class ImageSelectionStateCopyWith<$R, $In extends ImageSelectionState,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
   $R call({
     bool? isSelecting,
     IList<String>? selectedImages,
@@ -1297,25 +1268,25 @@ class _ImageSelectionStateCopyWithImpl<$R, $Out>
     IList<String>? selectedImages,
     Object? error = $none,
     Object? preferredSource = $none,
-  }) => $apply(
-    FieldCopyWithData({
-      if (isSelecting != null) #isSelecting: isSelecting,
-      if (selectedImages != null) #selectedImages: selectedImages,
-      if (error != $none) #error: error,
-      if (preferredSource != $none) #preferredSource: preferredSource,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (isSelecting != null) #isSelecting: isSelecting,
+          if (selectedImages != null) #selectedImages: selectedImages,
+          if (error != $none) #error: error,
+          if (preferredSource != $none) #preferredSource: preferredSource,
+        }),
+      );
   @override
   ImageSelectionState $make(CopyWithData data) => ImageSelectionState(
-    isSelecting: data.get(#isSelecting, or: $value.isSelecting),
-    selectedImages: data.get(#selectedImages, or: $value.selectedImages),
-    error: data.get(#error, or: $value.error),
-    preferredSource: data.get(#preferredSource, or: $value.preferredSource),
-  );
+        isSelecting: data.get(#isSelecting, or: $value.isSelecting),
+        selectedImages: data.get(#selectedImages, or: $value.selectedImages),
+        error: data.get(#error, or: $value.error),
+        preferredSource: data.get(#preferredSource, or: $value.preferredSource),
+      );
 
   @override
   ImageSelectionStateCopyWith<$R2, ImageSelectionState, $Out2>
-  $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-      _ImageSelectionStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
+      $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
+          _ImageSelectionStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
-

@@ -1,5 +1,5 @@
 /// OpenAI integration utilities
-library openai;
+library;
 
 export 'config.dart';
 export 'content_parts.dart';

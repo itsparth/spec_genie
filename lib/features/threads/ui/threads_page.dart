@@ -158,13 +158,13 @@ class ThreadsPage extends ConsumerWidget {
   void _onSettingsSelected(BuildContext context, String value) {
     switch (value) {
       case 'model':
-        const ModelConfigurationRoute().go(context);
+        const ModelConfigurationRoute().push(context);
         break;
       case 'modes':
-        const ModesRoute().go(context);
+        const ModesRoute().push(context);
         break;
       case 'tags':
-        const TagsRoute().go(context);
+        const TagsRoute().push(context);
         break;
     }
   }

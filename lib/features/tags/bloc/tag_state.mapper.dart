@@ -113,20 +113,20 @@ class _TagStateCopyWithImpl<$R, $Out>
       TagStateMapper.ensureInitialized();
   @override
   $R call({IList<Tag>? tags, bool? isSaving}) => $apply(
-    FieldCopyWithData({
-      if (tags != null) #tags: tags,
-      if (isSaving != null) #isSaving: isSaving,
-    }),
-  );
+        FieldCopyWithData({
+          if (tags != null) #tags: tags,
+          if (isSaving != null) #isSaving: isSaving,
+        }),
+      );
   @override
   TagState $make(CopyWithData data) => TagState(
-    tags: data.get(#tags, or: $value.tags),
-    isSaving: data.get(#isSaving, or: $value.isSaving),
-  );
+        tags: data.get(#tags, or: $value.tags),
+        isSaving: data.get(#isSaving, or: $value.isSaving),
+      );
 
   @override
   TagStateCopyWith<$R2, TagState, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _TagStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _TagStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
-

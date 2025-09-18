@@ -52,39 +52,10 @@ class _HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final config = ref.watch(configurationBlocProvider);
-
-    // Check if model configuration is set up
-    // Configuration is considered set up if both apiKey and modelName are not empty
     final isConfigured =
         config.apiKey.isNotEmpty && config.modelName.isNotEmpty;
 
-    // Use WidgetsBinding to navigate after the widget is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (isConfigured) {
-        // Navigate to threads page if configuration is set up
-        const ThreadsRoute().go(context);
-      } else {
-        // Navigate to model configuration page if not set up
-        const ModelConfigurationRoute().go(context);
-      }
-    });
-
-    // Show loading screen while determining where to navigate
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(
-              'Loading Spec Genie...',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ],
-        ),
-      ),
-    );
+    return isConfigured ? const ThreadsPage() : const ModelConfigurationPage();
   }
 }
 

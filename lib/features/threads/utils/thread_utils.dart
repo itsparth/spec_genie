@@ -49,10 +49,10 @@ class ThreadUtils {
 
     if (lastSpace > maxLength * 0.7) {
       // Don't truncate too aggressively
-      return text.substring(0, lastSpace) + '...';
+      return '${text.substring(0, lastSpace)}...';
     }
 
-    return truncated + '...';
+    return '$truncated...';
   }
 
   /// Generate thread name from different content types

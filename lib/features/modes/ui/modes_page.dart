@@ -58,8 +58,8 @@ class ModesPage extends ConsumerWidget {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showModeDialog(context, modesBloc, null),
-        child: const Icon(Icons.add),
         tooltip: 'Add Mode',
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -113,7 +113,7 @@ class _ModeListItem extends StatelessWidget {
           decoration: BoxDecoration(
             color: mode.isEditable
                 ? Theme.of(context).colorScheme.primaryContainer
-                : Theme.of(context).colorScheme.surfaceVariant,
+                : Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(8.0),
           ),
           child: Icon(

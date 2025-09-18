@@ -135,14 +135,13 @@ class _TagCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Tag, $Out>
       );
   @override
   Tag $make(CopyWithData data) => Tag(
-    id: data.get(#id, or: $value.id),
-    name: data.get(#name, or: $value.name),
-    description: data.get(#description, or: $value.description),
-    isEditable: data.get(#isEditable, or: $value.isEditable),
-  );
+        id: data.get(#id, or: $value.id),
+        name: data.get(#name, or: $value.name),
+        description: data.get(#description, or: $value.description),
+        isEditable: data.get(#isEditable, or: $value.isEditable),
+      );
 
   @override
   TagCopyWith<$R2, Tag, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
       _TagCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
-

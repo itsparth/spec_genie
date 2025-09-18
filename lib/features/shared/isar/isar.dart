@@ -1,4 +1,4 @@
 /// Isar database integration
-library isar;
+library;
 
 export 'isar_provider.dart';
