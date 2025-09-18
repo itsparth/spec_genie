@@ -11,6 +11,7 @@ class ConfigurationBloc extends _$ConfigurationBloc {
   late final TextEditingController _apiKeyController;
   late final TextEditingController _modelNameController;
   late final TextEditingController _baseUrlController;
+
   @override
   Configuration build() {
     // Load initial configuration from the database if present
@@ -22,27 +23,6 @@ class ConfigurationBloc extends _$ConfigurationBloc {
     _apiKeyController = TextEditingController(text: initial.apiKey);
     _modelNameController = TextEditingController(text: initial.modelName);
     _baseUrlController = TextEditingController(text: initial.baseUrl ?? '');
-
-    // Set up listeners to sync controller changes with state
-    _apiKeyController.addListener(() {
-      if (state.apiKey != _apiKeyController.text) {
-        state = state.copyWith(apiKey: _apiKeyController.text);
-      }
-    });
-
-    _modelNameController.addListener(() {
-      if (state.modelName != _modelNameController.text) {
-        state = state.copyWith(modelName: _modelNameController.text);
-      }
-    });
-
-    _baseUrlController.addListener(() {
-      final newValue =
-          _baseUrlController.text.isEmpty ? null : _baseUrlController.text;
-      if (state.baseUrl != newValue) {
-        state = state.copyWith(baseUrl: newValue);
-      }
-    });
 
     // Clean up resources when the provider is disposed
     ref.onDispose(() {
@@ -59,30 +39,22 @@ class ConfigurationBloc extends _$ConfigurationBloc {
   TextEditingController get modelNameController => _modelNameController;
   TextEditingController get baseUrlController => _baseUrlController;
 
-  void updateApiKey(String apiKey) {
-    state = state.copyWith(apiKey: apiKey);
-    if (_apiKeyController.text != apiKey) {
-      _apiKeyController.text = apiKey;
-    }
-  }
-
-  void updateModelName(String modelName) {
-    state = state.copyWith(modelName: modelName);
-    if (_modelNameController.text != modelName) {
-      _modelNameController.text = modelName;
-    }
-  }
-
-  void updateBaseUrl(String? baseUrl) {
-    state = state.copyWith(baseUrl: baseUrl);
-    final controllerValue = baseUrl ?? '';
-    if (_baseUrlController.text != controllerValue) {
-      _baseUrlController.text = controllerValue;
-    }
-  }
-
-  /// Persist the current configuration. If an existing row is present it will be updated.
+  /// Persist the current configuration by reading values from controllers and saving to database
   Future<void> save() async {
+    // Read current values from controllers
+    final apiKey = _apiKeyController.text;
+    final modelName = _modelNameController.text;
+    final baseUrl =
+        _baseUrlController.text.isEmpty ? null : _baseUrlController.text;
+
+    // Update state with controller values
+    state = state.copyWith(
+      apiKey: apiKey,
+      modelName: modelName,
+      baseUrl: baseUrl,
+    );
+
+    // Save to database
     final isar = ref.read(isarProvider);
     await isar.writeTxn(() async {
       final id = await isar.configurations.put(state);
@@ -96,7 +68,7 @@ class ConfigurationBloc extends _$ConfigurationBloc {
     });
   }
 
-  /// Force reload from the database (useful after external mutation before watch delivers).
+  /// Force reload from the database and update controllers
   Future<void> reload() async {
     final isar = ref.read(isarProvider);
     final latest = await isar.configurations.where().limit(1).findFirst();

@@ -46,16 +46,7 @@ class ModelConfigurationPage extends ConsumerWidget {
       try {
         final notifier = ref.read(configurationBlocProvider.notifier);
 
-        // Update the configuration state - the controllers are already synced via listeners
-        notifier.updateApiKey(configNotifier.apiKeyController.text.trim());
-        notifier
-            .updateModelName(configNotifier.modelNameController.text.trim());
-        notifier.updateBaseUrl(
-            configNotifier.baseUrlController.text.trim().isEmpty
-                ? null
-                : configNotifier.baseUrlController.text.trim());
-
-        // Save to database
+        // Save to database - the save method will read values from controllers
         await notifier.save();
 
         if (context.mounted) {
