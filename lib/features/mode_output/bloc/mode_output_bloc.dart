@@ -237,7 +237,8 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       _startStreaming(newOutputIndex);
 
       // Generate content with streaming
-      final systemPrompt = customPrompt ?? mode.prompt;
+      final systemPrompt = customPrompt ??
+          "Generate markdown and follow the instructions: \n${mode.prompt}";
       final finalContent = await _performGeneration(systemPrompt, contentParts);
 
       // Complete streaming and save final content
@@ -290,20 +291,25 @@ class ModeOutputBloc extends _$ModeOutputBloc {
   /// Complete streaming and save final content
   Future<void> _completeStreaming(
       String finalContent, ModeOutput placeholder, Isar isar) async {
-    // Update the placeholder's content in place
-    placeholder.content = finalContent;
+    // Create a new output with the final content to ensure proper database saving
+    final completedOutput = placeholder.copyWith(content: finalContent);
 
     await isar.writeTxn(() async {
-      // Update the existing placeholder with final content
-      await isar.modeOutputs.put(placeholder);
+      // Save the completed output to database
+      await isar.modeOutputs.put(completedOutput);
+      // Ensure relationships are maintained
+      completedOutput.thread.value = placeholder.thread.value;
+      completedOutput.mode.value = placeholder.mode.value;
+      await completedOutput.thread.save();
+      await completedOutput.mode.save();
     });
 
     // Stop streaming and update state directly instead of reloading
     _stopStreaming();
 
-    // Update the outputs list with the updated placeholder
+    // Update the outputs list with the completed output
     final updatedOutputs = state.outputs.map((output) {
-      return output.id == placeholder.id ? placeholder : output;
+      return output.id == placeholder.id ? completedOutput : output;
     }).toList();
 
     state = state.copyWith(
@@ -382,8 +388,11 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       // Start streaming
       _startStreaming(newOutputIndex);
 
+      final systemPrompt =
+          "Generate markdown and follow the instructions: \n${mode.prompt}";
+
       // Generate content with streaming
-      final finalContent = await _performGeneration(mode.prompt, contentParts);
+      final finalContent = await _performGeneration(systemPrompt, contentParts);
 
       // Complete streaming and save to database
       await _completeRegenerateStreaming(
