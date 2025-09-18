@@ -1,27 +1,28 @@
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:isar_community/isar.dart';
+import 'package:objectbox/objectbox.dart';
 
 import '../../chat/models/message.dart';
 import '../../mode_output/models/mode_output.dart';
 
 part 'thread.mapper.dart';
-part 'thread.g.dart';
 
 @MappableClass()
-@Collection()
+@Entity()
 class Thread with ThreadMappable {
-  Id id;
+  @Id()
+  int id;
   final String name;
+  @Property(type: PropertyType.date)
   final DateTime createdAt;
 
-  @Backlink(to: 'thread')
-  final messages = IsarLinks<Message>();
+  @Backlink('thread')
+  final ToMany<Message> messages = ToMany<Message>();
 
-  @Backlink(to: 'thread')
-  final modeOutputs = IsarLinks<ModeOutput>();
+  @Backlink('thread')
+  final ToMany<ModeOutput> modeOutputs = ToMany<ModeOutput>();
 
   Thread({
-    this.id = Isar.autoIncrement,
+    this.id = 0,
     this.name = '',
     required this.createdAt,
   });

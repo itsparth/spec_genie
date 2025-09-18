@@ -535,11 +535,6 @@ class ChatInputBloc extends _$ChatInputBloc {
       for (final input in inputs) {
         final message = ChatInputConverter.convertChatInputToMessage(input);
 
-        // Attach tags to the message
-        if (tagsToAttach.isNotEmpty) {
-          message.tags.addAll(tagsToAttach);
-        }
-
         // For the first message, generate thread name from text input if available
         String? threadName;
         if (threadId == null &&
@@ -551,7 +546,8 @@ class ChatInputBloc extends _$ChatInputBloc {
         }
 
         // ChatBloc will handle thread creation if needed
-        await chatBloc.addMessage(message, threadName: threadName);
+        await chatBloc.addMessage(message,
+            threadName: threadName, tags: tagsToAttach);
       }
     } catch (e) {
       // TODO: Handle error - maybe show a snackbar or add to error state

@@ -22,12 +22,7 @@ class ThreadMapper extends ClassMapperBase<Thread> {
   final String id = 'Thread';
 
   static int _$id(Thread v) => v.id;
-  static const Field<Thread, int> _f$id = Field(
-    'id',
-    _$id,
-    opt: true,
-    def: Isar.autoIncrement,
-  );
+  static const Field<Thread, int> _f$id = Field('id', _$id, opt: true, def: 0);
   static String _$name(Thread v) => v.name;
   static const Field<Thread, String> _f$name = Field(
     'name',
@@ -40,14 +35,14 @@ class ThreadMapper extends ClassMapperBase<Thread> {
     'createdAt',
     _$createdAt,
   );
-  static IsarLinks<Message> _$messages(Thread v) => v.messages;
-  static const Field<Thread, IsarLinks<Message>> _f$messages = Field(
+  static ToMany<Message> _$messages(Thread v) => v.messages;
+  static const Field<Thread, ToMany<Message>> _f$messages = Field(
     'messages',
     _$messages,
     mode: FieldMode.member,
   );
-  static IsarLinks<ModeOutput> _$modeOutputs(Thread v) => v.modeOutputs;
-  static const Field<Thread, IsarLinks<ModeOutput>> _f$modeOutputs = Field(
+  static ToMany<ModeOutput> _$modeOutputs(Thread v) => v.modeOutputs;
+  static const Field<Thread, ToMany<ModeOutput>> _f$modeOutputs = Field(
     'modeOutputs',
     _$modeOutputs,
     mode: FieldMode.member,

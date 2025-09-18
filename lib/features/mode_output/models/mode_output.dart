@@ -1,32 +1,33 @@
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:isar_community/isar.dart';
+import 'package:objectbox/objectbox.dart';
 
 import '../../threads/models/thread.dart';
 import '../../modes/models/mode.dart';
 
 part 'mode_output.mapper.dart';
-part 'mode_output.g.dart';
 
 @MappableClass()
-@Collection()
+@Entity()
 class ModeOutput with ModeOutputMappable {
-  final Id id;
+  @Id()
+  int id;
+  @Property(type: PropertyType.date)
   final DateTime createdAt;
   String content; // Made mutable to allow in-place updates
 
   // Relationships
-  final thread = IsarLink<Thread>();
-  final mode = IsarLink<Mode>();
+  final ToOne<Thread> thread = ToOne<Thread>();
+  final ToOne<Mode> mode = ToOne<Mode>();
 
   ModeOutput({
-    this.id = Isar.autoIncrement,
+    this.id = 0,
     required this.createdAt,
     required this.content,
   });
 
   /// Create a completed mode output with content
   ModeOutput.completed({
-    this.id = Isar.autoIncrement,
+    this.id = 0,
     DateTime? createdAt,
     required this.content,
   }) : createdAt = createdAt ?? DateTime.now();

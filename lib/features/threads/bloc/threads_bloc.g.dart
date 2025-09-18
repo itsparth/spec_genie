@@ -41,7 +41,7 @@ final class ThreadsBlocProvider
   }
 }
 
-String _$threadsBlocHash() => r'ebd995d8517c4be805e4740f6a932d6056bb8231';
+String _$threadsBlocHash() => r'59b9134ef11e4333de71b143551c082cccbc7ac9';
 
 abstract class _$ThreadsBloc extends $Notifier<List<Thread>> {
   List<Thread> build();

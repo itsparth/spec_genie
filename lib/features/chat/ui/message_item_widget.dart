@@ -170,8 +170,8 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                _getMessageBackgroundColor(context, message.type),
-                _getMessageBackgroundColor(context, message.type)
+                _getMessageBackgroundColor(context, message.messageType),
+                _getMessageBackgroundColor(context, message.messageType)
                     .withOpacity(0.8),
               ],
             ),
@@ -237,7 +237,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
             borderRadius: BorderRadius.circular(6),
           ),
           child: Icon(
-            _getMessageTypeIcon(message.type),
+            _getMessageTypeIcon(message.messageType),
             size: 14,
             color: Theme.of(context).primaryColor,
           ),
@@ -390,7 +390,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
   }
 
   Widget _buildMainContent(BuildContext context, Message message) {
-    switch (message.type) {
+    switch (message.messageType) {
       case MessageType.text:
         return Text(
           message.text.isNotEmpty ? message.text : message.description,

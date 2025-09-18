@@ -26,7 +26,7 @@ class ModeOutputMapper extends ClassMapperBase<ModeOutput> {
     'id',
     _$id,
     opt: true,
-    def: Isar.autoIncrement,
+    def: 0,
   );
   static DateTime _$createdAt(ModeOutput v) => v.createdAt;
   static const Field<ModeOutput, DateTime> _f$createdAt = Field(
@@ -38,14 +38,14 @@ class ModeOutputMapper extends ClassMapperBase<ModeOutput> {
     'content',
     _$content,
   );
-  static IsarLink<Thread> _$thread(ModeOutput v) => v.thread;
-  static const Field<ModeOutput, IsarLink<Thread>> _f$thread = Field(
+  static ToOne<Thread> _$thread(ModeOutput v) => v.thread;
+  static const Field<ModeOutput, ToOne<Thread>> _f$thread = Field(
     'thread',
     _$thread,
     mode: FieldMode.member,
   );
-  static IsarLink<Mode> _$mode(ModeOutput v) => v.mode;
-  static const Field<ModeOutput, IsarLink<Mode>> _f$mode = Field(
+  static ToOne<Mode> _$mode(ModeOutput v) => v.mode;
+  static const Field<ModeOutput, ToOne<Mode>> _f$mode = Field(
     'mode',
     _$mode,
     mode: FieldMode.member,

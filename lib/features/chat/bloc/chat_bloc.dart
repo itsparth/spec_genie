@@ -1,9 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:isar_community/isar.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:spec_genie/features/shared/isar/isar_provider.dart';
+import 'package:spec_genie/features/shared/objectbox/objectbox_provider.dart';
 import 'package:spec_genie/features/threads/models/thread.dart';
 import 'package:spec_genie/features/threads/bloc/threads_bloc.dart';
+import 'package:spec_genie/objectbox.g.dart';
 
 import '../models/message.dart';
 import '../../tags/models/tag.dart';
@@ -18,7 +19,7 @@ class ChatBloc extends _$ChatBloc {
   @override
   ChatState build(int? threadId) {
     if (threadId != null) {
-      _loadMessages(threadId);
+      Future.microtask(() => _loadMessages(threadId));
     }
     return ChatState(threadId: threadId, isLoading: threadId != null);
   }
@@ -37,12 +38,13 @@ class ChatBloc extends _$ChatBloc {
   /// Load messages for the thread
   Future<void> _loadMessages(int threadId) async {
     try {
-      final isar = ref.read(isarProvider);
-      final messages = await isar.messages
-          .filter()
-          .thread((q) => q.idEqualTo(threadId))
-          .sortByTimestamp()
-          .findAll();
+      final store = ref.read(storeProvider);
+      final box = store.box<Message>();
+      final messages = await box
+          .query(Message_.thread.equals(threadId))
+          .order(Message_.timestamp)
+          .build()
+          .findAsync();
 
       final messageStates =
           messages.map((message) => MessageState(message: message)).toIList();
@@ -52,32 +54,34 @@ class ChatBloc extends _$ChatBloc {
         isLoading: false,
       );
     } catch (e) {
+      print(e);
       state = state.copyWith(isLoading: false);
       rethrow;
     }
   }
 
   /// Add a new message to the chat, creating a thread if none exists
-  Future<void> addMessage(Message message, {String? threadName}) async {
+  Future<void> addMessage(Message message,
+      {List<Tag>? tags, String? threadName}) async {
     // If no thread exists, create one first
     if (state.threadId == null) {
       final name = threadName ?? _generateThreadName(message);
       final newThreadId = await createThread(name);
       state = state.copyWith(threadId: newThreadId);
     }
-    final isar = ref.read(isarProvider);
-    final thread = await isar.threads.get(state.threadId!);
-    message.thread.value = thread;
+    final store = ref.read(storeProvider);
+    final thread = store.box<Thread>().get(state.threadId!);
+    message.thread.target = thread;
     final newMessageState = MessageState(message: message, isSaving: true);
     final updated = state.messages.add(newMessageState);
     state = state.copyWith(messages: updated);
 
     try {
-      await isar.writeTxn(() async {
-        await isar.messages.put(message);
-        await message.thread.save();
-        await message.tags.save();
-      });
+      store.box<Message>().put(message);
+      // if (tags != null && tags.isNotEmpty) {
+      //   message.tags.addAll(tags);
+      // }
+      // store.box<Message>().put(message);
 
       final idx = state.messages.length - 1;
       final savedMessageState = newMessageState.copyWith(isSaving: false);
@@ -110,8 +114,9 @@ class ChatBloc extends _$ChatBloc {
     final tempUpdated = state.messages.replace(idx, updatedMessageState);
     state = state.copyWith(messages: tempUpdated);
     try {
-      final isar = ref.read(isarProvider);
-      final message = await isar.messages.get(messageId);
+      final store = ref.read(storeProvider);
+      final box = store.box<Message>();
+      final message = box.get(messageId);
 
       if (message == null) {
         final errorMessageState = updatedMessageState.copyWith(isSaving: false);
@@ -125,11 +130,12 @@ class ChatBloc extends _$ChatBloc {
       final tagsToLink = newTags.where((t) => !existingIds.contains(t.id));
       final tagsToUnlink = message.tags.where((t) => !newTagIds.contains(t.id));
 
-      await isar.writeTxn(() async {
-        await message.tags.update(link: tagsToLink, unlink: tagsToUnlink);
-      });
-
-      await message.tags.load();
+      // Update tags list
+      for (final tag in tagsToUnlink) {
+        message.tags.remove(tag);
+      }
+      message.tags.addAll(tagsToLink);
+      box.put(message);
 
       final finalMessageState = MessageState(message: message, isSaving: false);
       final finalUpdated = state.messages.replace(idx, finalMessageState);
@@ -156,8 +162,9 @@ class ChatBloc extends _$ChatBloc {
     state = state.copyWith(messages: tempUpdated);
 
     try {
-      final isar = ref.read(isarProvider);
-      final message = await isar.messages.get(messageId);
+      final store = ref.read(storeProvider);
+      final box = store.box<Message>();
+      final message = box.get(messageId);
 
       if (message == null) {
         final errorMessageState = updatedMessageState.copyWith(isSaving: false);
@@ -169,9 +176,7 @@ class ChatBloc extends _$ChatBloc {
       // Create updated message with new description
       final updatedMessage = message.copyWith(description: newDescription);
 
-      await isar.writeTxn(() async {
-        await isar.messages.put(updatedMessage);
-      });
+      box.put(updatedMessage);
 
       final finalMessageState =
           MessageState(message: updatedMessage, isSaving: false);
@@ -193,10 +198,9 @@ class ChatBloc extends _$ChatBloc {
   /// Remove a message from the chat
   Future<bool> removeMessage(int messageId) async {
     try {
-      final isar = ref.read(isarProvider);
-      final deleted = await isar.writeTxn(() async {
-        return await isar.messages.delete(messageId);
-      });
+      final store = ref.read(storeProvider);
+      final box = store.box<Message>();
+      final deleted = box.remove(messageId);
 
       if (deleted) {
         final updated =

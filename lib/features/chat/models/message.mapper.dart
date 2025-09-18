@@ -64,7 +64,6 @@ class MessageMapper extends ClassMapperBase<Message> {
   static MessageMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = MessageMapper._());
-      MessageTypeMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -73,12 +72,7 @@ class MessageMapper extends ClassMapperBase<Message> {
   final String id = 'Message';
 
   static int _$id(Message v) => v.id;
-  static const Field<Message, int> _f$id = Field(
-    'id',
-    _$id,
-    opt: true,
-    def: Isar.autoIncrement,
-  );
+  static const Field<Message, int> _f$id = Field('id', _$id, opt: true, def: 0);
   static String _$text(Message v) => v.text;
   static const Field<Message, String> _f$text = Field(
     'text',
@@ -91,12 +85,12 @@ class MessageMapper extends ClassMapperBase<Message> {
     'timestamp',
     _$timestamp,
   );
-  static MessageType _$type(Message v) => v.type;
-  static const Field<Message, MessageType> _f$type = Field(
+  static int _$type(Message v) => v.type;
+  static const Field<Message, int> _f$type = Field(
     'type',
     _$type,
     opt: true,
-    def: MessageType.text,
+    def: 0,
   );
   static String _$description(Message v) => v.description;
   static const Field<Message, String> _f$description = Field(
@@ -129,16 +123,22 @@ class MessageMapper extends ClassMapperBase<Message> {
     _$fileName,
     opt: true,
   );
-  static IsarLink<Thread> _$thread(Message v) => v.thread;
-  static const Field<Message, IsarLink<Thread>> _f$thread = Field(
+  static ToOne<Thread> _$thread(Message v) => v.thread;
+  static const Field<Message, ToOne<Thread>> _f$thread = Field(
     'thread',
     _$thread,
     mode: FieldMode.member,
   );
-  static IsarLinks<Tag> _$tags(Message v) => v.tags;
-  static const Field<Message, IsarLinks<Tag>> _f$tags = Field(
+  static ToMany<Tag> _$tags(Message v) => v.tags;
+  static const Field<Message, ToMany<Tag>> _f$tags = Field(
     'tags',
     _$tags,
+    mode: FieldMode.member,
+  );
+  static MessageType _$messageType(Message v) => v.messageType;
+  static const Field<Message, MessageType> _f$messageType = Field(
+    'messageType',
+    _$messageType,
     mode: FieldMode.member,
   );
 
@@ -155,6 +155,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #fileName: _f$fileName,
     #thread: _f$thread,
     #tags: _f$tags,
+    #messageType: _f$messageType,
   };
 
   static Message _instantiate(DecodingData data) {
@@ -233,7 +234,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     int? id,
     String? text,
     DateTime? timestamp,
-    MessageType? type,
+    int? type,
     String? description,
     List<int>? fileData,
     String? mimeType,
@@ -265,7 +266,7 @@ class _MessageCopyWithImpl<$R, $Out>
     int? id,
     String? text,
     DateTime? timestamp,
-    MessageType? type,
+    int? type,
     String? description,
     Object? fileData = $none,
     Object? mimeType = $none,

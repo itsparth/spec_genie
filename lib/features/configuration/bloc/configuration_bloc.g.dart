@@ -41,7 +41,7 @@ final class ConfigurationBlocProvider
   }
 }
 
-String _$configurationBlocHash() => r'82597de9056de4ca3f522604b05c8c80930228a7';
+String _$configurationBlocHash() => r'1681f53a266b317d88b7fd525f395f93951647f0';
 
 abstract class _$ConfigurationBloc extends $Notifier<Configuration> {
   Configuration build();

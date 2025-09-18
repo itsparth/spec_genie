@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:isar_community/isar.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:spec_genie/features/shared/isar/isar_provider.dart';
+import 'package:spec_genie/features/shared/objectbox/objectbox_provider.dart';
 import '../models/tag.dart';
 import 'tag_state.dart';
 
@@ -16,12 +16,12 @@ part 'tags_bloc.g.dart';
 class TagsBloc extends _$TagsBloc {
   final _defaultTags = [
     Tag(
-        id: Isar.autoIncrement,
+        id: 0, // Let ObjectBox auto-assign
         name: 'Feature',
         description: 'Feature specifications and functionality',
         isEditable: false),
     Tag(
-        id: Isar.autoIncrement,
+        id: 0, // Let ObjectBox auto-assign
         name: 'Requirement',
         description: 'System requirements and constraints',
         isEditable: false),
@@ -29,9 +29,10 @@ class TagsBloc extends _$TagsBloc {
 
   @override
   TagState build() {
-    final isar = ref.read(isarProvider);
+    final store = ref.read(storeProvider);
+    final box = store.box<Tag>();
     // Load existing tags.
-    final existing = isar.tags.where().findAllSync();
+    final existing = box.getAll();
     if (existing.isNotEmpty) {
       return TagState(
         tags: existing.toIList(),
@@ -39,15 +40,14 @@ class TagsBloc extends _$TagsBloc {
     }
     // Seed defaults asynchronously so build stays synchronous.
     Future(() async {
-      final db = ref.read(isarProvider);
+      final store = ref.read(storeProvider);
+      final box = store.box<Tag>();
       final inserted = <Tag>[];
-      await db.writeTxn(() async {
-        for (final t in _defaultTags) {
-          final id = await db.tags.put(t);
-          final stored = await db.tags.get(id);
-          if (stored != null) inserted.add(stored);
-        }
-      });
+      for (final t in _defaultTags) {
+        final id = box.put(t);
+        final stored = box.get(id);
+        if (stored != null) inserted.add(stored);
+      }
       if (inserted.isNotEmpty) {
         // Update state only if still empty (avoid overwriting user changes during race conditions).
         if (state.tags.isEmpty) {
@@ -66,19 +66,18 @@ class TagsBloc extends _$TagsBloc {
     state = state.copyWith(isSaving: true);
     Tag? stored;
     try {
-      final isar = ref.read(isarProvider);
+      final store = ref.read(storeProvider);
+      final box = store.box<Tag>();
       final tag = Tag(name: name, description: description, isEditable: true);
-      await isar.writeTxn(() async {
-        final id = await isar.tags.put(tag);
-        stored = await isar.tags.get(id);
-        if (stored != null) {
-          final updated = state.tags.add(stored!);
-          state = state.copyWith(
-            tags: updated,
-            isSaving: false,
-          );
-        }
-      });
+      final id = box.put(tag);
+      stored = box.get(id);
+      if (stored != null) {
+        final updated = state.tags.add(stored!);
+        state = state.copyWith(
+          tags: updated,
+          isSaving: false,
+        );
+      }
     } finally {
       if (state.isSaving) {
         state = state.copyWith(isSaving: false);
@@ -91,7 +90,8 @@ class TagsBloc extends _$TagsBloc {
   Future<bool> update(int id, {String? name, String? description}) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
+      final store = ref.read(storeProvider);
+      final box = store.box<Tag>();
       final idx = state.tags.indexWhere((t) => t.id == id);
       if (idx == -1) {
         state = state.copyWith(isSaving: false);
@@ -106,12 +106,10 @@ class TagsBloc extends _$TagsBloc {
         name: name ?? original.name,
         description: description ?? original.description,
       );
-      return await isar.writeTxn(() async {
-        await isar.tags.put(updated);
-        final updatedTags = state.tags.replace(idx, updated);
-        state = state.copyWith(tags: updatedTags, isSaving: false);
-        return true;
-      });
+      box.put(updated);
+      final updatedTags = state.tags.replace(idx, updated);
+      state = state.copyWith(tags: updatedTags, isSaving: false);
+      return true;
     } finally {
       if (state.isSaving) {
         state = state.copyWith(isSaving: false);
@@ -123,7 +121,8 @@ class TagsBloc extends _$TagsBloc {
   Future<bool> remove(int id) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
+      final store = ref.read(storeProvider);
+      final box = store.box<Tag>();
       final idx = state.tags.indexWhere((t) => t.id == id);
       if (idx == -1) {
         state = state.copyWith(isSaving: false);
@@ -134,19 +133,17 @@ class TagsBloc extends _$TagsBloc {
         state = state.copyWith(isSaving: false);
         return false;
       }
-      return await isar.writeTxn(() async {
-        final deleted = await isar.tags.delete(id);
-        if (deleted) {
-          final remaining = state.tags.where((t) => t.id != id).toIList();
-          state = state.copyWith(
-            tags: remaining,
-            isSaving: false,
-          );
-        } else {
-          state = state.copyWith(isSaving: false);
-        }
-        return deleted;
-      });
+      final deleted = box.remove(id);
+      if (deleted) {
+        final remaining = state.tags.where((t) => t.id != id).toIList();
+        state = state.copyWith(
+          tags: remaining,
+          isSaving: false,
+        );
+      } else {
+        state = state.copyWith(isSaving: false);
+      }
+      return deleted;
     } finally {
       if (state.isSaving) {
         state = state.copyWith(isSaving: false);
@@ -156,8 +153,9 @@ class TagsBloc extends _$TagsBloc {
 
   /// Force reload list from persistence.
   Future<void> reload() async {
-    final isar = ref.read(isarProvider);
-    final list = await isar.tags.where().findAll();
+    final store = ref.read(storeProvider);
+    final box = store.box<Tag>();
+    final list = box.getAll();
     if (list.isNotEmpty) {
       state = state.copyWith(tags: list.toIList());
     }

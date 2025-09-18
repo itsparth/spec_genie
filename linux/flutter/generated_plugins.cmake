@@ -6,7 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   file_selector_linux
   irondash_engine_context
-  isar_community_flutter_libs
+  objectbox_flutter_libs
   record_linux
   super_native_extensions
   url_launcher_linux

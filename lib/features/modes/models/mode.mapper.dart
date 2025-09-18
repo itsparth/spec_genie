@@ -22,12 +22,7 @@ class ModeMapper extends ClassMapperBase<Mode> {
   final String id = 'Mode';
 
   static int _$id(Mode v) => v.id;
-  static const Field<Mode, int> _f$id = Field(
-    'id',
-    _$id,
-    opt: true,
-    def: Isar.autoIncrement,
-  );
+  static const Field<Mode, int> _f$id = Field('id', _$id, opt: true, def: 0);
   static String _$name(Mode v) => v.name;
   static const Field<Mode, String> _f$name = Field('name', _$name);
   static String _$prompt(Mode v) => v.prompt;
@@ -39,8 +34,8 @@ class ModeMapper extends ClassMapperBase<Mode> {
     opt: true,
     def: true,
   );
-  static IsarLinks<ModeOutput> _$modeOutputs(Mode v) => v.modeOutputs;
-  static const Field<Mode, IsarLinks<ModeOutput>> _f$modeOutputs = Field(
+  static ToMany<ModeOutput> _$modeOutputs(Mode v) => v.modeOutputs;
+  static const Field<Mode, ToMany<ModeOutput>> _f$modeOutputs = Field(
     'modeOutputs',
     _$modeOutputs,
     mode: FieldMode.member,

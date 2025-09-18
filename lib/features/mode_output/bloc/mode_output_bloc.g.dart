@@ -65,7 +65,7 @@ final class ModeOutputBlocProvider
   }
 }
 
-String _$modeOutputBlocHash() => r'3ad5ffa487c9efc59668a1dd427f9a6acd571cc2';
+String _$modeOutputBlocHash() => r'9ed59ea30bf4df3649cf0abb27f6d57ac90caed2';
 
 /// Manages mode outputs for a specific thread and mode combination
 

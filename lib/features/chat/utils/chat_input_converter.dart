@@ -13,7 +13,7 @@ class ChatInputConverter {
         return Message(
           text: textInput.text,
           timestamp: textInput.createdAt,
-          type: MessageType.text,
+          type: MessageType.text.index,
         );
 
       case ChatInputType.audio:
@@ -21,7 +21,7 @@ class ChatInputConverter {
         return Message(
           text: '',
           timestamp: audioInput.createdAt,
-          type: MessageType.audio,
+          type: MessageType.audio.index,
           fileData: audioInput.filePath.isNotEmpty
               ? File(audioInput.filePath).readAsBytesSync()
               : null,
@@ -35,7 +35,7 @@ class ChatInputConverter {
         return Message(
           text: '',
           timestamp: imageInput.createdAt,
-          type: MessageType.image,
+          type: MessageType.image.index,
           fileData: imageInput.filePath.isNotEmpty
               ? File(imageInput.filePath).readAsBytesSync()
               : null,
@@ -49,7 +49,7 @@ class ChatInputConverter {
         return Message(
           text: 'File: ${fileInput.fileName}',
           timestamp: fileInput.createdAt,
-          type: MessageType.text,
+          type: MessageType.text.index,
           fileData: fileInput.filePath.isNotEmpty
               ? File(fileInput.filePath).readAsBytesSync()
               : null,

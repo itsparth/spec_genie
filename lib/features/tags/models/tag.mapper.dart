@@ -22,12 +22,7 @@ class TagMapper extends ClassMapperBase<Tag> {
   final String id = 'Tag';
 
   static int _$id(Tag v) => v.id;
-  static const Field<Tag, int> _f$id = Field(
-    'id',
-    _$id,
-    opt: true,
-    def: Isar.autoIncrement,
-  );
+  static const Field<Tag, int> _f$id = Field('id', _$id, opt: true, def: 0);
   static String _$name(Tag v) => v.name;
   static const Field<Tag, String> _f$name = Field('name', _$name);
   static String _$description(Tag v) => v.description;
@@ -42,8 +37,8 @@ class TagMapper extends ClassMapperBase<Tag> {
     opt: true,
     def: true,
   );
-  static IsarLinks<Message> _$messages(Tag v) => v.messages;
-  static const Field<Tag, IsarLinks<Message>> _f$messages = Field(
+  static ToMany<Message> _$messages(Tag v) => v.messages;
+  static const Field<Tag, ToMany<Message>> _f$messages = Field(
     'messages',
     _$messages,
     mode: FieldMode.member,

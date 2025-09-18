@@ -1,7 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:isar_community/isar.dart';
+import 'package:objectbox/objectbox.dart';
 import '../models/thread.dart';
-import '../../shared/isar/isar_provider.dart';
+import '../../shared/objectbox/objectbox_provider.dart';
+import '../../../objectbox.g.dart';
 
 part 'threads_bloc.g.dart';
 
@@ -9,23 +10,26 @@ part 'threads_bloc.g.dart';
 class ThreadsBloc extends _$ThreadsBloc {
   @override
   List<Thread> build() {
-    final isar = ref.read(isarProvider);
-    final threads = isar.threads.where().sortByCreatedAtDesc().findAllSync();
+    final store = ref.read(storeProvider);
+    final box = store.box<Thread>();
+    final query = box.query();
+    query.order(Thread_.createdAt, flags: Order.descending);
+    final queryBuilder = query.build();
+    final threads = queryBuilder.find();
+    queryBuilder.close();
     return threads;
   }
 
   Future<Thread> addThread(String name) async {
-    final isar = ref.read(isarProvider);
+    final store = ref.read(storeProvider);
+    final box = store.box<Thread>();
     final newThread = Thread(
       name: name,
       createdAt: DateTime.now(),
     );
 
-    late Thread savedThread;
-    await isar.writeTxn(() async {
-      final id = await isar.threads.put(newThread);
-      savedThread = (await isar.threads.get(id))!;
-    });
+    final id = box.put(newThread);
+    final savedThread = box.get(id)!;
 
     // Update state with the new thread
     state = [...state, savedThread];
@@ -33,8 +37,9 @@ class ThreadsBloc extends _$ThreadsBloc {
   }
 
   Future<void> updateThread(int id, String name) async {
-    final isar = ref.read(isarProvider);
-    final existingThread = isar.threads.getSync(id);
+    final store = ref.read(storeProvider);
+    final box = store.box<Thread>();
+    final existingThread = box.get(id);
 
     if (existingThread != null) {
       final updatedThread = Thread(
@@ -43,9 +48,7 @@ class ThreadsBloc extends _$ThreadsBloc {
         createdAt: existingThread.createdAt,
       );
 
-      await isar.writeTxn(() async {
-        await isar.threads.put(updatedThread);
-      });
+      box.put(updatedThread);
 
       // Update state
       state = state.map((thread) {
@@ -58,11 +61,10 @@ class ThreadsBloc extends _$ThreadsBloc {
   }
 
   Future<void> deleteThread(int id) async {
-    final isar = ref.read(isarProvider);
+    final store = ref.read(storeProvider);
+    final box = store.box<Thread>();
 
-    await isar.writeTxn(() async {
-      await isar.threads.delete(id);
-    });
+    box.remove(id);
 
     // Update state
     state = state.where((thread) => thread.id != id).toList();
@@ -70,8 +72,13 @@ class ThreadsBloc extends _$ThreadsBloc {
 
   /// Reload threads from database
   void reload() {
-    final isar = ref.read(isarProvider);
-    final threads = isar.threads.where().sortByCreatedAtDesc().findAllSync();
+    final store = ref.read(storeProvider);
+    final box = store.box<Thread>();
+    final query = box.query();
+    query.order(Thread_.createdAt, flags: Order.descending);
+    final queryBuilder = query.build();
+    final threads = queryBuilder.find();
+    queryBuilder.close();
     state = threads;
   }
 }

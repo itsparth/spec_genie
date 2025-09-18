@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:isar_community/isar.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:spec_genie/features/shared/isar/isar_provider.dart';
+import 'package:spec_genie/features/shared/objectbox/objectbox_provider.dart';
 import '../models/mode.dart';
 import 'mode_state.dart';
 
@@ -15,44 +15,44 @@ part 'modes_bloc.g.dart';
 ///  - (Selection removed per current requirements)
 @riverpod
 class ModesBloc extends _$ModesBloc {
-  final _defaultModes = [
+  static const String _testPrompt = "You are a code testing assistant. Help analyze and create tests for the provided code.";
+  static const String _generatePrompt = "You are a code generation assistant. Help generate code based on the provided specifications.";
+  static const String _reviewPrompt = "You are a code review assistant. Help analyze code for best practices, potential issues, and improvements.";
+  static const String _docPrompt = "You are a technical writing assistant. Help create clear and comprehensive documentation.";
+
+  static final List<Mode> _defaultModes = [
     Mode(
-        id: Isar.autoIncrement,
-        name: 'Spec',
-        prompt:
-            'Generate well-organized specifications with clear structure, requirements, acceptance criteria, and user stories. Focus on clarity, completeness, and actionable details.',
-        isEditable: false),
+      id: 0, // Let ObjectBox auto-assign
+      name: 'Test Code',
+      prompt: _testPrompt,
+      isEditable: false,
+    ),
     Mode(
-        id: Isar.autoIncrement,
-        name: 'Tech Spec',
-        prompt:
-            'Create detailed technical specifications including architecture decisions, implementation details, API designs, database schemas, and technical requirements. Focus on technical depth and engineering considerations.',
-        isEditable: false),
+      id: 0, // Let ObjectBox auto-assign
+      name: 'Generate Code',
+      prompt: _generatePrompt,
+      isEditable: false,
+    ),
     Mode(
-        id: Isar.autoIncrement,
-        name: 'Podcast',
-        prompt:
-            'Generate engaging podcast content including episode outlines, talking points, interview questions, and show notes. Focus on conversational flow, audience engagement, and compelling storytelling.',
-        isEditable: false),
+      id: 0, // Let ObjectBox auto-assign
+      name: 'Code Review',
+      prompt: _reviewPrompt,
+      isEditable: false,
+    ),
     Mode(
-        id: Isar.autoIncrement,
-        name: 'Summary',
-        prompt:
-            'Generate concise, well-structured summaries of content. Extract key points, main ideas, and essential information while maintaining clarity and brevity. Focus on capturing the essence without losing important details.',
-        isEditable: false),
-    Mode(
-        id: Isar.autoIncrement,
-        name: 'Transcript',
-        prompt:
-            'Generate accurate, verbatim transcripts of audio/video content. Maintain speaker identification, timestamps where relevant, and preserve the exact spoken words including natural speech patterns, pauses, and corrections.',
-        isEditable: false),
+      id: 0, // Let ObjectBox auto-assign
+      name: 'Technical Writing',
+      prompt: _docPrompt,
+      isEditable: false,
+    ),
   ];
 
   @override
   ModeState build() {
-    final isar = ref.read(isarProvider);
+    final store = ref.read(storeProvider);
+    final box = store.box<Mode>();
     // Load existing modes.
-    final existing = isar.modes.where().findAllSync();
+    final existing = box.getAll();
     if (existing.isNotEmpty) {
       return ModeState(
         modes: existing.toIList(),
@@ -60,15 +60,14 @@ class ModesBloc extends _$ModesBloc {
     }
     // Seed defaults asynchronously so build stays synchronous.
     Future(() async {
-      final db = ref.read(isarProvider);
+      final store = ref.read(storeProvider);
+      final box = store.box<Mode>();
       final inserted = <Mode>[];
-      await db.writeTxn(() async {
-        for (final m in _defaultModes) {
-          final id = await db.modes.put(m);
-          final stored = await db.modes.get(id);
-          if (stored != null) inserted.add(stored);
-        }
-      });
+      for (final m in _defaultModes) {
+        final id = box.put(m);
+        final stored = box.get(id);
+        if (stored != null) inserted.add(stored);
+      }
       if (inserted.isNotEmpty) {
         // Update state only if still empty (avoid overwriting user changes during race conditions).
         if (state.modes.isEmpty) {
@@ -85,19 +84,18 @@ class ModesBloc extends _$ModesBloc {
   Future<void> create({required String name, required String prompt}) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
+      final store = ref.read(storeProvider);
+      final box = store.box<Mode>();
       final mode = Mode(name: name, prompt: prompt, isEditable: true);
-      await isar.writeTxn(() async {
-        final id = await isar.modes.put(mode);
-        final stored = await isar.modes.get(id);
-        if (stored != null) {
-          final updated = state.modes.add(stored);
-          state = state.copyWith(
-            modes: updated,
-            isSaving: false,
-          );
-        }
-      });
+      final id = box.put(mode);
+      final stored = box.get(id);
+      if (stored != null) {
+        final updated = state.modes.add(stored);
+        state = state.copyWith(
+          modes: updated,
+          isSaving: false,
+        );
+      }
     } finally {
       if (state.isSaving) {
         state = state.copyWith(isSaving: false);
@@ -109,7 +107,8 @@ class ModesBloc extends _$ModesBloc {
   Future<bool> update(int id, {String? name, String? prompt}) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
+      final store = ref.read(storeProvider);
+      final box = store.box<Mode>();
       final idx = state.modes.indexWhere((m) => m.id == id);
       if (idx == -1) {
         state = state.copyWith(isSaving: false);
@@ -124,12 +123,10 @@ class ModesBloc extends _$ModesBloc {
         name: name ?? original.name,
         prompt: prompt ?? original.prompt,
       );
-      return await isar.writeTxn(() async {
-        await isar.modes.put(updated);
-        final updatedModes = state.modes.replace(idx, updated);
-        state = state.copyWith(modes: updatedModes, isSaving: false);
-        return true;
-      });
+      box.put(updated);
+      final updatedModes = state.modes.replace(idx, updated);
+      state = state.copyWith(modes: updatedModes, isSaving: false);
+      return true;
     } finally {
       if (state.isSaving) {
         state = state.copyWith(isSaving: false);
@@ -141,7 +138,8 @@ class ModesBloc extends _$ModesBloc {
   Future<bool> remove(int id) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
+      final store = ref.read(storeProvider);
+      final box = store.box<Mode>();
       final idx = state.modes.indexWhere((m) => m.id == id);
       if (idx == -1) {
         state = state.copyWith(isSaving: false);
@@ -152,19 +150,17 @@ class ModesBloc extends _$ModesBloc {
         state = state.copyWith(isSaving: false);
         return false;
       }
-      return await isar.writeTxn(() async {
-        final deleted = await isar.modes.delete(id);
-        if (deleted) {
-          final remaining = state.modes.where((m) => m.id != id).toIList();
-          state = state.copyWith(
-            modes: remaining,
-            isSaving: false,
-          );
-        } else {
-          state = state.copyWith(isSaving: false);
-        }
-        return deleted;
-      });
+      final deleted = box.remove(id);
+      if (deleted) {
+        final remaining = state.modes.where((m) => m.id != id).toIList();
+        state = state.copyWith(
+          modes: remaining,
+          isSaving: false,
+        );
+      } else {
+        state = state.copyWith(isSaving: false);
+      }
+      return deleted;
     } finally {
       if (state.isSaving) {
         state = state.copyWith(isSaving: false);
@@ -174,8 +170,9 @@ class ModesBloc extends _$ModesBloc {
 
   /// Force reload list from persistence.
   Future<void> reload() async {
-    final isar = ref.read(isarProvider);
-    final list = await isar.modes.where().findAll();
+    final store = ref.read(storeProvider);
+    final box = store.box<Mode>();
+    final list = box.getAll();
     if (list.isNotEmpty) {
       state = state.copyWith(modes: list.toIList());
     }

@@ -1,8 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:isar_community/isar.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:spec_genie/features/shared/isar/isar_provider.dart';
+import 'package:spec_genie/features/shared/objectbox/objectbox_provider.dart';
 import 'package:spec_genie/features/shared/openai/openai.dart';
+import 'package:spec_genie/objectbox.g.dart';
 import 'dart:typed_data';
 
 import '../models/mode_output.dart';
@@ -30,18 +31,20 @@ class ModeOutputBloc extends _$ModeOutputBloc {
   /// Load all outputs for the thread and mode combination
   Future<void> _loadOutputs(int threadId, int modeId) async {
     try {
-      final isar = ref.read(isarProvider);
+      final store = ref.read(storeProvider);
+      final modeBox = store.box<Mode>();
+      final modeOutputBox = store.box<ModeOutput>();
 
       // Load the mode first
-      final mode = await isar.modes.get(modeId);
+      final mode = modeBox.get(modeId);
 
-      final outputs = await isar.modeOutputs
-          .filter()
-          .thread((q) => q.idEqualTo(threadId))
-          .and()
-          .mode((q) => q.idEqualTo(modeId))
-          .sortByCreatedAt()
-          .findAll();
+      final outputs = modeOutputBox
+          .query(ModeOutput_.thread
+              .equals(threadId)
+              .and(ModeOutput_.mode.equals(modeId)))
+          .order(ModeOutput_.createdAt)
+          .build()
+          .find();
 
       state = state.copyWith(
         outputs: outputs.toIList(),
@@ -65,9 +68,12 @@ class ModeOutputBloc extends _$ModeOutputBloc {
 
   /// Get thread and mode data from database
   Future<({Thread thread, Mode mode})> _getThreadAndMode(
-      int threadId, int modeId, Isar isar) async {
-    final thread = await isar.threads.get(threadId);
-    final mode = await isar.modes.get(modeId);
+      int threadId, int modeId, Store store) async {
+    final threadBox = store.box<Thread>();
+    final modeBox = store.box<Mode>();
+
+    final thread = threadBox.get(threadId);
+    final mode = modeBox.get(modeId);
 
     if (thread == null || mode == null) {
       throw Exception('Thread or Mode not found');
@@ -78,18 +84,18 @@ class ModeOutputBloc extends _$ModeOutputBloc {
 
   /// Convert messages from thread to content parts for OpenAI
   Future<List<ContentPart>> _getContentPartsFromMessages(
-      int threadId, Isar isar) async {
-    final messages = await isar.messages
-        .filter()
-        .thread((q) => q.idEqualTo(threadId))
-        .sortByTimestamp()
-        .findAll();
+      int threadId, Store store) async {
+    final messageBox = store.box<Message>();
+    final messages = messageBox
+        .query(Message_.thread.equals(threadId))
+        .order(Message_.timestamp)
+        .build()
+        .find();
 
     final contentParts = <ContentPart>[];
 
     for (final message in messages) {
-      // Load tags for this message
-      await message.tags.load();
+      // Get tags for this message (ToMany relationship)
       final tags = message.tags.toList();
 
       // Build context string with tags and description
@@ -207,25 +213,24 @@ class ModeOutputBloc extends _$ModeOutputBloc {
     final modeId = _modeId!;
 
     try {
-      final isar = ref.read(isarProvider);
+      final store = ref.read(storeProvider);
 
       // Get the thread and mode
-      final (:thread, :mode) = await _getThreadAndMode(threadId, modeId, isar);
+      final (:thread, :mode) = await _getThreadAndMode(threadId, modeId, store);
 
       // Get content parts from messages
-      final contentParts = await _getContentPartsFromMessages(threadId, isar);
+      final contentParts = await _getContentPartsFromMessages(threadId, store);
 
       // Create a placeholder output for streaming
       final placeholderOutput = ModeOutput.completed(content: '');
 
-      // Save placeholder to database and link relationships
-      await isar.writeTxn(() async {
-        await isar.modeOutputs.put(placeholderOutput);
-        placeholderOutput.thread.value = thread;
-        placeholderOutput.mode.value = mode;
-        await placeholderOutput.thread.save();
-        await placeholderOutput.mode.save();
-      });
+      // Set up relationships using target
+      placeholderOutput.thread.target = thread;
+      placeholderOutput.mode.target = mode;
+
+      // Save placeholder to database
+      final box = store.box<ModeOutput>();
+      final outputId = box.put(placeholderOutput);
 
       // Reload outputs to include the new placeholder
       await _loadOutputs(threadId, modeId);
@@ -242,7 +247,7 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       final finalContent = await _performGeneration(systemPrompt, contentParts);
 
       // Complete streaming and save final content
-      await _completeStreaming(finalContent, placeholderOutput, isar);
+      await _completeStreaming(finalContent, placeholderOutput, store);
     } catch (e) {
       // Stop streaming on error and let the caller handle errors
       _stopStreaming();
@@ -290,19 +295,17 @@ class ModeOutputBloc extends _$ModeOutputBloc {
 
   /// Complete streaming and save final content
   Future<void> _completeStreaming(
-      String finalContent, ModeOutput placeholder, Isar isar) async {
+      String finalContent, ModeOutput placeholder, Store store) async {
     // Create a new output with the final content to ensure proper database saving
     final completedOutput = placeholder.copyWith(content: finalContent);
 
-    await isar.writeTxn(() async {
-      // Save the completed output to database
-      await isar.modeOutputs.put(completedOutput);
-      // Ensure relationships are maintained
-      completedOutput.thread.value = placeholder.thread.value;
-      completedOutput.mode.value = placeholder.mode.value;
-      await completedOutput.thread.save();
-      await completedOutput.mode.save();
-    });
+    // Maintain relationships
+    completedOutput.thread.target = placeholder.thread.target;
+    completedOutput.mode.target = placeholder.mode.target;
+
+    // Save the completed output to database
+    final box = store.box<ModeOutput>();
+    box.put(completedOutput);
 
     // Stop streaming and update state directly instead of reloading
     _stopStreaming();
@@ -319,18 +322,15 @@ class ModeOutputBloc extends _$ModeOutputBloc {
 
   /// Complete streaming for regenerated output and save to database
   Future<void> _completeRegenerateStreaming(String finalContent,
-      ModeOutput newOutput, Thread thread, Mode mode, Isar isar) async {
+      ModeOutput newOutput, Thread thread, Mode mode, Store store) async {
     // Update the output's content for saving to database
-    newOutput.content = finalContent;
+    final updatedOutput = newOutput.copyWith(content: finalContent);
 
     // Save to database with relationships
-    await isar.writeTxn(() async {
-      await isar.modeOutputs.put(newOutput);
-      newOutput.thread.value = thread;
-      newOutput.mode.value = mode;
-      await newOutput.thread.save();
-      await newOutput.mode.save();
-    });
+    updatedOutput.thread.target = thread;
+    updatedOutput.mode.target = mode;
+    final box = store.box<ModeOutput>();
+    box.put(updatedOutput);
 
     // Stop streaming
     _stopStreaming();
@@ -365,13 +365,13 @@ class ModeOutputBloc extends _$ModeOutputBloc {
     final modeId = _modeId!;
 
     try {
-      final isar = ref.read(isarProvider);
+      final store = ref.read(storeProvider);
 
       // Get the thread and mode
-      final (:thread, :mode) = await _getThreadAndMode(threadId, modeId, isar);
+      final (:thread, :mode) = await _getThreadAndMode(threadId, modeId, store);
 
       // Get content parts from messages
-      final contentParts = await _getContentPartsFromMessages(threadId, isar);
+      final contentParts = await _getContentPartsFromMessages(threadId, store);
 
       // Create a new output in state only (not in database yet)
       final newOutput = ModeOutput.completed(content: '');
@@ -396,7 +396,7 @@ class ModeOutputBloc extends _$ModeOutputBloc {
 
       // Complete streaming and save to database
       await _completeRegenerateStreaming(
-          finalContent, newOutput, thread, mode, isar);
+          finalContent, newOutput, thread, mode, store);
     } catch (e) {
       // Stop streaming on error and remove the temporary output from state
       _stopStreaming();
@@ -444,11 +444,10 @@ class ModeOutputBloc extends _$ModeOutputBloc {
     if (currentOutput == null || state.outputs.length <= 1) return;
 
     try {
-      final isar = ref.read(isarProvider);
+      final store = ref.read(storeProvider);
+      final box = store.box<ModeOutput>();
 
-      await isar.writeTxn(() async {
-        await isar.modeOutputs.delete(currentOutput.id);
-      });
+      box.remove(currentOutput.id);
 
       // Remove from state and adjust current index
       final updatedOutputs = state.outputs.removeAt(state.currentIndex);

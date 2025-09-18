@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:isar_community/isar.dart';
+import 'package:objectbox/objectbox.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:spec_genie/features/shared/isar/isar_provider.dart';
+import 'package:spec_genie/features/shared/objectbox/objectbox_provider.dart';
 import '../models/configuration.dart';
 
 part 'configuration_bloc.g.dart';
@@ -15,9 +15,10 @@ class ConfigurationBloc extends _$ConfigurationBloc {
   @override
   Configuration build() {
     // Load initial configuration from the database if present
-    final isar = ref.read(isarProvider);
-    final existing = isar.configurations.where().limit(1).findFirstSync();
-    final initial = existing ?? const Configuration(modelName: '', apiKey: '');
+    final store = ref.read(storeProvider);
+    final box = store.box<Configuration>();
+    final existing = box.getAll().isEmpty ? null : box.getAll().first;
+    final initial = existing ?? Configuration(modelName: '', apiKey: '');
 
     // Initialize controllers with the current configuration values
     _apiKeyController = TextEditingController(text: initial.apiKey);
@@ -55,24 +56,27 @@ class ConfigurationBloc extends _$ConfigurationBloc {
     );
 
     // Save to database
-    final isar = ref.read(isarProvider);
-    await isar.writeTxn(() async {
-      final id = await isar.configurations.put(state);
-      if (id != state.id) {
-        // Ensure we reflect any auto-increment id assignment
-        final refreshed = await isar.configurations.get(id);
-        if (refreshed != null) {
-          state = refreshed;
-        }
-      }
-    });
+    final store = ref.read(storeProvider);
+    final box = store.box<Configuration>();
+    final id = box.put(state);
+    if (id != state.id) {
+      // Update state with the assigned id
+      state = Configuration(
+        id: id,
+        apiKey: state.apiKey,
+        modelName: state.modelName,
+        baseUrl: state.baseUrl,
+      );
+    }
   }
 
   /// Force reload from the database and update controllers
   Future<void> reload() async {
-    final isar = ref.read(isarProvider);
-    final latest = await isar.configurations.where().limit(1).findFirst();
-    if (latest != null) {
+    final store = ref.read(storeProvider);
+    final box = store.box<Configuration>();
+    final configs = box.getAll();
+    if (configs.isNotEmpty) {
+      final latest = configs.first;
       state = latest;
       // Update controllers to reflect the new state
       _apiKeyController.text = latest.apiKey;

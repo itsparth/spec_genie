@@ -1,24 +1,24 @@
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:isar_community/isar.dart';
+import 'package:objectbox/objectbox.dart';
 
 import '../../mode_output/models/mode_output.dart';
 
 part 'mode.mapper.dart';
-part 'mode.g.dart';
 
 @MappableClass()
-@Collection()
+@Entity()
 class Mode with ModeMappable {
-  final Id id;
+  @Id()
+  int id;
   final String name;
   final String prompt;
   final bool isEditable;
 
-  @Backlink(to: 'mode')
-  final modeOutputs = IsarLinks<ModeOutput>();
+  @Backlink('mode')
+  final ToMany<ModeOutput> modeOutputs = ToMany<ModeOutput>();
 
   Mode({
-    this.id = Isar.autoIncrement,
+    this.id = 0,
     required this.name,
     required this.prompt,
     this.isEditable = true,
