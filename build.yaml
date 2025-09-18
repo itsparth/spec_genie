@@ -1,0 +1,11 @@
+# Drift build configuration
+# Enables ISO-8601 string storage for DateTime columns and keeps Dart getter names for JSON.
+
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          store_date_time_values_as_text: true
+          # If later using .drift files and wanting sql column names in JSON, flip below
+          use_sql_column_name_as_json_key: false

@@ -1,14 +1,11 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:isar_community/isar.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:spec_genie/features/shared/isar/isar_provider.dart';
 import 'package:spec_genie/features/shared/openai/openai.dart';
+import 'package:spec_genie/database/database.dart';
+import 'package:spec_genie/database/drift_database_provider.dart';
+import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' show Value;
 import 'dart:typed_data';
-
-import '../models/mode_output.dart';
-import '../../threads/models/thread.dart';
-import '../../modes/models/mode.dart';
-import '../../chat/models/message.dart';
 import 'mode_outputs_state.dart';
 
 part 'mode_output_bloc.g.dart';
@@ -23,231 +20,105 @@ class ModeOutputBloc extends _$ModeOutputBloc {
   ModeOutputsState build(int threadId, int modeId) {
     _threadId = threadId;
     _modeId = modeId;
-    _loadOutputs(threadId, modeId);
+    _load(threadId, modeId);
     return const ModeOutputsState(isLoading: true);
   }
 
-  /// Load all outputs for the thread and mode combination
-  Future<void> _loadOutputs(int threadId, int modeId) async {
-    try {
-      final isar = ref.read(isarProvider);
-
-      // Load the mode first
-      final mode = await isar.modes.get(modeId);
-
-      final outputs = await isar.modeOutputs
-          .filter()
-          .thread((q) => q.idEqualTo(threadId))
-          .and()
-          .mode((q) => q.idEqualTo(modeId))
-          .sortByCreatedAt()
-          .findAll();
-
-      state = state.copyWith(
-        outputs: outputs.toIList(),
-        isLoading: false,
-        currentIndex: outputs.isNotEmpty
-            ? outputs.length - 1
-            : 0, // Show latest by default
-        currentMode: mode,
-      );
-
-      // If no outputs exist, automatically start generation
-      if (outputs.isEmpty) {
-        generateOutput();
-      }
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-      );
+  Future<void> _load(int threadId, int modeId) async {
+    final adb = ref.read(driftDatabaseProvider);
+    final outputs = await (adb.select(adb.modeOutputs)
+          ..where((o) => o.threadId.equals(threadId) & o.modeId.equals(modeId))
+          ..orderBy([(o) => OrderingTerm(expression: o.createdAt)]))
+        .get();
+    final mode = await (adb.select(adb.modes)
+          ..where((m) => m.id.equals(modeId)))
+        .getSingleOrNull();
+    state = state.copyWith(
+      outputs: outputs.toIList(),
+      currentMode: mode,
+      isLoading: false,
+      currentIndex: outputs.isNotEmpty ? outputs.length - 1 : 0,
+    );
+    if (outputs.isEmpty) {
+      generateOutput();
     }
   }
 
-  /// Get thread and mode data from database
-  Future<({Thread thread, Mode mode})> _getThreadAndMode(
-      int threadId, int modeId, Isar isar) async {
-    final thread = await isar.threads.get(threadId);
-    final mode = await isar.modes.get(modeId);
-
-    if (thread == null || mode == null) {
-      throw Exception('Thread or Mode not found');
+  Future<List<ContentPart>> _contentParts(int threadId) async {
+    final adb = ref.read(driftDatabaseProvider);
+    final msgs = await (adb.select(adb.messages)
+          ..where((m) => m.threadId.equals(threadId))
+          ..orderBy([(m) => OrderingTerm(expression: m.timestamp)]))
+        .get();
+    final parts = <ContentPart>[];
+    for (final m in msgs) {
+      final contextSegments = <String>[];
+      if (m.description.isNotEmpty) {
+        contextSegments.add('Description: ${m.description}');
+      }
+      final context =
+          contextSegments.isNotEmpty ? '${contextSegments.join(' | ')}\n' : '';
+      if (m.body.isNotEmpty) {
+        parts.add(TextPart(context.isNotEmpty ? '$context${m.body}' : m.body));
+      }
+      if (m.transcript?.isNotEmpty == true) {
+        parts.add(TextPart(context.isNotEmpty
+            ? '${context}Transcribed audio: ${m.transcript!}'
+            : 'Transcribed audio: ${m.transcript!}'));
+      }
+      if (m.messageType == 'image' && m.fileData != null) {
+        parts.add(ImagePart(
+            Uint8List.fromList(m.fileData!), m.mimeType ?? 'image/jpeg'));
+      }
+      if (m.messageType == 'audio' && m.fileData != null) {
+        parts.add(AudioPart(
+            Uint8List.fromList(m.fileData!), m.mimeType ?? 'audio/wav'));
+      }
     }
-
-    return (thread: thread, mode: mode);
+    if (parts.isEmpty) parts.add(TextPart('Generate content for this thread.'));
+    return parts;
   }
 
-  /// Convert messages from thread to content parts for OpenAI
-  Future<List<ContentPart>> _getContentPartsFromMessages(
-      int threadId, Isar isar) async {
-    final messages = await isar.messages
-        .filter()
-        .thread((q) => q.idEqualTo(threadId))
-        .sortByTimestamp()
-        .findAll();
-
-    final contentParts = <ContentPart>[];
-
-    for (final message in messages) {
-      // Load tags for this message
-      await message.tags.load();
-      final tags = message.tags.toList();
-
-      // Build context string with tags and description
-      final contextParts = <String>[];
-
-      // Add tag information
-      if (tags.isNotEmpty) {
-        final tagDescriptions =
-            tags.map((tag) => '${tag.name}: ${tag.description}').join(', ');
-        contextParts.add('Tags: $tagDescriptions');
-      }
-
-      // Add message description if present
-      if (message.description.isNotEmpty) {
-        contextParts.add('Description: ${message.description}');
-      }
-
-      final contextText =
-          contextParts.isNotEmpty ? '${contextParts.join(' | ')}\n' : '';
-
-      // Add text content if present
-      if (message.text.isNotEmpty) {
-        final fullText = contextText.isNotEmpty
-            ? '$contextText${message.text}'
-            : message.text;
-        contentParts.add(TextPart(fullText));
-      }
-
-      // Add transcript if audio message has transcript
-      if (message.type == MessageType.audio &&
-          message.transcript != null &&
-          message.transcript!.isNotEmpty) {
-        final transcriptText = contextText.isNotEmpty
-            ? '${contextText}Transcribed audio: ${message.transcript!}'
-            : 'Transcribed audio: ${message.transcript!}';
-        contentParts.add(TextPart(transcriptText));
-      }
-
-      // Add image data if present
-      if (message.type == MessageType.image && message.fileData != null) {
-        try {
-          // Add context as separate text part before image if present
-          if (contextText.isNotEmpty) {
-            contentParts.add(TextPart('${contextText.trim()}'));
-          }
-
-          final imageBytes = Uint8List.fromList(message.fileData!);
-          final mimeType = message.mimeType ?? 'image/jpeg';
-          contentParts.add(ImagePart(imageBytes, mimeType));
-        } catch (e) {
-          // If image processing fails, add description instead
-          final fallbackText = contextText.isNotEmpty
-              ? '${contextText}Image description: ${message.description.isNotEmpty ? message.description : 'Image processing failed'}'
-              : 'Image description: ${message.description.isNotEmpty ? message.description : 'Image processing failed'}';
-          contentParts.add(TextPart(fallbackText));
-        }
-      }
-
-      // Add audio data if present
-      if (message.type == MessageType.audio && message.fileData != null) {
-        try {
-          // Add context as separate text part before audio if present
-          if (contextText.isNotEmpty) {
-            contentParts.add(TextPart('${contextText.trim()}'));
-          }
-
-          final audioBytes = Uint8List.fromList(message.fileData!);
-          final mimeType = message.mimeType ?? 'audio/wav';
-          contentParts.add(AudioPart(audioBytes, mimeType));
-        } catch (e) {
-          // If audio processing fails, just use transcript or description
-          final fallbackText = message.transcript?.isNotEmpty == true
-              ? message.transcript!
-              : message.description.isNotEmpty
-                  ? 'Audio description: ${message.description}'
-                  : 'Audio content (processing failed)';
-
-          final fullFallbackText = contextText.isNotEmpty
-              ? '$contextText$fallbackText'
-              : fallbackText;
-          contentParts.add(TextPart(fullFallbackText));
-        }
-      }
-    }
-
-    // If no content parts, add a default message
-    if (contentParts.isEmpty) {
-      contentParts.add(TextPart('Generate content for this thread.'));
-    }
-
-    return contentParts;
-  }
-
-  /// Perform OpenAI generation with streaming
-  Future<String> _performGeneration(
-      String systemPrompt, List<ContentPart> contentParts) async {
+  Future<String> _streamGenerate(
+      String systemPrompt, List<ContentPart> parts) async {
     final openAI = ref.watch(openAIUtilProvider);
-
     String finalContent = '';
-    await for (final content
-        in openAI.generateStream(systemPrompt, contentParts)) {
+    await for (final content in openAI.generateStream(systemPrompt, parts)) {
       finalContent = content;
       _updateStreamingContent(content);
     }
-
     return finalContent;
   }
 
-  /// Generate a new output for the current thread and mode
   Future<void> generateOutput({String? customPrompt}) async {
-    // If we're already generating, don't start another generation
     if (state.isGenerating) return;
-
     final threadId = _threadId!;
     final modeId = _modeId!;
+    final adb = ref.read(driftDatabaseProvider);
+    final mode = await (adb.select(adb.modes)
+          ..where((m) => m.id.equals(modeId)))
+        .getSingle();
 
-    try {
-      final isar = ref.read(isarProvider);
-
-      // Get the thread and mode
-      final (:thread, :mode) = await _getThreadAndMode(threadId, modeId, isar);
-
-      // Get content parts from messages
-      final contentParts = await _getContentPartsFromMessages(threadId, isar);
-
-      // Create a placeholder output for streaming
-      final placeholderOutput = ModeOutput.completed(content: '');
-
-      // Save placeholder to database and link relationships
-      await isar.writeTxn(() async {
-        await isar.modeOutputs.put(placeholderOutput);
-        placeholderOutput.thread.value = thread;
-        placeholderOutput.mode.value = mode;
-        await placeholderOutput.thread.save();
-        await placeholderOutput.mode.save();
-      });
-
-      // Reload outputs to include the new placeholder
-      await _loadOutputs(threadId, modeId);
-
-      // Find the index of the new output
-      final newOutputIndex = state.outputs.length - 1;
-
-      // Start streaming
-      _startStreaming(newOutputIndex);
-
-      // Generate content with streaming
-      final systemPrompt = customPrompt ??
-          "Generate markdown and follow the instructions: \n${mode.prompt}";
-      final finalContent = await _performGeneration(systemPrompt, contentParts);
-
-      // Complete streaming and save final content
-      await _completeStreaming(finalContent, placeholderOutput, isar);
-    } catch (e) {
-      // Stop streaming on error and let the caller handle errors
-      _stopStreaming();
-      rethrow;
-    }
+    final placeholderId =
+        await adb.into(adb.modeOutputs).insert(ModeOutputsCompanion.insert(
+              threadId: threadId,
+              modeId: modeId,
+              createdAt: DateTime.now(),
+              content: '',
+            ));
+    await _load(threadId, modeId);
+    _startStreaming(state.outputs.length - 1);
+    final parts = await _contentParts(threadId);
+    final systemPrompt = customPrompt ??
+        "Generate markdown and follow the instructions: \n${mode.prompt}";
+    final finalContent = await _streamGenerate(systemPrompt, parts);
+    await (adb.update(adb.modeOutputs)
+          ..where((o) => o.id.equals(placeholderId)))
+        .write(
+      ModeOutputsCompanion(content: Value(finalContent)),
+    );
+    _stopStreaming();
+    await _load(threadId, modeId);
   }
 
   /// Start streaming for a specific output index
@@ -264,88 +135,22 @@ class ModeOutputBloc extends _$ModeOutputBloc {
   void _updateStreamingContent(String content) {
     if (state.isGenerating && state.streamingIndex != null) {
       state = state.copyWith(streamingContent: content);
-
-      // Also update the actual output in the list for real-time display
+      // Optimistic live update: replace content in list
       if (state.streamingIndex! < state.outputs.length) {
-        final updatedOutputs = <ModeOutput>[];
-
-        for (int i = 0; i < state.outputs.length; i++) {
-          final output = state.outputs[i];
-          if (i == state.streamingIndex) {
-            // Update the content of the streaming output
-            final updatedOutput = output.copyWith(content: content);
-            updatedOutputs.add(updatedOutput);
-          } else {
-            updatedOutputs.add(output);
-          }
-        }
-
-        state = state.copyWith(
-          outputs: updatedOutputs.toIList(),
-          streamingContent: content,
+        final updated = state.outputs.replace(
+          state.streamingIndex!,
+          state.outputs[state.streamingIndex!].copyWith(content: content),
         );
+        state = state.copyWith(outputs: updated);
       }
     }
   }
 
   /// Complete streaming and save final content
-  Future<void> _completeStreaming(
-      String finalContent, ModeOutput placeholder, Isar isar) async {
-    // Create a new output with the final content to ensure proper database saving
-    final completedOutput = placeholder.copyWith(content: finalContent);
-
-    await isar.writeTxn(() async {
-      // Save the completed output to database
-      await isar.modeOutputs.put(completedOutput);
-      // Ensure relationships are maintained
-      completedOutput.thread.value = placeholder.thread.value;
-      completedOutput.mode.value = placeholder.mode.value;
-      await completedOutput.thread.save();
-      await completedOutput.mode.save();
-    });
-
-    // Stop streaming and update state directly instead of reloading
-    _stopStreaming();
-
-    // Update the outputs list with the completed output
-    final updatedOutputs = state.outputs.map((output) {
-      return output.id == placeholder.id ? completedOutput : output;
-    }).toList();
-
-    state = state.copyWith(
-      outputs: updatedOutputs.toIList(),
-    );
-  }
+  // Drift version handled inline in generateOutput
 
   /// Complete streaming for regenerated output and save to database
-  Future<void> _completeRegenerateStreaming(String finalContent,
-      ModeOutput newOutput, Thread thread, Mode mode, Isar isar) async {
-    // Update the output's content for saving to database
-    newOutput.content = finalContent;
-
-    // Save to database with relationships
-    await isar.writeTxn(() async {
-      await isar.modeOutputs.put(newOutput);
-      newOutput.thread.value = thread;
-      newOutput.mode.value = mode;
-      await newOutput.thread.save();
-      await newOutput.mode.save();
-    });
-
-    // Stop streaming
-    _stopStreaming();
-
-    // Update the outputs list with the final content using copyWith for immutability
-    final updatedOutputs = state.outputs.map((output) {
-      return output.id == newOutput.id
-          ? output.copyWith(content: finalContent)
-          : output;
-    }).toList();
-
-    state = state.copyWith(
-      outputs: updatedOutputs.toIList(),
-    );
-  }
+  // Regenerate simplified for Drift implementation
 
   /// Stop streaming
   void _stopStreaming() {
@@ -357,65 +162,7 @@ class ModeOutputBloc extends _$ModeOutputBloc {
   }
 
   /// Regenerate by creating a new output (doesn't replace current one)
-  Future<void> regenerateCurrentOutput() async {
-    // If we're already generating, don't start another generation
-    if (state.isGenerating) return;
-
-    final threadId = _threadId!;
-    final modeId = _modeId!;
-
-    try {
-      final isar = ref.read(isarProvider);
-
-      // Get the thread and mode
-      final (:thread, :mode) = await _getThreadAndMode(threadId, modeId, isar);
-
-      // Get content parts from messages
-      final contentParts = await _getContentPartsFromMessages(threadId, isar);
-
-      // Create a new output in state only (not in database yet)
-      final newOutput = ModeOutput.completed(content: '');
-
-      // Add to state immediately
-      final updatedOutputs = state.outputs.add(newOutput);
-      final newOutputIndex = updatedOutputs.length - 1;
-
-      state = state.copyWith(
-        outputs: updatedOutputs,
-        currentIndex: newOutputIndex,
-      );
-
-      // Start streaming
-      _startStreaming(newOutputIndex);
-
-      final systemPrompt =
-          "Generate markdown and follow the instructions: \n${mode.prompt}";
-
-      // Generate content with streaming
-      final finalContent = await _performGeneration(systemPrompt, contentParts);
-
-      // Complete streaming and save to database
-      await _completeRegenerateStreaming(
-          finalContent, newOutput, thread, mode, isar);
-    } catch (e) {
-      // Stop streaming on error and remove the temporary output from state
-      _stopStreaming();
-
-      // Remove the last output (the one we just added) if it exists
-      if (state.outputs.isNotEmpty) {
-        final updatedOutputs = state.outputs.removeLast();
-        final newIndex =
-            updatedOutputs.isNotEmpty ? updatedOutputs.length - 1 : 0;
-        state = state.copyWith(
-          outputs: updatedOutputs,
-          currentIndex: newIndex.clamp(
-              0, (updatedOutputs.length - 1).clamp(0, double.infinity).toInt()),
-        );
-      }
-
-      rethrow;
-    }
-  }
+  Future<void> regenerateCurrentOutput() async => generateOutput();
 
   /// Navigate to the previous output
   void goToPreviousOutput() {
@@ -440,29 +187,11 @@ class ModeOutputBloc extends _$ModeOutputBloc {
 
   /// Delete the current output
   Future<void> deleteCurrentOutput() async {
-    final currentOutput = state.currentOutput;
-    if (currentOutput == null || state.outputs.length <= 1) return;
-
-    try {
-      final isar = ref.read(isarProvider);
-
-      await isar.writeTxn(() async {
-        await isar.modeOutputs.delete(currentOutput.id);
-      });
-
-      // Remove from state and adjust current index
-      final updatedOutputs = state.outputs.removeAt(state.currentIndex);
-      final newIndex = state.currentIndex >= updatedOutputs.length
-          ? updatedOutputs.length - 1
-          : state.currentIndex;
-
-      state = state.copyWith(
-        outputs: updatedOutputs,
-        currentIndex: newIndex.clamp(0, updatedOutputs.length - 1),
-      );
-    } catch (e) {
-      // Let errors bubble up to be handled at a higher level
-      rethrow;
-    }
+    final current = state.currentOutput;
+    if (current == null || state.outputs.length <= 1) return;
+    final adb = ref.read(driftDatabaseProvider);
+    await (adb.delete(adb.modeOutputs)..where((o) => o.id.equals(current.id)))
+        .go();
+    await _load(_threadId!, _modeId!);
   }
 }

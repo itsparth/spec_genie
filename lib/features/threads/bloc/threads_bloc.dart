@@ -1,77 +1,44 @@
+import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:isar_community/isar.dart';
-import '../models/thread.dart';
-import '../../shared/isar/isar_provider.dart';
+import 'package:spec_genie/database/repositories/threads_repository.dart';
+import 'package:spec_genie/database/database.dart';
 
 part 'threads_bloc.g.dart';
 
 @riverpod
 class ThreadsBloc extends _$ThreadsBloc {
+  StreamSubscription<List<ThreadRow>>? _sub;
+
   @override
-  List<Thread> build() {
-    final isar = ref.read(isarProvider);
-    final threads = isar.threads.where().sortByCreatedAtDesc().findAllSync();
-    return threads;
+  List<ThreadRow> build() {
+    // Subscribe to drift thread stream
+    final repo = ref.read(threadsRepositoryProvider);
+    _sub = repo.watchAll().listen((rows) {
+      state = rows;
+    });
+    ref.onDispose(() => _sub?.cancel());
+    return const [];
   }
 
-  Future<Thread> addThread(String name) async {
-    final isar = ref.read(isarProvider);
-    final newThread = Thread(
-      name: name,
-      createdAt: DateTime.now(),
-    );
-
-    late Thread savedThread;
-    await isar.writeTxn(() async {
-      final id = await isar.threads.put(newThread);
-      savedThread = (await isar.threads.get(id))!;
-    });
-
-    // Update state with the new thread
-    state = [...state, savedThread];
-    return savedThread;
+  Future<int> addThread(String name) async {
+    final repo = ref.read(threadsRepositoryProvider);
+    return repo.createThread(name: name, createdAt: DateTime.now());
   }
 
   Future<void> updateThread(int id, String name) async {
-    final isar = ref.read(isarProvider);
-    final existingThread = isar.threads.getSync(id);
-
-    if (existingThread != null) {
-      final updatedThread = Thread(
-        id: existingThread.id,
-        name: name,
-        createdAt: existingThread.createdAt,
-      );
-
-      await isar.writeTxn(() async {
-        await isar.threads.put(updatedThread);
-      });
-
-      // Update state
-      state = state.map((thread) {
-        if (thread.id == id) {
-          return updatedThread;
-        }
-        return thread;
-      }).toList();
-    }
+    final repo = ref.read(threadsRepositoryProvider);
+    await repo.rename(id, name);
   }
 
   Future<void> deleteThread(int id) async {
-    final isar = ref.read(isarProvider);
-
-    await isar.writeTxn(() async {
-      await isar.threads.delete(id);
-    });
-
-    // Update state
-    state = state.where((thread) => thread.id != id).toList();
+    final repo = ref.read(threadsRepositoryProvider);
+    await repo.delete(id);
   }
 
-  /// Reload threads from database
-  void reload() {
-    final isar = ref.read(isarProvider);
-    final threads = isar.threads.where().sortByCreatedAtDesc().findAllSync();
-    state = threads;
+  /// Manual refresh (restarts subscription)
+  Future<void> reload() async {
+    await _sub?.cancel();
+    final repo = ref.read(threadsRepositoryProvider);
+    _sub = repo.watchAll().listen((rows) => state = rows);
   }
 }

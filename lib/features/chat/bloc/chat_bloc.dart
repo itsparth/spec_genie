@@ -1,212 +1,157 @@
+import 'dart:async';
+import 'dart:typed_data';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:isar_community/isar.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:spec_genie/features/shared/isar/isar_provider.dart';
-import 'package:spec_genie/features/threads/models/thread.dart';
-import 'package:spec_genie/features/threads/bloc/threads_bloc.dart';
-
-import '../models/message.dart';
-import '../../tags/models/tag.dart';
+import 'package:drift/drift.dart' show Value, OrderingTerm, innerJoin;
+import 'package:spec_genie/database/database.dart';
+import 'package:spec_genie/database/repositories/messages_repository.dart';
+import 'package:spec_genie/database/repositories/threads_repository.dart';
+import 'package:spec_genie/database/drift_database_provider.dart';
 import 'chat_state.dart';
 import 'message_state.dart';
 
 part 'chat_bloc.g.dart';
 
-/// Manages chat messages for a specific thread
+/// Manages chat messages for a specific thread backed by Drift
 @riverpod
 class ChatBloc extends _$ChatBloc {
+  StreamSubscription<List<MessageRow>>? _sub;
+
   @override
   ChatState build(int? threadId) {
     if (threadId != null) {
-      _loadMessages(threadId);
+      _listen(threadId);
     }
+    ref.onDispose(() => _sub?.cancel());
     return ChatState(threadId: threadId, isLoading: threadId != null);
   }
 
-  /// Create a new thread with the given name
+  void _listen(int threadId) {
+    _sub?.cancel();
+    final repo = ref.read(messagesRepositoryProvider);
+    _sub = repo.watchForThread(threadId).listen((rows) {
+      final list =
+          rows.map((r) => MessageState(message: r, isSaving: false)).toIList();
+      state = state.copyWith(messages: list, isLoading: false);
+    });
+  }
+
+  /// Returns a stream of messages with their associated tag rows using a join.
+  Stream<List<MessageWithTags>> watchMessagesWithTags(int threadId) {
+    final db = ref.read(driftDatabaseProvider);
+    final messages = db.select(db.messages)
+      ..where((m) => m.threadId.equals(threadId))
+      ..orderBy([(m) => OrderingTerm.desc(m.id)]);
+
+    return messages.watch().asyncMap((messageRows) async {
+      if (messageRows.isEmpty) return <MessageWithTags>[];
+      final ids = messageRows.map((m) => m.id).toList();
+      final joinQuery = await (db.select(db.messageTags).join([
+        innerJoin(db.tags, db.tags.id.equalsExp(db.messageTags.tagId)),
+      ])
+            ..where(db.messageTags.messageId.isIn(ids)))
+          .get();
+
+      final map = <int, List<TagRow>>{};
+      for (final row in joinQuery) {
+        final tag = row.readTable(db.tags);
+        final mt = row.readTable(db.messageTags);
+        map.putIfAbsent(mt.messageId, () => []).add(tag);
+      }
+      return messageRows
+          .map((m) => MessageWithTags(message: m, tags: map[m.id] ?? const []))
+          .toList();
+    });
+  }
+
+  /// Replace tags on a message with provided tag ids
+  Future<void> updateMessageTags(int messageId, List<int> tagIds) async {
+    final db = ref.read(driftDatabaseProvider);
+    await db.transaction(() async {
+      // Clear existing
+      await (db.delete(db.messageTags)
+            ..where((tbl) => tbl.messageId.equals(messageId)))
+          .go();
+      // Insert new
+      for (final id in tagIds.toSet()) {
+        await db.into(db.messageTags).insertOnConflictUpdate(
+              MessageTagsCompanion.insert(messageId: messageId, tagId: id),
+            );
+      }
+    });
+  }
+
   Future<int> createThread(String threadName) async {
-    final threadsBloc = ref.read(threadsBlocProvider.notifier);
-    final newThread = await threadsBloc.addThread(threadName);
-
-    // Update our state with the new thread ID
-    state = state.copyWith(threadId: newThread.id);
-
-    return newThread.id;
+    final repo = ref.read(threadsRepositoryProvider);
+    final id =
+        await repo.createThread(name: threadName, createdAt: DateTime.now());
+    state = state.copyWith(threadId: id);
+    _listen(id);
+    return id;
   }
 
-  /// Load messages for the thread
-  Future<void> _loadMessages(int threadId) async {
-    try {
-      final isar = ref.read(isarProvider);
-      final messages = await isar.messages
-          .filter()
-          .thread((q) => q.idEqualTo(threadId))
-          .sortByTimestamp()
-          .findAll();
-
-      final messageStates =
-          messages.map((message) => MessageState(message: message)).toIList();
-
-      state = state.copyWith(
-        messages: messageStates,
-        isLoading: false,
-      );
-    } catch (e) {
-      state = state.copyWith(isLoading: false);
-      rethrow;
-    }
-  }
-
-  /// Add a new message to the chat, creating a thread if none exists
-  Future<void> addMessage(Message message, {String? threadName}) async {
-    // If no thread exists, create one first
+  Future<void> addMessage({
+    required String body,
+    required String messageType,
+    String description = '',
+    String? mimeType,
+    String? transcript,
+    String? fileName,
+    Uint8List? fileData,
+    String? threadName,
+  }) async {
     if (state.threadId == null) {
-      final name = threadName ?? _generateThreadName(message);
-      final newThreadId = await createThread(name);
-      state = state.copyWith(threadId: newThreadId);
+      final generated = threadName ?? _generateThreadName(body);
+      await createThread(generated);
     }
-    final isar = ref.read(isarProvider);
-    final thread = await isar.threads.get(state.threadId!);
-    message.thread.value = thread;
-    final newMessageState = MessageState(message: message, isSaving: true);
-    final updated = state.messages.add(newMessageState);
-    state = state.copyWith(messages: updated);
-
-    try {
-      await isar.writeTxn(() async {
-        await isar.messages.put(message);
-        await message.thread.save();
-        await message.tags.save();
-      });
-
-      final idx = state.messages.length - 1;
-      final savedMessageState = newMessageState.copyWith(isSaving: false);
-      final finalUpdated = state.messages.replace(idx, savedMessageState);
-      state = state.copyWith(messages: finalUpdated);
-    } catch (e) {
-      // Remove the message on error
-      final errorUpdated = state.messages.removeLast();
-      state = state.copyWith(messages: errorUpdated);
-      rethrow;
-    }
+    final repo = ref.read(messagesRepositoryProvider);
+    await repo.addMessage(
+      threadId: state.threadId!,
+      body: body,
+      messageType: messageType,
+      description: description,
+      mimeType: mimeType,
+      transcript: transcript,
+      fileName: fileName,
+      fileData: fileData,
+    );
   }
 
-  /// Generate a thread name from a message
-  String _generateThreadName(Message message) {
-    final text = message.text;
-    if (text.isNotEmpty) {
-      return text.length <= 50 ? text : '${text.substring(0, 47)}...';
+  String _generateThreadName(String body) {
+    if (body.isNotEmpty) {
+      return body.length <= 50 ? body : '${body.substring(0, 47)}...';
     }
     return 'New Thread';
   }
 
-  /// Update tags for a message
-  Future<bool> updateMessageTags(int messageId, List<Tag> newTags) async {
-    final idx = state.messages.indexWhere((m) => m.message.id == messageId);
-    if (idx == -1) return false;
-
-    final currentMessageState = state.messages[idx];
-    final updatedMessageState = currentMessageState.copyWith(isSaving: true);
-    final tempUpdated = state.messages.replace(idx, updatedMessageState);
-    state = state.copyWith(messages: tempUpdated);
-    try {
-      final isar = ref.read(isarProvider);
-      final message = await isar.messages.get(messageId);
-
-      if (message == null) {
-        final errorMessageState = updatedMessageState.copyWith(isSaving: false);
-        final errorUpdated = state.messages.replace(idx, errorMessageState);
-        state = state.copyWith(messages: errorUpdated);
-        return false;
-      }
-
-      final newTagIds = newTags.map((t) => t.id).toSet();
-      final existingIds = message.tags.map((t) => t.id).toSet();
-      final tagsToLink = newTags.where((t) => !existingIds.contains(t.id));
-      final tagsToUnlink = message.tags.where((t) => !newTagIds.contains(t.id));
-
-      await isar.writeTxn(() async {
-        await message.tags.update(link: tagsToLink, unlink: tagsToUnlink);
-      });
-
-      await message.tags.load();
-
-      final finalMessageState = MessageState(message: message, isSaving: false);
-      final finalUpdated = state.messages.replace(idx, finalMessageState);
-      state = state.copyWith(messages: finalUpdated);
-
-      return true;
-    } catch (e) {
-      final errorMessageState = updatedMessageState.copyWith(isSaving: false);
-      final errorUpdated = state.messages.replace(idx, errorMessageState);
-      state = state.copyWith(messages: errorUpdated);
-      rethrow;
-    }
-  }
-
-  /// Update description for a message
   Future<bool> updateMessageDescription(
-      int messageId, String newDescription) async {
-    final idx = state.messages.indexWhere((m) => m.message.id == messageId);
-    if (idx == -1) return false;
-
-    final currentMessageState = state.messages[idx];
-    final updatedMessageState = currentMessageState.copyWith(isSaving: true);
-    final tempUpdated = state.messages.replace(idx, updatedMessageState);
-    state = state.copyWith(messages: tempUpdated);
-
+      int messageId, String description) async {
     try {
-      final isar = ref.read(isarProvider);
-      final message = await isar.messages.get(messageId);
-
-      if (message == null) {
-        final errorMessageState = updatedMessageState.copyWith(isSaving: false);
-        final errorUpdated = state.messages.replace(idx, errorMessageState);
-        state = state.copyWith(messages: errorUpdated);
-        return false;
-      }
-
-      // Create updated message with new description
-      final updatedMessage = message.copyWith(description: newDescription);
-
-      await isar.writeTxn(() async {
-        await isar.messages.put(updatedMessage);
-      });
-
-      final finalMessageState =
-          MessageState(message: updatedMessage, isSaving: false);
-      final finalUpdated = state.messages.replace(idx, finalMessageState);
-      state = state.copyWith(messages: finalUpdated);
-
-      return true;
-    } catch (e) {
-      final errorMessageState = updatedMessageState.copyWith(
-        isSaving: false,
-        error: 'Failed to update description: ${e.toString()}',
+      final adb = ref.read(driftDatabaseProvider);
+      await (adb.update(adb.messages)..where((m) => m.id.equals(messageId)))
+          .write(
+        MessagesCompanion(description: Value(description)),
       );
-      final errorUpdated = state.messages.replace(idx, errorMessageState);
-      state = state.copyWith(messages: errorUpdated);
-      rethrow;
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
-  /// Remove a message from the chat
   Future<bool> removeMessage(int messageId) async {
     try {
-      final isar = ref.read(isarProvider);
-      final deleted = await isar.writeTxn(() async {
-        return await isar.messages.delete(messageId);
-      });
-
-      if (deleted) {
-        final updated =
-            state.messages.where((m) => m.message.id != messageId).toIList();
-        state = state.copyWith(messages: updated);
-      }
-
-      return deleted;
-    } catch (e) {
-      rethrow;
+      final repo = ref.read(messagesRepositoryProvider);
+      await repo.deleteMessage(messageId);
+      return true;
+    } catch (_) {
+      return false;
     }
   }
+}
+
+/// Convenience view model combining a message row with its associated tags.
+class MessageWithTags {
+  final MessageRow message;
+  final List<TagRow> tags;
+  const MessageWithTags({required this.message, required this.tags});
 }

@@ -1,8 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:isar_community/isar.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:spec_genie/features/shared/isar/isar_provider.dart';
-import '../models/mode.dart';
+import 'package:drift/drift.dart' show Value;
+import 'package:spec_genie/database/repositories/modes_repository.dart';
+import 'package:spec_genie/database/database.dart';
 import 'mode_state.dart';
 
 part 'modes_bloc.g.dart';
@@ -15,169 +15,94 @@ part 'modes_bloc.g.dart';
 ///  - (Selection removed per current requirements)
 @riverpod
 class ModesBloc extends _$ModesBloc {
-  final _defaultModes = [
-    Mode(
-        id: Isar.autoIncrement,
-        name: 'Spec',
-        prompt:
-            'Generate well-organized specifications with clear structure, requirements, acceptance criteria, and user stories. Focus on clarity, completeness, and actionable details.',
-        isEditable: false),
-    Mode(
-        id: Isar.autoIncrement,
-        name: 'Tech Spec',
-        prompt:
-            'Create detailed technical specifications including architecture decisions, implementation details, API designs, database schemas, and technical requirements. Focus on technical depth and engineering considerations.',
-        isEditable: false),
-    Mode(
-        id: Isar.autoIncrement,
-        name: 'Podcast',
-        prompt:
-            'Generate engaging podcast content including episode outlines, talking points, interview questions, and show notes. Focus on conversational flow, audience engagement, and compelling storytelling.',
-        isEditable: false),
-    Mode(
-        id: Isar.autoIncrement,
-        name: 'Summary',
-        prompt:
-            'Generate concise, well-structured summaries of content. Extract key points, main ideas, and essential information while maintaining clarity and brevity. Focus on capturing the essence without losing important details.',
-        isEditable: false),
-    Mode(
-        id: Isar.autoIncrement,
-        name: 'Transcript',
-        prompt:
-            'Generate accurate, verbatim transcripts of audio/video content. Maintain speaker identification, timestamps where relevant, and preserve the exact spoken words including natural speech patterns, pauses, and corrections.',
-        isEditable: false),
+  static const _defaultModes = [
+    (
+      'Spec',
+      'Generate well-organized specifications with clear structure, requirements, acceptance criteria, and user stories. Focus on clarity, completeness, and actionable details.'
+    ),
+    (
+      'Tech Spec',
+      'Create detailed technical specifications including architecture decisions, implementation details, API designs, database schemas, and technical requirements. Focus on technical depth and engineering considerations.'
+    ),
+    (
+      'Podcast',
+      'Generate engaging podcast content including episode outlines, talking points, interview questions, and show notes. Focus on conversational flow, audience engagement, and compelling storytelling.'
+    ),
+    (
+      'Summary',
+      'Generate concise, well-structured summaries of content. Extract key points, main ideas, and essential information while maintaining clarity and brevity. Focus on capturing the essence without losing important details.'
+    ),
+    (
+      'Transcript',
+      'Generate accurate, verbatim transcripts of audio/video content. Maintain speaker identification, timestamps where relevant, and preserve the exact spoken words including natural speech patterns, pauses, and corrections.'
+    ),
   ];
 
   @override
   ModeState build() {
-    final isar = ref.read(isarProvider);
-    // Load existing modes.
-    final existing = isar.modes.where().findAllSync();
-    if (existing.isNotEmpty) {
-      return ModeState(
-        modes: existing.toIList(),
-      );
-    }
-    // Seed defaults asynchronously so build stays synchronous.
-    Future(() async {
-      final db = ref.read(isarProvider);
-      final inserted = <Mode>[];
-      await db.writeTxn(() async {
-        for (final m in _defaultModes) {
-          final id = await db.modes.put(m);
-          final stored = await db.modes.get(id);
-          if (stored != null) inserted.add(stored);
-        }
-      });
-      if (inserted.isNotEmpty) {
-        // Update state only if still empty (avoid overwriting user changes during race conditions).
-        if (state.modes.isEmpty) {
-          state = state.copyWith(
-            modes: inserted.toIList(),
-          );
-        }
-      }
+    final repo = ref.read(modesRepositoryProvider);
+    repo.watchAll().listen((rows) {
+      state = state.copyWith(modes: rows.toIList());
     });
+    _seedDefaultsIfEmpty();
     return ModeState.empty;
   }
 
-  /// Create a new editable mode and persist it.
+  Future<void> _seedDefaultsIfEmpty() async {
+    final repo = ref.read(modesRepositoryProvider);
+    final adb = repo.db as AppDatabase;
+    final existing = await (adb.select(adb.modes)).get();
+    if (existing.isEmpty) {
+      for (final (name, prompt) in _defaultModes) {
+        await adb.into(adb.modes).insert(ModesCompanion.insert(
+              name: name,
+              prompt: prompt,
+              isEditable: const Value(false),
+            ));
+      }
+    }
+  }
+
   Future<void> create({required String name, required String prompt}) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
-      final mode = Mode(name: name, prompt: prompt, isEditable: true);
-      await isar.writeTxn(() async {
-        final id = await isar.modes.put(mode);
-        final stored = await isar.modes.get(id);
-        if (stored != null) {
-          final updated = state.modes.add(stored);
-          state = state.copyWith(
-            modes: updated,
-            isSaving: false,
-          );
-        }
-      });
+      final adb = (ref.read(modesRepositoryProvider).db as AppDatabase);
+      await adb.into(adb.modes).insert(ModesCompanion.insert(
+            name: name,
+            prompt: prompt,
+            isEditable: const Value(true),
+          ));
     } finally {
-      if (state.isSaving) {
-        state = state.copyWith(isSaving: false);
-      }
+      state = state.copyWith(isSaving: false);
     }
   }
 
-  /// Update an existing editable mode.
   Future<bool> update(int id, {String? name, String? prompt}) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
-      final idx = state.modes.indexWhere((m) => m.id == id);
-      if (idx == -1) {
-        state = state.copyWith(isSaving: false);
-        return false;
-      }
-      final original = state.modes[idx];
-      if (!original.isEditable) {
-        state = state.copyWith(isSaving: false);
-        return false;
-      }
-      final updated = original.copyWith(
-        name: name ?? original.name,
-        prompt: prompt ?? original.prompt,
+      final adb = (ref.read(modesRepositoryProvider).db as AppDatabase);
+      await (adb.update(adb.modes)..where((m) => m.id.equals(id))).write(
+        ModesCompanion(
+          name: name != null ? Value(name) : const Value.absent(),
+          prompt: prompt != null ? Value(prompt) : const Value.absent(),
+        ),
       );
-      return await isar.writeTxn(() async {
-        await isar.modes.put(updated);
-        final updatedModes = state.modes.replace(idx, updated);
-        state = state.copyWith(modes: updatedModes, isSaving: false);
-        return true;
-      });
+      return true;
     } finally {
-      if (state.isSaving) {
-        state = state.copyWith(isSaving: false);
-      }
+      state = state.copyWith(isSaving: false);
     }
   }
 
-  /// Delete a mode (only if editable).
   Future<bool> remove(int id) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
-      final idx = state.modes.indexWhere((m) => m.id == id);
-      if (idx == -1) {
-        state = state.copyWith(isSaving: false);
-        return false;
-      }
-      final mode = state.modes[idx];
-      if (!mode.isEditable) {
-        state = state.copyWith(isSaving: false);
-        return false;
-      }
-      return await isar.writeTxn(() async {
-        final deleted = await isar.modes.delete(id);
-        if (deleted) {
-          final remaining = state.modes.where((m) => m.id != id).toIList();
-          state = state.copyWith(
-            modes: remaining,
-            isSaving: false,
-          );
-        } else {
-          state = state.copyWith(isSaving: false);
-        }
-        return deleted;
-      });
+      final adb = (ref.read(modesRepositoryProvider).db as AppDatabase);
+      await (adb.delete(adb.modes)..where((m) => m.id.equals(id))).go();
+      return true;
     } finally {
-      if (state.isSaving) {
-        state = state.copyWith(isSaving: false);
-      }
+      state = state.copyWith(isSaving: false);
     }
   }
 
-  /// Force reload list from persistence.
-  Future<void> reload() async {
-    final isar = ref.read(isarProvider);
-    final list = await isar.modes.where().findAll();
-    if (list.isNotEmpty) {
-      state = state.copyWith(modes: list.toIList());
-    }
-  }
+  Future<void> reload() async {/* Stream handles updates */}
 }

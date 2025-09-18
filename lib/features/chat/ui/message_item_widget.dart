@@ -4,14 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../bloc/message_state.dart';
-import '../models/message.dart';
-import '../../tags/models/tag.dart';
-import '../../tags/ui/tags_selection_widget.dart';
+import 'package:spec_genie/database/database.dart';
 
 /// Widget to display a single message in the chat
 class MessageItemWidget extends ConsumerStatefulWidget {
   final MessageState messageState;
-  final void Function(List<Tag> tags)? onTagsUpdate;
+  final void Function(List<int> tagIds)? onTagsUpdate; // now operate on tag ids
   final void Function(String description)? onDescriptionUpdate;
   final VoidCallback? onDelete;
 
@@ -37,7 +35,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
   @override
   void initState() {
     super.initState();
-    if (widget.messageState.message.type == MessageType.audio &&
+    if (widget.messageState.message.messageType == 'audio' &&
         widget.messageState.message.fileData != null) {
       _initializeAudioPlayer();
     }
@@ -149,7 +147,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final message = widget.messageState.message;
+    final message = widget.messageState.message; // MessageRow
     final isLoading =
         widget.messageState.isSaving || widget.messageState.isProcessing;
 
@@ -170,8 +168,8 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                _getMessageBackgroundColor(context, message.type),
-                _getMessageBackgroundColor(context, message.type)
+                _getMessageBackgroundColor(context, message.messageType),
+                _getMessageBackgroundColor(context, message.messageType)
                     .withOpacity(0.8),
               ],
             ),
@@ -226,7 +224,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
     );
   }
 
-  Widget _buildMessageHeader(BuildContext context, Message message) {
+  Widget _buildMessageHeader(BuildContext context, MessageRow message) {
     return Row(
       children: [
         // Message type icon with better styling
@@ -237,7 +235,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
             borderRadius: BorderRadius.circular(6),
           ),
           child: Icon(
-            _getMessageTypeIcon(message.type),
+            _getMessageTypeIcon(message.messageType),
             size: 14,
             color: Theme.of(context).primaryColor,
           ),
@@ -300,7 +298,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
     );
   }
 
-  Widget _buildDescriptionSection(BuildContext context, Message message) {
+  Widget _buildDescriptionSection(BuildContext context, MessageRow message) {
     final bool isEmpty = message.description.isEmpty;
 
     return Material(
@@ -379,7 +377,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
     );
   }
 
-  Widget _buildMessageContent(BuildContext context, Message message) {
+  Widget _buildMessageContent(BuildContext context, MessageRow message) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -389,23 +387,23 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
     );
   }
 
-  Widget _buildMainContent(BuildContext context, Message message) {
-    switch (message.type) {
-      case MessageType.text:
+  Widget _buildMainContent(BuildContext context, MessageRow message) {
+    switch (message.messageType) {
+      case 'text':
         return Text(
-          message.text.isNotEmpty ? message.text : message.description,
+          message.body.isNotEmpty ? message.body : message.description,
           style: Theme.of(context).textTheme.bodyMedium,
         );
-
-      case MessageType.audio:
+      case 'audio':
         return _buildAudioContent(context, message);
-
-      case MessageType.image:
+      case 'image':
         return _buildImageContent(context, message);
+      default:
+        return Text(message.description);
     }
   }
 
-  Widget _buildAudioContent(BuildContext context, Message message) {
+  Widget _buildAudioContent(BuildContext context, MessageRow message) {
     // Helper function to truncate filename
     String getTruncatedFilename(String? filename) {
       if (filename == null || filename.isEmpty) return 'Audio';
@@ -595,7 +593,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
     return "${duration.inHours > 0 ? '${twoDigits(duration.inHours)}:' : ''}$twoDigitMinutes:$twoDigitSeconds";
   }
 
-  Widget _buildImageContent(BuildContext context, Message message) {
+  Widget _buildImageContent(BuildContext context, MessageRow message) {
     return Container(
       constraints: const BoxConstraints(
         maxHeight: 240,
@@ -632,7 +630,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
     );
   }
 
-  Widget _buildImagePlaceholder(BuildContext context, Message message) {
+  Widget _buildImagePlaceholder(BuildContext context, MessageRow message) {
     return Container(
       height: 150,
       padding: const EdgeInsets.all(16),
@@ -668,8 +666,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
   }
 
   Widget _buildMessageActions(BuildContext context) {
-    final message = widget.messageState.message;
-    final selectionKey = 'message_${message.id}';
+    // final message = widget.messageState.message; // currently unused after tag UI removal
 
     return Container(
       decoration: BoxDecoration(
@@ -698,15 +695,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
           const Spacer(),
 
           // Tags selection widget
-          TagsSelectionWidget(
-            selectionKey: selectionKey,
-            title: 'Tags',
-            showCreateButton: true,
-            initialTags: widget.messageState.message.tags.toList(),
-            onTagObjectsChanged: (selectedTags) {
-              widget.onTagsUpdate?.call(selectedTags);
-            },
-          ),
+          // TODO: Re-implement tag selection using message_tags join table
         ],
       ),
     );
@@ -746,7 +735,6 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
   }
 
   Future<void> _showDeleteConfirmationDialog(BuildContext context) async {
-    final message = widget.messageState.message;
     final result = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -771,7 +759,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 12),
-              if (message.description.isNotEmpty)
+              if (widget.messageState.message.description.isNotEmpty)
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -782,9 +770,9 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    message.description.length > 50
-                        ? '${message.description.substring(0, 50)}...'
-                        : message.description,
+                    widget.messageState.message.description.length > 50
+                        ? '${widget.messageState.message.description.substring(0, 50)}...'
+                        : widget.messageState.message.description,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontStyle: FontStyle.italic,
                         ),
@@ -910,26 +898,30 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
     }
   }
 
-  Color _getMessageBackgroundColor(BuildContext context, MessageType type) {
+  Color _getMessageBackgroundColor(BuildContext context, String messageType) {
     final colorScheme = Theme.of(context).colorScheme;
-    switch (type) {
-      case MessageType.text:
+    switch (messageType) {
+      case 'text':
         return colorScheme.surface;
-      case MessageType.audio:
+      case 'audio':
         return colorScheme.primaryContainer.withOpacity(0.05);
-      case MessageType.image:
+      case 'image':
         return colorScheme.secondaryContainer.withOpacity(0.05);
+      default:
+        return colorScheme.surface;
     }
   }
 
-  IconData _getMessageTypeIcon(MessageType type) {
-    switch (type) {
-      case MessageType.text:
+  IconData _getMessageTypeIcon(String messageType) {
+    switch (messageType) {
+      case 'text':
         return Icons.text_fields;
-      case MessageType.audio:
+      case 'audio':
         return Icons.audiotrack;
-      case MessageType.image:
+      case 'image':
         return Icons.image;
+      default:
+        return Icons.text_snippet;
     }
   }
 

@@ -6,10 +6,10 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   file_selector_windows
   irondash_engine_context
-  isar_community_flutter_libs
   permission_handler_windows
   record_windows
   share_plus
+  sqlite3_flutter_libs
   super_native_extensions
   url_launcher_windows
 )

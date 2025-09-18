@@ -1,6 +1,6 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import '../models/tag.dart';
+import 'package:spec_genie/database/database.dart';
 
 part 'tag_state.mapper.dart';
 
@@ -9,7 +9,7 @@ part 'tag_state.mapper.dart';
 @MappableClass()
 class TagState with TagStateMappable {
   /// All tags (persisted + defaults). Immutable list.
-  final IList<Tag> tags;
+  final IList<TagRow> tags;
 
   /// Whether a save operation is currently in progress.
   final bool isSaving;

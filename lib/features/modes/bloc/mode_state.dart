@@ -1,6 +1,6 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import '../models/mode.dart';
+import 'package:spec_genie/database/database.dart';
 
 part 'mode_state.mapper.dart';
 
@@ -9,7 +9,7 @@ part 'mode_state.mapper.dart';
 @MappableClass()
 class ModeState with ModeStateMappable {
   /// All modes (persisted + defaults). Immutable list.
-  final IList<Mode> modes;
+  final IList<ModeRow> modes;
 
   /// Whether a save operation is currently in progress.
   final bool isSaving;

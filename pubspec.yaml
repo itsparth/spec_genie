@@ -34,8 +34,9 @@ dependencies:
   # State Management & Persistence
   flutter_riverpod: ^3.0.0
   riverpod_annotation: ^3.0.0
-  isar_community: ^3.3.0-dev.2
-  isar_community_flutter_libs: ^3.3.0-dev.2
+  # Drift (SQLite) Migration Layer
+  drift: ^2.28.1
+  drift_flutter: ^0.2.5
 
   # Code Generation (Runtime)
   dart_mappable: ^4.6.1
@@ -92,9 +93,10 @@ dev_dependencies:
   # Code Generation (Build time)
   build_runner: ^2.7.1
   dart_mappable_builder: ^4.6.0
-  isar_community_generator: ^3.3.0-dev.2
   go_router_builder: ^4.0.1
   riverpod_generator: ^3.0.0
+  # Drift code generation
+  drift_dev: ^2.28.2
 
   # Linting & Code Quality
   flutter_lints: ^5.0.0

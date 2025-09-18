@@ -1,8 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:isar_community/isar.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:spec_genie/features/shared/isar/isar_provider.dart';
-import '../models/tag.dart';
+import 'package:spec_genie/database/repositories/tags_repository.dart';
+import 'package:spec_genie/database/database.dart';
+import 'package:drift/drift.dart' show Value;
 import 'tag_state.dart';
 
 part 'tags_bloc.g.dart';
@@ -14,152 +14,79 @@ part 'tags_bloc.g.dart';
 ///  - CRUD operations for editable tags only.
 @riverpod
 class TagsBloc extends _$TagsBloc {
-  final _defaultTags = [
-    Tag(
-        id: Isar.autoIncrement,
-        name: 'Feature',
-        description: 'Feature specifications and functionality',
-        isEditable: false),
-    Tag(
-        id: Isar.autoIncrement,
-        name: 'Requirement',
-        description: 'System requirements and constraints',
-        isEditable: false),
+  static const _defaultTags = [
+    ('Feature', 'Feature specifications and functionality'),
+    ('Requirement', 'System requirements and constraints'),
   ];
 
   @override
   TagState build() {
-    final isar = ref.read(isarProvider);
-    // Load existing tags.
-    final existing = isar.tags.where().findAllSync();
-    if (existing.isNotEmpty) {
-      return TagState(
-        tags: existing.toIList(),
-      );
-    }
-    // Seed defaults asynchronously so build stays synchronous.
-    Future(() async {
-      final db = ref.read(isarProvider);
-      final inserted = <Tag>[];
-      await db.writeTxn(() async {
-        for (final t in _defaultTags) {
-          final id = await db.tags.put(t);
-          final stored = await db.tags.get(id);
-          if (stored != null) inserted.add(stored);
-        }
-      });
-      if (inserted.isNotEmpty) {
-        // Update state only if still empty (avoid overwriting user changes during race conditions).
-        if (state.tags.isEmpty) {
-          state = state.copyWith(
-            tags: inserted.toIList(),
-          );
-        }
-      }
+    // Start listening to tag stream
+    final repo = ref.read(tagsRepositoryProvider);
+    repo.watchAll().listen((rows) {
+      state = state.copyWith(tags: rows.toIList());
     });
+    _seedDefaultsIfEmpty();
     return TagState.empty;
   }
 
-  /// Create a new editable tag and persist it.
-  Future<Tag?> create(
-      {required String name, required String description}) async {
-    state = state.copyWith(isSaving: true);
-    Tag? stored;
-    try {
-      final isar = ref.read(isarProvider);
-      final tag = Tag(name: name, description: description, isEditable: true);
-      await isar.writeTxn(() async {
-        final id = await isar.tags.put(tag);
-        stored = await isar.tags.get(id);
-        if (stored != null) {
-          final updated = state.tags.add(stored!);
-          state = state.copyWith(
-            tags: updated,
-            isSaving: false,
-          );
-        }
-      });
-    } finally {
-      if (state.isSaving) {
-        state = state.copyWith(isSaving: false);
+  Future<void> _seedDefaultsIfEmpty() async {
+    final repo = ref.read(tagsRepositoryProvider);
+    final adb = repo.db as AppDatabase;
+    final existing = await (adb.select(adb.tags)).get();
+    if (existing.isEmpty) {
+      for (final (name, description) in _defaultTags) {
+        await adb.into(adb.tags).insert(TagsCompanion.insert(
+              name: name,
+              description: description,
+              isEditable: const Value(false),
+            ));
       }
     }
-    return stored;
   }
 
-  /// Update an existing editable tag.
+  Future<void> create(
+      {required String name, required String description}) async {
+    state = state.copyWith(isSaving: true);
+    try {
+      final adb = (ref.read(tagsRepositoryProvider).db as AppDatabase);
+      await adb.into(adb.tags).insert(TagsCompanion.insert(
+            name: name,
+            description: description,
+            isEditable: const Value(true),
+          ));
+    } finally {
+      state = state.copyWith(isSaving: false);
+    }
+  }
+
   Future<bool> update(int id, {String? name, String? description}) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
-      final idx = state.tags.indexWhere((t) => t.id == id);
-      if (idx == -1) {
-        state = state.copyWith(isSaving: false);
-        return false;
-      }
-      final original = state.tags[idx];
-      if (!original.isEditable) {
-        state = state.copyWith(isSaving: false);
-        return false;
-      }
-      final updated = original.copyWith(
-        name: name ?? original.name,
-        description: description ?? original.description,
+      final adb = (ref.read(tagsRepositoryProvider).db as AppDatabase);
+      await (adb.update(adb.tags)..where((t) => t.id.equals(id))).write(
+        TagsCompanion(
+          name: name != null ? Value(name) : const Value.absent(),
+          description:
+              description != null ? Value(description) : const Value.absent(),
+        ),
       );
-      return await isar.writeTxn(() async {
-        await isar.tags.put(updated);
-        final updatedTags = state.tags.replace(idx, updated);
-        state = state.copyWith(tags: updatedTags, isSaving: false);
-        return true;
-      });
+      return true;
     } finally {
-      if (state.isSaving) {
-        state = state.copyWith(isSaving: false);
-      }
+      state = state.copyWith(isSaving: false);
     }
   }
 
-  /// Delete a tag (only if editable).
   Future<bool> remove(int id) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
-      final idx = state.tags.indexWhere((t) => t.id == id);
-      if (idx == -1) {
-        state = state.copyWith(isSaving: false);
-        return false;
-      }
-      final tag = state.tags[idx];
-      if (!tag.isEditable) {
-        state = state.copyWith(isSaving: false);
-        return false;
-      }
-      return await isar.writeTxn(() async {
-        final deleted = await isar.tags.delete(id);
-        if (deleted) {
-          final remaining = state.tags.where((t) => t.id != id).toIList();
-          state = state.copyWith(
-            tags: remaining,
-            isSaving: false,
-          );
-        } else {
-          state = state.copyWith(isSaving: false);
-        }
-        return deleted;
-      });
+      final adb = (ref.read(tagsRepositoryProvider).db as AppDatabase);
+      await (adb.delete(adb.tags)..where((t) => t.id.equals(id))).go();
+      return true;
     } finally {
-      if (state.isSaving) {
-        state = state.copyWith(isSaving: false);
-      }
+      state = state.copyWith(isSaving: false);
     }
   }
 
-  /// Force reload list from persistence.
-  Future<void> reload() async {
-    final isar = ref.read(isarProvider);
-    final list = await isar.tags.where().findAll();
-    if (list.isNotEmpty) {
-      state = state.copyWith(tags: list.toIList());
-    }
-  }
+  Future<void> reload() async {/* stream handles updates */}
 }

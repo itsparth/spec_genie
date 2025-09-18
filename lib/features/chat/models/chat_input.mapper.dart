@@ -340,11 +340,11 @@ mixin TextChatInputMappable {
   }
 
   TextChatInputCopyWith<TextChatInput, TextChatInput, TextChatInput>
-      get copyWith => _TextChatInputCopyWithImpl<TextChatInput, TextChatInput>(
-            this as TextChatInput,
-            $identity,
-            $identity,
-          );
+  get copyWith => _TextChatInputCopyWithImpl<TextChatInput, TextChatInput>(
+    this as TextChatInput,
+    $identity,
+    $identity,
+  );
   @override
   String toString() {
     return TextChatInputMapper.ensureInitialized().stringifyValue(
@@ -391,24 +391,23 @@ class _TextChatInputCopyWithImpl<$R, $Out>
       TextChatInputMapper.ensureInitialized();
   @override
   $R call({String? id, DateTime? createdAt, String? text}) => $apply(
-        FieldCopyWithData({
-          if (id != null) #id: id,
-          if (createdAt != null) #createdAt: createdAt,
-          if (text != null) #text: text,
-        }),
-      );
+    FieldCopyWithData({
+      if (id != null) #id: id,
+      if (createdAt != null) #createdAt: createdAt,
+      if (text != null) #text: text,
+    }),
+  );
   @override
   TextChatInput $make(CopyWithData data) => TextChatInput(
-        id: data.get(#id, or: $value.id),
-        createdAt: data.get(#createdAt, or: $value.createdAt),
-        text: data.get(#text, or: $value.text),
-      );
+    id: data.get(#id, or: $value.id),
+    createdAt: data.get(#createdAt, or: $value.createdAt),
+    text: data.get(#text, or: $value.text),
+  );
 
   @override
   TextChatInputCopyWith<$R2, TextChatInput, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) =>
-      _TextChatInputCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) => _TextChatInputCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class ImageChatInputMapper extends ClassMapperBase<ImageChatInput> {
@@ -527,12 +526,11 @@ mixin ImageChatInputMappable {
   }
 
   ImageChatInputCopyWith<ImageChatInput, ImageChatInput, ImageChatInput>
-      get copyWith =>
-          _ImageChatInputCopyWithImpl<ImageChatInput, ImageChatInput>(
-            this as ImageChatInput,
-            $identity,
-            $identity,
-          );
+  get copyWith => _ImageChatInputCopyWithImpl<ImageChatInput, ImageChatInput>(
+    this as ImageChatInput,
+    $identity,
+    $identity,
+  );
   @override
   String toString() {
     return ImageChatInputMapper.ensureInitialized().stringifyValue(
@@ -598,36 +596,34 @@ class _ImageChatInputCopyWithImpl<$R, $Out>
     Object? imageData = $none,
     Object? mimeType = $none,
     Object? caption = $none,
-  }) =>
-      $apply(
-        FieldCopyWithData({
-          if (id != null) #id: id,
-          if (createdAt != null) #createdAt: createdAt,
-          if (filePath != null) #filePath: filePath,
-          if (fileName != $none) #fileName: fileName,
-          if (fileSize != $none) #fileSize: fileSize,
-          if (imageData != $none) #imageData: imageData,
-          if (mimeType != $none) #mimeType: mimeType,
-          if (caption != $none) #caption: caption,
-        }),
-      );
+  }) => $apply(
+    FieldCopyWithData({
+      if (id != null) #id: id,
+      if (createdAt != null) #createdAt: createdAt,
+      if (filePath != null) #filePath: filePath,
+      if (fileName != $none) #fileName: fileName,
+      if (fileSize != $none) #fileSize: fileSize,
+      if (imageData != $none) #imageData: imageData,
+      if (mimeType != $none) #mimeType: mimeType,
+      if (caption != $none) #caption: caption,
+    }),
+  );
   @override
   ImageChatInput $make(CopyWithData data) => ImageChatInput(
-        id: data.get(#id, or: $value.id),
-        createdAt: data.get(#createdAt, or: $value.createdAt),
-        filePath: data.get(#filePath, or: $value.filePath),
-        fileName: data.get(#fileName, or: $value.fileName),
-        fileSize: data.get(#fileSize, or: $value.fileSize),
-        imageData: data.get(#imageData, or: $value.imageData),
-        mimeType: data.get(#mimeType, or: $value.mimeType),
-        caption: data.get(#caption, or: $value.caption),
-      );
+    id: data.get(#id, or: $value.id),
+    createdAt: data.get(#createdAt, or: $value.createdAt),
+    filePath: data.get(#filePath, or: $value.filePath),
+    fileName: data.get(#fileName, or: $value.fileName),
+    fileSize: data.get(#fileSize, or: $value.fileSize),
+    imageData: data.get(#imageData, or: $value.imageData),
+    mimeType: data.get(#mimeType, or: $value.mimeType),
+    caption: data.get(#caption, or: $value.caption),
+  );
 
   @override
   ImageChatInputCopyWith<$R2, ImageChatInput, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) =>
-      _ImageChatInputCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) => _ImageChatInputCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class AudioChatInputMapper extends ClassMapperBase<AudioChatInput> {
@@ -764,12 +760,11 @@ mixin AudioChatInputMappable {
   }
 
   AudioChatInputCopyWith<AudioChatInput, AudioChatInput, AudioChatInput>
-      get copyWith =>
-          _AudioChatInputCopyWithImpl<AudioChatInput, AudioChatInput>(
-            this as AudioChatInput,
-            $identity,
-            $identity,
-          );
+  get copyWith => _AudioChatInputCopyWithImpl<AudioChatInput, AudioChatInput>(
+    this as AudioChatInput,
+    $identity,
+    $identity,
+  );
   @override
   String toString() {
     return AudioChatInputMapper.ensureInitialized().stringifyValue(
@@ -839,40 +834,38 @@ class _AudioChatInputCopyWithImpl<$R, $Out>
     Object? duration = $none,
     Object? transcript = $none,
     AudioInputSource? source,
-  }) =>
-      $apply(
-        FieldCopyWithData({
-          if (id != null) #id: id,
-          if (createdAt != null) #createdAt: createdAt,
-          if (filePath != null) #filePath: filePath,
-          if (fileName != $none) #fileName: fileName,
-          if (fileSize != $none) #fileSize: fileSize,
-          if (audioData != $none) #audioData: audioData,
-          if (mimeType != $none) #mimeType: mimeType,
-          if (duration != $none) #duration: duration,
-          if (transcript != $none) #transcript: transcript,
-          if (source != null) #source: source,
-        }),
-      );
+  }) => $apply(
+    FieldCopyWithData({
+      if (id != null) #id: id,
+      if (createdAt != null) #createdAt: createdAt,
+      if (filePath != null) #filePath: filePath,
+      if (fileName != $none) #fileName: fileName,
+      if (fileSize != $none) #fileSize: fileSize,
+      if (audioData != $none) #audioData: audioData,
+      if (mimeType != $none) #mimeType: mimeType,
+      if (duration != $none) #duration: duration,
+      if (transcript != $none) #transcript: transcript,
+      if (source != null) #source: source,
+    }),
+  );
   @override
   AudioChatInput $make(CopyWithData data) => AudioChatInput(
-        id: data.get(#id, or: $value.id),
-        createdAt: data.get(#createdAt, or: $value.createdAt),
-        filePath: data.get(#filePath, or: $value.filePath),
-        fileName: data.get(#fileName, or: $value.fileName),
-        fileSize: data.get(#fileSize, or: $value.fileSize),
-        audioData: data.get(#audioData, or: $value.audioData),
-        mimeType: data.get(#mimeType, or: $value.mimeType),
-        duration: data.get(#duration, or: $value.duration),
-        transcript: data.get(#transcript, or: $value.transcript),
-        source: data.get(#source, or: $value.source),
-      );
+    id: data.get(#id, or: $value.id),
+    createdAt: data.get(#createdAt, or: $value.createdAt),
+    filePath: data.get(#filePath, or: $value.filePath),
+    fileName: data.get(#fileName, or: $value.fileName),
+    fileSize: data.get(#fileSize, or: $value.fileSize),
+    audioData: data.get(#audioData, or: $value.audioData),
+    mimeType: data.get(#mimeType, or: $value.mimeType),
+    duration: data.get(#duration, or: $value.duration),
+    transcript: data.get(#transcript, or: $value.transcript),
+    source: data.get(#source, or: $value.source),
+  );
 
   @override
   AudioChatInputCopyWith<$R2, AudioChatInput, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) =>
-      _AudioChatInputCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) => _AudioChatInputCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class FileChatInputMapper extends ClassMapperBase<FileChatInput> {
@@ -988,11 +981,11 @@ mixin FileChatInputMappable {
   }
 
   FileChatInputCopyWith<FileChatInput, FileChatInput, FileChatInput>
-      get copyWith => _FileChatInputCopyWithImpl<FileChatInput, FileChatInput>(
-            this as FileChatInput,
-            $identity,
-            $identity,
-          );
+  get copyWith => _FileChatInputCopyWithImpl<FileChatInput, FileChatInput>(
+    this as FileChatInput,
+    $identity,
+    $identity,
+  );
   @override
   String toString() {
     return FileChatInputMapper.ensureInitialized().stringifyValue(
@@ -1056,36 +1049,34 @@ class _FileChatInputCopyWithImpl<$R, $Out>
     Object? fileData = $none,
     String? mimeType,
     FileInputType? fileType,
-  }) =>
-      $apply(
-        FieldCopyWithData({
-          if (id != null) #id: id,
-          if (createdAt != null) #createdAt: createdAt,
-          if (filePath != null) #filePath: filePath,
-          if (fileName != null) #fileName: fileName,
-          if (fileSize != null) #fileSize: fileSize,
-          if (fileData != $none) #fileData: fileData,
-          if (mimeType != null) #mimeType: mimeType,
-          if (fileType != null) #fileType: fileType,
-        }),
-      );
+  }) => $apply(
+    FieldCopyWithData({
+      if (id != null) #id: id,
+      if (createdAt != null) #createdAt: createdAt,
+      if (filePath != null) #filePath: filePath,
+      if (fileName != null) #fileName: fileName,
+      if (fileSize != null) #fileSize: fileSize,
+      if (fileData != $none) #fileData: fileData,
+      if (mimeType != null) #mimeType: mimeType,
+      if (fileType != null) #fileType: fileType,
+    }),
+  );
   @override
   FileChatInput $make(CopyWithData data) => FileChatInput(
-        id: data.get(#id, or: $value.id),
-        createdAt: data.get(#createdAt, or: $value.createdAt),
-        filePath: data.get(#filePath, or: $value.filePath),
-        fileName: data.get(#fileName, or: $value.fileName),
-        fileSize: data.get(#fileSize, or: $value.fileSize),
-        fileData: data.get(#fileData, or: $value.fileData),
-        mimeType: data.get(#mimeType, or: $value.mimeType),
-        fileType: data.get(#fileType, or: $value.fileType),
-      );
+    id: data.get(#id, or: $value.id),
+    createdAt: data.get(#createdAt, or: $value.createdAt),
+    filePath: data.get(#filePath, or: $value.filePath),
+    fileName: data.get(#fileName, or: $value.fileName),
+    fileSize: data.get(#fileSize, or: $value.fileSize),
+    fileData: data.get(#fileData, or: $value.fileData),
+    mimeType: data.get(#mimeType, or: $value.mimeType),
+    fileType: data.get(#fileType, or: $value.fileType),
+  );
 
   @override
   FileChatInputCopyWith<$R2, FileChatInput, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) =>
-      _FileChatInputCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) => _FileChatInputCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class AudioRecordingConfigMapper extends ClassMapperBase<AudioRecordingConfig> {
@@ -1134,29 +1125,29 @@ class AudioRecordingConfigMapper extends ClassMapperBase<AudioRecordingConfig> {
       v.enableBackgroundRecording;
   static const Field<AudioRecordingConfig, bool> _f$enableBackgroundRecording =
       Field(
-    'enableBackgroundRecording',
-    _$enableBackgroundRecording,
-    opt: true,
-    def: true,
-  );
+        'enableBackgroundRecording',
+        _$enableBackgroundRecording,
+        opt: true,
+        def: true,
+      );
   static bool _$enableNoiseReduction(AudioRecordingConfig v) =>
       v.enableNoiseReduction;
   static const Field<AudioRecordingConfig, bool> _f$enableNoiseReduction =
       Field(
-    'enableNoiseReduction',
-    _$enableNoiseReduction,
-    opt: true,
-    def: true,
-  );
+        'enableNoiseReduction',
+        _$enableNoiseReduction,
+        opt: true,
+        def: true,
+      );
   static bool _$enableEchoCancellation(AudioRecordingConfig v) =>
       v.enableEchoCancellation;
   static const Field<AudioRecordingConfig, bool> _f$enableEchoCancellation =
       Field(
-    'enableEchoCancellation',
-    _$enableEchoCancellation,
-    opt: true,
-    def: true,
-  );
+        'enableEchoCancellation',
+        _$enableEchoCancellation,
+        opt: true,
+        def: true,
+      );
 
   @override
   final MappableFields<AudioRecordingConfig> fields = const {
@@ -1204,10 +1195,16 @@ mixin AudioRecordingConfigMappable {
         .encodeMap<AudioRecordingConfig>(this as AudioRecordingConfig);
   }
 
-  AudioRecordingConfigCopyWith<AudioRecordingConfig, AudioRecordingConfig,
-      AudioRecordingConfig> get copyWith => _AudioRecordingConfigCopyWithImpl<
-          AudioRecordingConfig, AudioRecordingConfig>(
-      this as AudioRecordingConfig, $identity, $identity);
+  AudioRecordingConfigCopyWith<
+    AudioRecordingConfig,
+    AudioRecordingConfig,
+    AudioRecordingConfig
+  >
+  get copyWith =>
+      _AudioRecordingConfigCopyWithImpl<
+        AudioRecordingConfig,
+        AudioRecordingConfig
+      >(this as AudioRecordingConfig, $identity, $identity);
   @override
   String toString() {
     return AudioRecordingConfigMapper.ensureInitialized().stringifyValue(
@@ -1234,15 +1231,17 @@ mixin AudioRecordingConfigMappable {
 extension AudioRecordingConfigValueCopy<$R, $Out>
     on ObjectCopyWith<$R, AudioRecordingConfig, $Out> {
   AudioRecordingConfigCopyWith<$R, AudioRecordingConfig, $Out>
-      get $asAudioRecordingConfig => $base.as(
-            (v, t, t2) => _AudioRecordingConfigCopyWithImpl<$R, $Out>(v, t, t2),
-          );
+  get $asAudioRecordingConfig => $base.as(
+    (v, t, t2) => _AudioRecordingConfigCopyWithImpl<$R, $Out>(v, t, t2),
+  );
 }
 
 abstract class AudioRecordingConfigCopyWith<
-    $R,
-    $In extends AudioRecordingConfig,
-    $Out> implements ClassCopyWith<$R, $In, $Out> {
+  $R,
+  $In extends AudioRecordingConfig,
+  $Out
+>
+    implements ClassCopyWith<$R, $In, $Out> {
   $R call({
     String? encoder,
     int? sampleRate,
@@ -1274,43 +1273,43 @@ class _AudioRecordingConfigCopyWithImpl<$R, $Out>
     bool? enableBackgroundRecording,
     bool? enableNoiseReduction,
     bool? enableEchoCancellation,
-  }) =>
-      $apply(
-        FieldCopyWithData({
-          if (encoder != null) #encoder: encoder,
-          if (sampleRate != null) #sampleRate: sampleRate,
-          if (bitRate != null) #bitRate: bitRate,
-          if (numChannels != null) #numChannels: numChannels,
-          if (enableBackgroundRecording != null)
-            #enableBackgroundRecording: enableBackgroundRecording,
-          if (enableNoiseReduction != null)
-            #enableNoiseReduction: enableNoiseReduction,
-          if (enableEchoCancellation != null)
-            #enableEchoCancellation: enableEchoCancellation,
-        }),
-      );
+  }) => $apply(
+    FieldCopyWithData({
+      if (encoder != null) #encoder: encoder,
+      if (sampleRate != null) #sampleRate: sampleRate,
+      if (bitRate != null) #bitRate: bitRate,
+      if (numChannels != null) #numChannels: numChannels,
+      if (enableBackgroundRecording != null)
+        #enableBackgroundRecording: enableBackgroundRecording,
+      if (enableNoiseReduction != null)
+        #enableNoiseReduction: enableNoiseReduction,
+      if (enableEchoCancellation != null)
+        #enableEchoCancellation: enableEchoCancellation,
+    }),
+  );
   @override
   AudioRecordingConfig $make(CopyWithData data) => AudioRecordingConfig(
-        encoder: data.get(#encoder, or: $value.encoder),
-        sampleRate: data.get(#sampleRate, or: $value.sampleRate),
-        bitRate: data.get(#bitRate, or: $value.bitRate),
-        numChannels: data.get(#numChannels, or: $value.numChannels),
-        enableBackgroundRecording: data.get(
-          #enableBackgroundRecording,
-          or: $value.enableBackgroundRecording,
-        ),
-        enableNoiseReduction: data.get(
-          #enableNoiseReduction,
-          or: $value.enableNoiseReduction,
-        ),
-        enableEchoCancellation: data.get(
-          #enableEchoCancellation,
-          or: $value.enableEchoCancellation,
-        ),
-      );
+    encoder: data.get(#encoder, or: $value.encoder),
+    sampleRate: data.get(#sampleRate, or: $value.sampleRate),
+    bitRate: data.get(#bitRate, or: $value.bitRate),
+    numChannels: data.get(#numChannels, or: $value.numChannels),
+    enableBackgroundRecording: data.get(
+      #enableBackgroundRecording,
+      or: $value.enableBackgroundRecording,
+    ),
+    enableNoiseReduction: data.get(
+      #enableNoiseReduction,
+      or: $value.enableNoiseReduction,
+    ),
+    enableEchoCancellation: data.get(
+      #enableEchoCancellation,
+      or: $value.enableEchoCancellation,
+    ),
+  );
 
   @override
   AudioRecordingConfigCopyWith<$R2, AudioRecordingConfig, $Out2>
-      $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-          _AudioRecordingConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
+      _AudioRecordingConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
+

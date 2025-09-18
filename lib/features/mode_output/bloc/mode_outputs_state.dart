@@ -1,20 +1,19 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
-import '../models/mode_output.dart';
-import '../../modes/models/mode.dart';
+import 'package:spec_genie/database/database.dart';
 
 part 'mode_outputs_state.mapper.dart';
 
 @MappableClass()
 class ModeOutputsState with ModeOutputsStateMappable {
-  final IList<ModeOutput> outputs;
+  final IList<ModeOutputRow> outputs;
   final bool isLoading;
   final int currentIndex;
   final bool isGenerating;
   final String? streamingContent;
   final int? streamingIndex;
-  final Mode? currentMode;
+  final ModeRow? currentMode;
 
   const ModeOutputsState({
     this.outputs = const IListConst([]),
@@ -27,7 +26,7 @@ class ModeOutputsState with ModeOutputsStateMappable {
   });
 
   /// Get the current mode output being displayed
-  ModeOutput? get currentOutput {
+  ModeOutputRow? get currentOutput {
     if (outputs.isEmpty || currentIndex < 0 || currentIndex >= outputs.length) {
       return null;
     }

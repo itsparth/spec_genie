@@ -233,6 +233,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  charcode:
+    dependency: transitive
+    description:
+      name: charcode
+      sha256: fb0f1107cac15a5ea6ef0a6ef71a807b9e4267c713bb93e00e92d737cc8dbd8a
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   chat_color:
     dependency: transitive
     description:
@@ -449,14 +457,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.1"
-  dartx:
-    dependency: transitive
-    description:
-      name: dartx
-      sha256: "8b25435617027257d43e6508b5fe061012880ddfdaa75a71d607c3de2a13d244"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.0"
   data_widget:
     dependency: transitive
     description:
@@ -505,6 +505,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  drift:
+    dependency: "direct main"
+    description:
+      name: drift
+      sha256: "6aaea757f53bb035e8a3baedf3d1d53a79d6549a6c13d84f7546509da9372c7c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.28.1"
+  drift_dev:
+    dependency: "direct dev"
+    description:
+      name: drift_dev
+      sha256: d6646ee608b9f359b023ac329321bc9c63b098217291de079b8b2334a48abf39
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.28.2"
+  drift_flutter:
+    dependency: "direct main"
+    description:
+      name: drift_flutter
+      sha256: b52bd710f809db11e25259d429d799d034ba1c5224ce6a73fe8419feb980d44c
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.6"
   email_validator:
     dependency: transitive
     description:
@@ -1039,30 +1063,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.0"
-  isar_community:
-    dependency: "direct main"
-    description:
-      name: isar_community
-      sha256: eae4a7e659bec0f92fc953afb8738512062df6a2ff99fe838cb53f9ed4fa6e97
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.3.0-dev.2"
-  isar_community_flutter_libs:
-    dependency: "direct main"
-    description:
-      name: isar_community_flutter_libs
-      sha256: e8e6668d2c20ed61af9422bddc0bc3d1f6db91e3a5dae4406379a1426c06fbff
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.3.0-dev.2"
-  isar_community_generator:
-    dependency: "direct dev"
-    description:
-      name: isar_community_generator
-      sha256: "9da90eafaecf2ec482f50854373e37f3d9e33387830dbc0265bcdb74d9036e74"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.3.0-dev.2"
   jiffy:
     dependency: transitive
     description:
@@ -1559,6 +1559,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.2"
+  recase:
+    dependency: transitive
+    description:
+      name: recase
+      sha256: e4eb4ec2dcdee52dcf99cb4ceabaffc631d7424ee55e56f280bc039737f89213
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.1.0"
   record:
     dependency: "direct main"
     description:
@@ -1884,6 +1892,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.0"
+  sqlite3:
+    dependency: transitive
+    description:
+      name: sqlite3
+      sha256: f393d92c71bdcc118d6203d07c991b9be0f84b1a6f89dd4f7eed348131329924
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.9.0"
+  sqlite3_flutter_libs:
+    dependency: transitive
+    description:
+      name: sqlite3_flutter_libs
+      sha256: "2b03273e71867a8a4d030861fc21706200debe5c5858a4b9e58f4a1c129586a4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.39"
+  sqlparser:
+    dependency: transitive
+    description:
+      name: sqlparser
+      sha256: "57090342af1ce32bb499aa641f4ecdd2d6231b9403cea537ac059e803cc20d67"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.41.2"
   stack_trace:
     dependency: transitive
     description:
@@ -2012,14 +2044,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.0+1"
-  time:
-    dependency: transitive
-    description:
-      name: time
-      sha256: "370572cf5d1e58adcb3e354c47515da3f7469dac3a95b447117e728e7be6f461"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.5"
   timing:
     dependency: transitive
     description:
@@ -2300,14 +2324,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.5.0"
-  xxh3:
-    dependency: transitive
-    description:
-      name: xxh3
-      sha256: "399a0438f5d426785723c99da6b16e136f4953fb1e9db0bf270bd41dd4619916"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.0"
   yaml:
     dependency: transitive
     description:
