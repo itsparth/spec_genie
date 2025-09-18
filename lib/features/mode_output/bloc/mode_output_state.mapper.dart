@@ -96,12 +96,12 @@ mixin ModeOutputStateMappable {
   }
 
   ModeOutputStateCopyWith<ModeOutputState, ModeOutputState, ModeOutputState>
-      get copyWith =>
-          _ModeOutputStateCopyWithImpl<ModeOutputState, ModeOutputState>(
-            this as ModeOutputState,
-            $identity,
-            $identity,
-          );
+  get copyWith =>
+      _ModeOutputStateCopyWithImpl<ModeOutputState, ModeOutputState>(
+        this as ModeOutputState,
+        $identity,
+        $identity,
+      );
   @override
   String toString() {
     return ModeOutputStateMapper.ensureInitialized().stringifyValue(
@@ -156,24 +156,23 @@ class _ModeOutputStateCopyWithImpl<$R, $Out>
     Object? output = $none,
     bool? isGenerating,
     Object? error = $none,
-  }) =>
-      $apply(
-        FieldCopyWithData({
-          if (output != $none) #output: output,
-          if (isGenerating != null) #isGenerating: isGenerating,
-          if (error != $none) #error: error,
-        }),
-      );
+  }) => $apply(
+    FieldCopyWithData({
+      if (output != $none) #output: output,
+      if (isGenerating != null) #isGenerating: isGenerating,
+      if (error != $none) #error: error,
+    }),
+  );
   @override
   ModeOutputState $make(CopyWithData data) => ModeOutputState(
-        output: data.get(#output, or: $value.output),
-        isGenerating: data.get(#isGenerating, or: $value.isGenerating),
-        error: data.get(#error, or: $value.error),
-      );
+    output: data.get(#output, or: $value.output),
+    isGenerating: data.get(#isGenerating, or: $value.isGenerating),
+    error: data.get(#error, or: $value.error),
+  );
 
   @override
   ModeOutputStateCopyWith<$R2, ModeOutputState, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) =>
-      _ModeOutputStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) => _ModeOutputStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
+

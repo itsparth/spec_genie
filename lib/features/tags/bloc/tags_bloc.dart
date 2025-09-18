@@ -17,13 +17,13 @@ class TagsBloc extends _$TagsBloc {
   final _defaultTags = [
     Tag(
         id: Isar.autoIncrement,
-        name: 'General',
-        description: 'General purpose tag for miscellaneous items',
+        name: 'Feature',
+        description: 'Feature specifications and functionality',
         isEditable: false),
     Tag(
         id: Isar.autoIncrement,
-        name: 'Important',
-        description: 'High priority or important items',
+        name: 'Requirement',
+        description: 'System requirements and constraints',
         isEditable: false),
   ];
 

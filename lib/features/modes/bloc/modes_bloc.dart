@@ -18,8 +18,33 @@ class ModesBloc extends _$ModesBloc {
   final _defaultModes = [
     Mode(
         id: Isar.autoIncrement,
-        name: 'Default Mode',
-        prompt: 'You are a helpful assistant.',
+        name: 'Spec',
+        prompt:
+            'Generate well-organized specifications with clear structure, requirements, acceptance criteria, and user stories. Focus on clarity, completeness, and actionable details.',
+        isEditable: false),
+    Mode(
+        id: Isar.autoIncrement,
+        name: 'Tech Spec',
+        prompt:
+            'Create detailed technical specifications including architecture decisions, implementation details, API designs, database schemas, and technical requirements. Focus on technical depth and engineering considerations.',
+        isEditable: false),
+    Mode(
+        id: Isar.autoIncrement,
+        name: 'Podcast',
+        prompt:
+            'Generate engaging podcast content including episode outlines, talking points, interview questions, and show notes. Focus on conversational flow, audience engagement, and compelling storytelling.',
+        isEditable: false),
+    Mode(
+        id: Isar.autoIncrement,
+        name: 'Summary',
+        prompt:
+            'Generate concise, well-structured summaries of content. Extract key points, main ideas, and essential information while maintaining clarity and brevity. Focus on capturing the essence without losing important details.',
+        isEditable: false),
+    Mode(
+        id: Isar.autoIncrement,
+        name: 'Transcript',
+        prompt:
+            'Generate accurate, verbatim transcripts of audio/video content. Maintain speaker identification, timestamps where relevant, and preserve the exact spoken words including natural speech patterns, pauses, and corrections.',
         isEditable: false),
   ];
 

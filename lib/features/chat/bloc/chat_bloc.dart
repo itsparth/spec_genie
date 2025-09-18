@@ -144,6 +144,52 @@ class ChatBloc extends _$ChatBloc {
     }
   }
 
+  /// Update description for a message
+  Future<bool> updateMessageDescription(
+      int messageId, String newDescription) async {
+    final idx = state.messages.indexWhere((m) => m.message.id == messageId);
+    if (idx == -1) return false;
+
+    final currentMessageState = state.messages[idx];
+    final updatedMessageState = currentMessageState.copyWith(isSaving: true);
+    final tempUpdated = state.messages.replace(idx, updatedMessageState);
+    state = state.copyWith(messages: tempUpdated);
+
+    try {
+      final isar = ref.read(isarProvider);
+      final message = await isar.messages.get(messageId);
+
+      if (message == null) {
+        final errorMessageState = updatedMessageState.copyWith(isSaving: false);
+        final errorUpdated = state.messages.replace(idx, errorMessageState);
+        state = state.copyWith(messages: errorUpdated);
+        return false;
+      }
+
+      // Create updated message with new description
+      final updatedMessage = message.copyWith(description: newDescription);
+
+      await isar.writeTxn(() async {
+        await isar.messages.put(updatedMessage);
+      });
+
+      final finalMessageState =
+          MessageState(message: updatedMessage, isSaving: false);
+      final finalUpdated = state.messages.replace(idx, finalMessageState);
+      state = state.copyWith(messages: finalUpdated);
+
+      return true;
+    } catch (e) {
+      final errorMessageState = updatedMessageState.copyWith(
+        isSaving: false,
+        error: 'Failed to update description: ${e.toString()}',
+      );
+      final errorUpdated = state.messages.replace(idx, errorMessageState);
+      state = state.copyWith(messages: errorUpdated);
+      rethrow;
+    }
+  }
+
   /// Remove a message from the chat
   Future<bool> removeMessage(int messageId) async {
     try {

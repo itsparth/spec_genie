@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../bloc/mode_output_bloc.dart';
@@ -53,11 +54,59 @@ class ModeOutputPage extends ConsumerWidget {
           : outputState.outputs.isEmpty
               ? _buildEmptyState(context, outputBloc)
               : _buildOutputContent(context, outputState, outputBloc),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => outputBloc.generateOutput(),
-        tooltip: 'Generate new output',
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: outputState.outputs.isNotEmpty
+          ? FloatingActionButton(
+              onPressed: outputState.isGenerating
+                  ? null
+                  : () async {
+                      try {
+                        await outputBloc.regenerateCurrentOutput();
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to regenerate: $e')),
+                          );
+                        }
+                      }
+                    },
+              tooltip: 'Generate new output',
+              child: outputState.isGenerating
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.refresh),
+            )
+          : FloatingActionButton(
+              onPressed: outputState.isGenerating
+                  ? null
+                  : () async {
+                      try {
+                        await outputBloc.generateOutput();
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to generate: $e')),
+                          );
+                        }
+                      }
+                    },
+              tooltip: 'Generate first output',
+              child: outputState.isGenerating
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.add),
+            ),
     );
   }
 
@@ -175,11 +224,19 @@ class ModeOutputPage extends ConsumerWidget {
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.refresh),
-                          onPressed: () => outputBloc.regenerateCurrentOutput(),
-                          tooltip: 'Regenerate',
-                          iconSize: 20,
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.copy, size: 16),
+                          label: const Text('Copy'),
+                          onPressed: () =>
+                              _copyToClipboard(context, currentOutput.content),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                         ),
                       ],
                     ),
@@ -251,6 +308,29 @@ class ModeOutputPage extends ConsumerWidget {
             SnackBar(content: Text('Failed to delete output: $e')),
           );
         }
+      }
+    }
+  }
+
+  Future<void> _copyToClipboard(BuildContext context, String content) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: content));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Output copied to clipboard'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to copy: $e'),
+            duration: Duration(seconds: 3),
+          ),
+        );
       }
     }
   }

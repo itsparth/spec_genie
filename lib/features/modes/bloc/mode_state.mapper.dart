@@ -118,20 +118,20 @@ class _ModeStateCopyWithImpl<$R, $Out>
       ModeStateMapper.ensureInitialized();
   @override
   $R call({IList<Mode>? modes, bool? isSaving}) => $apply(
-        FieldCopyWithData({
-          if (modes != null) #modes: modes,
-          if (isSaving != null) #isSaving: isSaving,
-        }),
-      );
+    FieldCopyWithData({
+      if (modes != null) #modes: modes,
+      if (isSaving != null) #isSaving: isSaving,
+    }),
+  );
   @override
   ModeState $make(CopyWithData data) => ModeState(
-        modes: data.get(#modes, or: $value.modes),
-        isSaving: data.get(#isSaving, or: $value.isSaving),
-      );
+    modes: data.get(#modes, or: $value.modes),
+    isSaving: data.get(#isSaving, or: $value.isSaving),
+  );
 
   @override
   ModeStateCopyWith<$R2, ModeState, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) =>
-      _ModeStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) => _ModeStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
+

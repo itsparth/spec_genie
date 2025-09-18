@@ -146,6 +146,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
           child: Consumer(
             builder: (context, ref, child) {
               final modeState = ref.watch(modesBlocProvider);
+              final chatState = ref.watch(chatBlocProvider(widget.threadId));
 
               return Container(
                 padding: const EdgeInsets.all(16),
@@ -172,7 +173,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                               Navigator.pop(context);
                               if (widget.threadId != null) {
                                 ModeOutputRoute(
-                                  threadId: widget.threadId.toString(),
+                                  threadId: chatState.threadId.toString(),
                                   modeId: mode.id.toString(),
                                 ).push<void>(context);
                               }

@@ -50,6 +50,12 @@ class ChatInputState with ChatInputStateMappable {
   bool get canSend {
     if (isLoading || error != null) return false;
 
+    // Don't allow sending while recording is in progress or paused
+    if (audioState.status == RecordingStatus.recording ||
+        audioState.status == RecordingStatus.paused) {
+      return false;
+    }
+
     // Allow sending if there's text, pending inputs (audio/images/files), or completed audio recording
     return textInput.trim().isNotEmpty ||
         pendingInputs.isNotEmpty ||

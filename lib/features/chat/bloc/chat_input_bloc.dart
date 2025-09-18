@@ -163,23 +163,13 @@ class ChatInputBloc extends _$ChatInputBloc {
       _stopAmplitudeMonitoring();
 
       if (filePath != null) {
-        // Create audio chat input
-        final audioInput = AudioChatInput(
-          id: _uuid.v4(),
-          createdAt: DateTime.now(),
-          filePath: filePath,
-          fileName: path.basename(filePath),
-          duration: state.audioState.duration,
-          source: AudioInputSource.recording,
-        );
-
+        // Just stop recording and update state, don't add to pending inputs yet
         state = state.copyWith(
           isLoading: false,
           audioState: state.audioState.copyWith(
             status: RecordingStatus.stopped,
             filePath: filePath,
           ),
-          pendingInputs: state.pendingInputs.add(audioInput),
         );
       } else {
         state = state.copyWith(
@@ -194,6 +184,39 @@ class ChatInputBloc extends _$ChatInputBloc {
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to stop recording: $e',
+        audioState: state.audioState.copyWith(
+          status: RecordingStatus.error,
+          error: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> saveRecording() async {
+    if (state.audioState.status != RecordingStatus.stopped ||
+        state.audioState.filePath == null) {
+      return;
+    }
+
+    try {
+      // Create audio chat input from the stopped recording
+      final audioInput = AudioChatInput(
+        id: _uuid.v4(),
+        createdAt: DateTime.now(),
+        filePath: state.audioState.filePath!,
+        fileName: path.basename(state.audioState.filePath!),
+        duration: state.audioState.duration,
+        source: AudioInputSource.recording,
+      );
+
+      state = state.copyWith(
+        pendingInputs: state.pendingInputs.add(audioInput),
+        // Reset audio state after saving
+        audioState: const AudioRecordingState(),
+      );
+    } catch (e) {
+      state = state.copyWith(
+        error: 'Failed to save recording: $e',
         audioState: state.audioState.copyWith(
           status: RecordingStatus.error,
           error: e.toString(),
@@ -238,6 +261,45 @@ class ChatInputBloc extends _$ChatInputBloc {
     } catch (e) {
       state = state.copyWith(
         error: 'Failed to resume recording: $e',
+        audioState: state.audioState.copyWith(
+          status: RecordingStatus.error,
+          error: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> cancelRecording() async {
+    try {
+      state = state.copyWith(isLoading: true);
+
+      // Stop recording without saving
+      await _audioRecorder.stop();
+      _stopRecordingTimer();
+      _stopAmplitudeMonitoring();
+
+      // Delete the recording file if it exists
+      final filePath = state.audioState.filePath;
+      if (filePath != null) {
+        try {
+          final file = File(filePath);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        } catch (e) {
+          // Ignore file deletion errors
+        }
+      }
+
+      // Reset audio state without adding to pending inputs
+      state = state.copyWith(
+        isLoading: false,
+        audioState: const AudioRecordingState(), // Reset to initial state
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to cancel recording: $e',
         audioState: state.audioState.copyWith(
           status: RecordingStatus.error,
           error: e.toString(),

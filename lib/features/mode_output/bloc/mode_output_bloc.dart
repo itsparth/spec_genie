@@ -46,37 +46,10 @@ class ModeOutputBloc extends _$ModeOutputBloc {
             ? outputs.length - 1
             : 0, // Show latest by default
       );
-
-      // Auto-generate if no outputs exist but thread has messages
-      if (outputs.isEmpty) {
-        await _checkAndAutoGenerate(threadId, isar);
-      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
       );
-    }
-  }
-
-  /// Check if thread has messages and auto-generate output if needed
-  Future<void> _checkAndAutoGenerate(int threadId, Isar isar) async {
-    try {
-      // Don't auto-generate if we're already generating
-      if (state.isGenerating) return;
-
-      // Check if the thread has any messages
-      final messageCount = await isar.messages
-          .filter()
-          .thread((q) => q.idEqualTo(threadId))
-          .count();
-
-      // If there are messages but no outputs, start generating
-      if (messageCount > 0) {
-        await generateOutput();
-      }
-    } catch (e) {
-      // Silently handle errors in auto-generation check
-      // The user can still manually trigger generation
     }
   }
 
@@ -175,6 +148,9 @@ class ModeOutputBloc extends _$ModeOutputBloc {
 
   /// Generate a new output for the current thread and mode
   Future<void> generateOutput({String? customPrompt}) async {
+    // If we're already generating, don't start another generation
+    if (state.isGenerating) return;
+
     final threadId = _threadId!;
     final modeId = _modeId!;
 
@@ -241,26 +217,25 @@ class ModeOutputBloc extends _$ModeOutputBloc {
   /// Complete streaming and save final content
   Future<void> _completeStreaming(
       String finalContent, ModeOutput placeholder, Isar isar) async {
-    // Create a new output with the final content
-    final completedOutput = ModeOutput.completed(
-      content: finalContent,
-    );
-
-    // Copy relationships from placeholder
-    completedOutput.thread.value = placeholder.thread.value;
-    completedOutput.mode.value = placeholder.mode.value;
+    // Update the placeholder's content in place
+    placeholder.content = finalContent;
 
     await isar.writeTxn(() async {
-      // Delete the placeholder and save the completed output
-      await isar.modeOutputs.delete(placeholder.id);
-      await isar.modeOutputs.put(completedOutput);
-      await completedOutput.thread.save();
-      await completedOutput.mode.save();
+      // Update the existing placeholder with final content
+      await isar.modeOutputs.put(placeholder);
     });
 
-    // Stop streaming and reload to get updated state
+    // Stop streaming and update state directly instead of reloading
     _stopStreaming();
-    await _loadOutputs(_threadId!, _modeId!);
+    
+    // Update the outputs list with the updated placeholder
+    final updatedOutputs = state.outputs.map((output) {
+      return output.id == placeholder.id ? placeholder : output;
+    }).toList();
+    
+    state = state.copyWith(
+      outputs: updatedOutputs.toIList(),
+    );
   }
 
   /// Stop streaming
@@ -272,17 +247,13 @@ class ModeOutputBloc extends _$ModeOutputBloc {
     );
   }
 
-  /// Regenerate the current output
+  /// Regenerate by creating a new output (doesn't replace current one)
   Future<void> regenerateCurrentOutput() async {
-    final currentOutput = state.currentOutput;
-    if (currentOutput == null) return;
-
     // If we're already generating, don't start another generation
     if (state.isGenerating) return;
 
     final threadId = _threadId!;
     final modeId = _modeId!;
-    final currentIndex = state.currentIndex;
 
     try {
       final isar = ref.read(isarProvider);
@@ -293,43 +264,32 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       // Get content parts from messages
       final contentParts = await _getContentPartsFromMessages(threadId, isar);
 
-      // Start streaming for the current output (don't create a new one)
-      _startStreaming(currentIndex);
+      // Create a placeholder output for streaming
+      final placeholderOutput = ModeOutput.completed(content: '');
+
+      // Save placeholder to database and link relationships
+      await isar.writeTxn(() async {
+        await isar.modeOutputs.put(placeholderOutput);
+        placeholderOutput.thread.value = thread;
+        placeholderOutput.mode.value = mode;
+        await placeholderOutput.thread.save();
+        await placeholderOutput.mode.save();
+      });
+
+      // Reload outputs to include the new placeholder
+      await _loadOutputs(threadId, modeId);
+
+      // Find the index of the new output (should be the last one)
+      final newOutputIndex = state.outputs.length - 1;
+
+      // Start streaming
+      _startStreaming(newOutputIndex);
 
       // Generate content with streaming
       final finalContent = await _performGeneration(mode.prompt, contentParts);
 
-      // Create new output with the regenerated content
-      final newOutput = ModeOutput.completed(content: finalContent);
-
-      // Copy relationships from current output
-      newOutput.thread.value = currentOutput.thread.value;
-      newOutput.mode.value = currentOutput.mode.value;
-
-      await isar.writeTxn(() async {
-        // Delete the old output and save the new one atomically
-        await isar.modeOutputs.delete(currentOutput.id);
-        await isar.modeOutputs.put(newOutput);
-        await newOutput.thread.save();
-        await newOutput.mode.save();
-      });
-
-      // Stop streaming and reload to get updated state, but maintain the same index
-      _stopStreaming();
-
-      // Reload outputs but preserve the current index position
-      final outputs = await isar.modeOutputs
-          .filter()
-          .thread((q) => q.idEqualTo(threadId))
-          .and()
-          .mode((q) => q.idEqualTo(modeId))
-          .sortByCreatedAt()
-          .findAll();
-
-      state = state.copyWith(
-        outputs: outputs.toIList(),
-        currentIndex: currentIndex.clamp(0, outputs.length - 1),
-      );
+      // Complete streaming and save final content
+      await _completeStreaming(finalContent, placeholderOutput, isar);
     } catch (e) {
       // Stop streaming on error and let the caller handle errors
       _stopStreaming();

@@ -128,20 +128,21 @@ class _ThreadCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Thread, $Out>
   late final ClassMapperBase<Thread> $mapper = ThreadMapper.ensureInitialized();
   @override
   $R call({int? id, String? name, DateTime? createdAt}) => $apply(
-        FieldCopyWithData({
-          if (id != null) #id: id,
-          if (name != null) #name: name,
-          if (createdAt != null) #createdAt: createdAt,
-        }),
-      );
+    FieldCopyWithData({
+      if (id != null) #id: id,
+      if (name != null) #name: name,
+      if (createdAt != null) #createdAt: createdAt,
+    }),
+  );
   @override
   Thread $make(CopyWithData data) => Thread(
-        id: data.get(#id, or: $value.id),
-        name: data.get(#name, or: $value.name),
-        createdAt: data.get(#createdAt, or: $value.createdAt),
-      );
+    id: data.get(#id, or: $value.id),
+    name: data.get(#name, or: $value.name),
+    createdAt: data.get(#createdAt, or: $value.createdAt),
+  );
 
   @override
   ThreadCopyWith<$R2, Thread, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
       _ThreadCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
+

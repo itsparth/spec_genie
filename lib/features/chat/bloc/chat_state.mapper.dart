@@ -134,24 +134,23 @@ class _ChatStateCopyWithImpl<$R, $Out>
     Object? threadId = $none,
     IList<MessageState>? messages,
     bool? isLoading,
-  }) =>
-      $apply(
-        FieldCopyWithData({
-          if (threadId != $none) #threadId: threadId,
-          if (messages != null) #messages: messages,
-          if (isLoading != null) #isLoading: isLoading,
-        }),
-      );
+  }) => $apply(
+    FieldCopyWithData({
+      if (threadId != $none) #threadId: threadId,
+      if (messages != null) #messages: messages,
+      if (isLoading != null) #isLoading: isLoading,
+    }),
+  );
   @override
   ChatState $make(CopyWithData data) => ChatState(
-        threadId: data.get(#threadId, or: $value.threadId),
-        messages: data.get(#messages, or: $value.messages),
-        isLoading: data.get(#isLoading, or: $value.isLoading),
-      );
+    threadId: data.get(#threadId, or: $value.threadId),
+    messages: data.get(#messages, or: $value.messages),
+    isLoading: data.get(#isLoading, or: $value.isLoading),
+  );
 
   @override
   ChatStateCopyWith<$R2, ChatState, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) =>
-      _ChatStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) => _ChatStateCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
+

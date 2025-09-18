@@ -18,13 +18,6 @@ class ThreadsPage extends ConsumerWidget {
         title: const Text('Threads'),
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              // Navigate to new chat page
-              const ChatRoute(threadId: 'new').push(context);
-            },
-          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.settings),
             onSelected: (value) => _onSettingsSelected(context, value),
@@ -72,6 +65,13 @@ class ThreadsPage extends ConsumerWidget {
                 );
               },
             ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Navigate to new chat page
+          const ChatRoute(threadId: 'new').push(context);
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
 

@@ -282,16 +282,17 @@ class ChatInputWidget extends ConsumerWidget {
   Future<void> _handleMicAction(
       ChatInputBloc chatInputBloc, ChatInputState state) async {
     if (state.isRecording) {
+      // Stop recording and save it
       await chatInputBloc.stopRecording();
+      await chatInputBloc.saveRecording();
     } else {
       await chatInputBloc.startRecording();
     }
   }
 
   void _handleCancelRecording(ChatInputBloc chatInputBloc) {
-    // Stop recording without saving
-    chatInputBloc.stopRecording();
-    // Note: The bloc should handle cleanup of cancelled recordings
+    // Cancel recording without saving
+    chatInputBloc.cancelRecording();
   }
 
   void _handleSend(

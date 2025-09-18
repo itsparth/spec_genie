@@ -12,7 +12,7 @@ part 'mode_output.g.dart';
 class ModeOutput with ModeOutputMappable {
   final Id id;
   final DateTime createdAt;
-  final String content;
+  String content; // Made mutable to allow in-place updates
 
   // Relationships
   final thread = IsarLink<Thread>();
