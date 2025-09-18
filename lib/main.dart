@@ -15,7 +15,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Isar database
-  final dir = await getApplicationDocumentsDirectory();
+  final dir = await getApplicationCacheDirectory();
   final isar = await Isar.open(
     [
       ConfigurationSchema,

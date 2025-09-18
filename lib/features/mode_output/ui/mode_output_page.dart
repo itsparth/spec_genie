@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_streaming_text_markdown/flutter_streaming_text_markdown.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
 
 import '../bloc/mode_output_bloc.dart';

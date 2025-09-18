@@ -49,7 +49,7 @@ dependencies:
   crypto: ^3.0.6
 
   # Streaming Text UI
-  gpt_markdown: ^1.1.4
+  gpt_markdown: ^1.1.2
 
   # Audio Recording & Playback
   record: ^6.1.1
