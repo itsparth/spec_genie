@@ -46,11 +46,131 @@ class ModeOutputBloc extends _$ModeOutputBloc {
             ? outputs.length - 1
             : 0, // Show latest by default
       );
+
+      // Auto-generate if no outputs exist but thread has messages
+      if (outputs.isEmpty) {
+        await _checkAndAutoGenerate(threadId, isar);
+      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
       );
     }
+  }
+
+  /// Check if thread has messages and auto-generate output if needed
+  Future<void> _checkAndAutoGenerate(int threadId, Isar isar) async {
+    try {
+      // Don't auto-generate if we're already generating
+      if (state.isGenerating) return;
+
+      // Check if the thread has any messages
+      final messageCount = await isar.messages
+          .filter()
+          .thread((q) => q.idEqualTo(threadId))
+          .count();
+
+      // If there are messages but no outputs, start generating
+      if (messageCount > 0) {
+        await generateOutput();
+      }
+    } catch (e) {
+      // Silently handle errors in auto-generation check
+      // The user can still manually trigger generation
+    }
+  }
+
+  /// Get thread and mode data from database
+  Future<({Thread thread, Mode mode})> _getThreadAndMode(
+      int threadId, int modeId, Isar isar) async {
+    final thread = await isar.threads.get(threadId);
+    final mode = await isar.modes.get(modeId);
+
+    if (thread == null || mode == null) {
+      throw Exception('Thread or Mode not found');
+    }
+
+    return (thread: thread, mode: mode);
+  }
+
+  /// Convert messages from thread to content parts for OpenAI
+  Future<List<ContentPart>> _getContentPartsFromMessages(
+      int threadId, Isar isar) async {
+    final messages = await isar.messages
+        .filter()
+        .thread((q) => q.idEqualTo(threadId))
+        .sortByTimestamp()
+        .findAll();
+
+    final contentParts = <ContentPart>[];
+
+    for (final message in messages) {
+      // Add text content if present
+      if (message.text.isNotEmpty) {
+        contentParts.add(TextPart(message.text));
+      }
+
+      // Add transcript if audio message has transcript
+      if (message.type == MessageType.audio &&
+          message.transcript != null &&
+          message.transcript!.isNotEmpty) {
+        contentParts.add(TextPart('Transcribed audio: ${message.transcript!}'));
+      }
+
+      // Add image data if present
+      if (message.type == MessageType.image && message.fileData != null) {
+        try {
+          final imageBytes = Uint8List.fromList(message.fileData!);
+          final mimeType = message.mimeType ?? 'image/jpeg';
+          contentParts.add(ImagePart(imageBytes, mimeType));
+        } catch (e) {
+          // If image processing fails, add description instead
+          if (message.description.isNotEmpty) {
+            contentParts
+                .add(TextPart('Image description: ${message.description}'));
+          }
+        }
+      }
+
+      // Add audio data if present
+      if (message.type == MessageType.audio && message.fileData != null) {
+        try {
+          final audioBytes = Uint8List.fromList(message.fileData!);
+          final mimeType = message.mimeType ?? 'audio/wav';
+          contentParts.add(AudioPart(audioBytes, mimeType));
+        } catch (e) {
+          // If audio processing fails, just use transcript or description
+          final fallbackText = message.transcript?.isNotEmpty == true
+              ? message.transcript!
+              : message.description.isNotEmpty
+                  ? 'Audio description: ${message.description}'
+                  : 'Audio content (processing failed)';
+          contentParts.add(TextPart(fallbackText));
+        }
+      }
+    }
+
+    // If no content parts, add a default message
+    if (contentParts.isEmpty) {
+      contentParts.add(TextPart('Generate content for this thread.'));
+    }
+
+    return contentParts;
+  }
+
+  /// Perform OpenAI generation with streaming
+  Future<String> _performGeneration(
+      String systemPrompt, List<ContentPart> contentParts) async {
+    final openAI = ref.watch(openAIUtilProvider);
+
+    String finalContent = '';
+    await for (final content
+        in openAI.generateStream(systemPrompt, contentParts)) {
+      finalContent = content;
+      _updateStreamingContent(content);
+    }
+
+    return finalContent;
   }
 
   /// Generate a new output for the current thread and mode
@@ -62,79 +182,13 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       final isar = ref.read(isarProvider);
 
       // Get the thread and mode
-      final thread = await isar.threads.get(threadId);
-      final mode = await isar.modes.get(modeId);
+      final (:thread, :mode) = await _getThreadAndMode(threadId, modeId, isar);
 
-      if (thread == null || mode == null) {
-        throw Exception('Thread or Mode not found');
-      }
-
-      // Get all messages from the thread to use as context
-      final messages = await isar.messages
-          .filter()
-          .thread((q) => q.idEqualTo(threadId))
-          .sortByTimestamp()
-          .findAll();
-
-      // Convert messages to content parts for OpenAI
-      final contentParts = <ContentPart>[];
-
-      for (final message in messages) {
-        // Add text content if present
-        if (message.text.isNotEmpty) {
-          contentParts.add(TextPart(message.text));
-        }
-
-        // Add transcript if audio message has transcript
-        if (message.type == MessageType.audio &&
-            message.transcript != null &&
-            message.transcript!.isNotEmpty) {
-          contentParts
-              .add(TextPart('Transcribed audio: ${message.transcript!}'));
-        }
-
-        // Add image data if present
-        if (message.type == MessageType.image && message.fileData != null) {
-          try {
-            final imageBytes = Uint8List.fromList(message.fileData!);
-            final mimeType = message.mimeType ?? 'image/jpeg';
-            contentParts.add(ImagePart(imageBytes, mimeType));
-          } catch (e) {
-            // If image processing fails, add description instead
-            if (message.description.isNotEmpty) {
-              contentParts
-                  .add(TextPart('Image description: ${message.description}'));
-            }
-          }
-        }
-
-        // Add audio data if present
-        if (message.type == MessageType.audio && message.fileData != null) {
-          try {
-            final audioBytes = Uint8List.fromList(message.fileData!);
-            final mimeType = message.mimeType ?? 'audio/wav';
-            contentParts.add(AudioPart(audioBytes, mimeType));
-          } catch (e) {
-            // If audio processing fails, just use transcript or description
-            final fallbackText = message.transcript?.isNotEmpty == true
-                ? message.transcript!
-                : message.description.isNotEmpty
-                    ? 'Audio description: ${message.description}'
-                    : 'Audio content (processing failed)';
-            contentParts.add(TextPart(fallbackText));
-          }
-        }
-      }
-
-      // If no content parts, add a default message
-      if (contentParts.isEmpty) {
-        contentParts.add(TextPart('Generate content for this thread.'));
-      }
+      // Get content parts from messages
+      final contentParts = await _getContentPartsFromMessages(threadId, isar);
 
       // Create a placeholder output for streaming
-      final placeholderOutput = ModeOutput.completed(
-        content: '',
-      );
+      final placeholderOutput = ModeOutput.completed(content: '');
 
       // Save placeholder to database and link relationships
       await isar.writeTxn(() async {
@@ -154,18 +208,9 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       // Start streaming
       _startStreaming(newOutputIndex);
 
-      // Use OpenAI to generate content with streaming
-      final openAI = ref.watch(openAIUtilProvider);
+      // Generate content with streaming
       final systemPrompt = customPrompt ?? mode.prompt;
-
-      String finalContent = '';
-      await for (final content
-          in openAI.generateStream(systemPrompt, contentParts)) {
-        finalContent = content;
-        _updateStreamingContent(content);
-      }
-      // finalContent =
-      //     await openAI.generate("sghsdfdsf", contentParts.take(1).toList());
+      final finalContent = await _performGeneration(systemPrompt, contentParts);
 
       // Complete streaming and save final content
       await _completeStreaming(finalContent, placeholderOutput, isar);
@@ -235,7 +280,61 @@ class ModeOutputBloc extends _$ModeOutputBloc {
     // If we're already generating, don't start another generation
     if (state.isGenerating) return;
 
-    await generateOutput();
+    final threadId = _threadId!;
+    final modeId = _modeId!;
+    final currentIndex = state.currentIndex;
+
+    try {
+      final isar = ref.read(isarProvider);
+
+      // Get the thread and mode
+      final (:thread, :mode) = await _getThreadAndMode(threadId, modeId, isar);
+
+      // Get content parts from messages
+      final contentParts = await _getContentPartsFromMessages(threadId, isar);
+
+      // Start streaming for the current output (don't create a new one)
+      _startStreaming(currentIndex);
+
+      // Generate content with streaming
+      final finalContent = await _performGeneration(mode.prompt, contentParts);
+
+      // Create new output with the regenerated content
+      final newOutput = ModeOutput.completed(content: finalContent);
+
+      // Copy relationships from current output
+      newOutput.thread.value = currentOutput.thread.value;
+      newOutput.mode.value = currentOutput.mode.value;
+
+      await isar.writeTxn(() async {
+        // Delete the old output and save the new one atomically
+        await isar.modeOutputs.delete(currentOutput.id);
+        await isar.modeOutputs.put(newOutput);
+        await newOutput.thread.save();
+        await newOutput.mode.save();
+      });
+
+      // Stop streaming and reload to get updated state, but maintain the same index
+      _stopStreaming();
+
+      // Reload outputs but preserve the current index position
+      final outputs = await isar.modeOutputs
+          .filter()
+          .thread((q) => q.idEqualTo(threadId))
+          .and()
+          .mode((q) => q.idEqualTo(modeId))
+          .sortByCreatedAt()
+          .findAll();
+
+      state = state.copyWith(
+        outputs: outputs.toIList(),
+        currentIndex: currentIndex.clamp(0, outputs.length - 1),
+      );
+    } catch (e) {
+      // Stop streaming on error and let the caller handle errors
+      _stopStreaming();
+      rethrow;
+    }
   }
 
   /// Navigate to the previous output

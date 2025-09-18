@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_streaming_text_markdown/flutter_streaming_text_markdown.dart';
 
 import '../bloc/mode_output_bloc.dart';
 import '../bloc/mode_outputs_state.dart';
 
 /// Main mode output page that displays generated outputs for a specific thread and mode
-class ModeOutputPage extends ConsumerStatefulWidget {
+class ModeOutputPage extends ConsumerWidget {
   final int threadId;
   final int modeId;
 
@@ -17,41 +16,10 @@ class ModeOutputPage extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ModeOutputPage> createState() => _ModeOutputPageState();
-}
-
-class _ModeOutputPageState extends ConsumerState<ModeOutputPage> {
-  late StreamingTextController _streamingController;
-  int? _lastOutputId; // Track the last output ID to restart animation on change
-
-  @override
-  void initState() {
-    super.initState();
-    _streamingController = StreamingTextController();
-  }
-
-  @override
-  void dispose() {
-    _streamingController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final outputState =
-        ref.watch(modeOutputBlocProvider(widget.threadId, widget.modeId));
-    final outputBloc = ref
-        .read(modeOutputBlocProvider(widget.threadId, widget.modeId).notifier);
-
-    // Check if output changed and restart animation
-    final currentOutput = outputState.currentOutput;
-    if (currentOutput != null && _lastOutputId != currentOutput.id) {
-      _lastOutputId = currentOutput.id;
-      // Schedule controller restart for next frame to avoid build-time modifications
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _streamingController.restart();
-      });
-    }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final outputState = ref.watch(modeOutputBlocProvider(threadId, modeId));
+    final outputBloc =
+        ref.read(modeOutputBlocProvider(threadId, modeId).notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -221,10 +189,12 @@ class _ModeOutputPageState extends ConsumerState<ModeOutputPage> {
 
                 // Main content
                 Card(
-                  child: StreamingTextMarkdown.claude(
-                    text: currentOutput.content,
-                    markdownEnabled: true,
-                    animationsEnabled: false,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SelectableText(
+                      currentOutput.content,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ),
                 ),
               ],

@@ -6,7 +6,7 @@ import '../models/tag.dart';
 import '../utils/tag_color_utils.dart';
 import 'tag_dialog.dart';
 
-class TagsSelectionWidget extends ConsumerWidget {
+class TagsSelectionWidget extends ConsumerStatefulWidget {
   final String selectionKey;
   final void Function(List<Tag>)? onTagObjectsChanged;
   final String? title;
@@ -25,34 +25,39 @@ class TagsSelectionWidget extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final selectionState = ref.watch(tagSelectionBlocProvider(selectionKey));
-    final selectionBloc =
-        ref.read(tagSelectionBlocProvider(selectionKey).notifier);
+  ConsumerState<TagsSelectionWidget> createState() =>
+      _TagsSelectionWidgetState();
+}
 
-    // Initialize with provided tags if they haven't been set yet
-    if (initialTags != null &&
-        initialTags!.isNotEmpty &&
-        selectionState.selectedTags.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        selectionBloc.setTags(initialTags!);
-      });
+class _TagsSelectionWidgetState extends ConsumerState<TagsSelectionWidget> {
+  @override
+  void initState() {
+    super.initState();
+    // Set initial tags immediately before first build
+    if (widget.initialTags != null && widget.initialTags!.isNotEmpty) {
+      TagSelectionInitializer.setInitialTags(
+          widget.selectionKey, widget.initialTags);
     }
+  }
 
-    ref.listen(tagSelectionBlocProvider(selectionKey), (previous, next) {
-      onTagObjectsChanged?.call(next.selectedTags.toList());
+  @override
+  Widget build(BuildContext context) {
+    final selectionState =
+        ref.watch(tagSelectionBlocProvider(widget.selectionKey));
+    final selectionBloc =
+        ref.read(tagSelectionBlocProvider(widget.selectionKey).notifier);
+
+    ref.listen(tagSelectionBlocProvider(widget.selectionKey), (previous, next) {
+      widget.onTagObjectsChanged?.call(next.selectedTags.toList());
     });
 
-    return InkWell(
-      onTap: () => _showTagSelectionPopup(context),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: SizedBox(
-          width: 200,
+    // Show simple "Tags" button when no tags are selected
+    if (selectionState.selectedTags.isEmpty) {
+      return InkWell(
+        onTap: () => _showTagSelectionPopup(context),
+        borderRadius: BorderRadius.circular(4),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -61,32 +66,35 @@ class TagsSelectionWidget extends ConsumerWidget {
                 size: 16,
                 color: Colors.grey.shade600,
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: selectionState.selectedTags.isEmpty
-                    ? Text(
-                        title ?? 'Select Tags',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
-                        ),
-                      )
-                    : Wrap(
-                        spacing: 4,
-                        runSpacing: 4,
-                        children: selectionState.selectedTags.map((tag) {
-                          return _CompactTagChip(tag: tag);
-                        }).toList(),
-                      ),
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.arrow_drop_down,
-                size: 20,
-                color: Colors.grey.shade600,
+              const SizedBox(width: 4),
+              Text(
+                'Tags',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
+        ),
+      );
+    }
+
+    // Show selected tags as chips when tags are selected
+    return InkWell(
+      onTap: () => _showTagSelectionPopup(context),
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          children: selectionState.selectedTags.map((tag) {
+            return _SelectableTagChip(
+              tag: tag,
+              onRemove: () => selectionBloc.removeTag(tag),
+            );
+          }).toList(),
         ),
       ),
     );
@@ -96,38 +104,55 @@ class TagsSelectionWidget extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (context) => _TagSelectionPopup(
-        selectionKey: selectionKey,
-        title: title ?? 'Select Tags',
-        showCreateButton: showCreateButton,
-        maxSelections: maxSelections,
+        selectionKey: widget.selectionKey,
+        title: widget.title ?? 'Select Tags',
+        showCreateButton: widget.showCreateButton,
+        maxSelections: widget.maxSelections,
       ),
     );
   }
 }
 
-class _CompactTagChip extends StatelessWidget {
+class _SelectableTagChip extends StatelessWidget {
   final Tag tag;
+  final VoidCallback onRemove;
 
-  const _CompactTagChip({required this.tag});
+  const _SelectableTagChip({
+    required this.tag,
+    required this.onRemove,
+  });
 
   @override
   Widget build(BuildContext context) {
     final color = TagColorUtils.getTagColor(tag.name);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(
-        tag.name,
-        style: TextStyle(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            tag.name,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 4),
+          GestureDetector(
+            onTap: onRemove,
+            child: Icon(
+              Icons.close,
+              size: 14,
+              color: color.withValues(alpha: 0.7),
+            ),
+          ),
+        ],
       ),
     );
   }

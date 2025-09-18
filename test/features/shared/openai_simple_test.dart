@@ -141,5 +141,47 @@ void main() {
       expect(normalizedResponse, equals(expectedText),
           reason: 'Model should recognize the text on the rock image');
     });
+
+    test('should stream response incrementally', () async {
+      // Arrange
+      const systemPrompt =
+          'You are a helpful assistant that responds with complete sentences.';
+      final parts = [
+        TextPart('Write a short story about a cat in exactly 3 sentences.'),
+      ];
+
+      // Act & Assert
+      print('Starting streaming test...');
+      final streamResults = <String>[];
+
+      await for (final chunk in openAI.generateStream(systemPrompt, parts)) {
+        streamResults.add(chunk);
+        print('Stream chunk ${streamResults.length}: "$chunk"');
+      }
+
+      // Validate streaming behavior
+      expect(streamResults.length, greaterThan(1),
+          reason: 'Should receive multiple stream chunks');
+
+      // Each chunk should be longer than the previous (or equal in case of final chunk)
+      for (int i = 1; i < streamResults.length; i++) {
+        expect(streamResults[i].length,
+            greaterThanOrEqualTo(streamResults[i - 1].length),
+            reason: 'Each stream chunk should contain cumulative content');
+      }
+
+      // Final result should be a complete response
+      final finalResult = streamResults.last;
+      expect(finalResult.trim().isNotEmpty, isTrue,
+          reason: 'Final streamed result should not be empty');
+
+      print('Final streamed result: "$finalResult"');
+      print('Total stream chunks received: ${streamResults.length}');
+
+      // Validate that it looks like a story about a cat
+      final normalizedFinal = finalResult.toLowerCase();
+      expect(normalizedFinal.contains('cat'), isTrue,
+          reason: 'Story should mention a cat');
+    });
   });
 }

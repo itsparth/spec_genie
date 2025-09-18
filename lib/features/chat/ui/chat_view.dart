@@ -142,45 +142,49 @@ class _ChatViewState extends ConsumerState<ChatView> {
     showModalBottomSheet<void>(
       context: context,
       builder: (BuildContext context) {
-        return Consumer(
-          builder: (context, ref, child) {
-            final modeState = ref.watch(modesBlocProvider);
+        return Material(
+          child: Consumer(
+            builder: (context, ref, child) {
+              final modeState = ref.watch(modesBlocProvider);
 
-            return Container(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Select Mode',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 16),
-                  if (modeState.modes.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Text('No modes available'),
-                    )
-                  else
-                    ...modeState.modes.map((mode) => ListTile(
-                          leading: const Icon(Icons.psychology),
-                          title: Text(mode.name),
-                          subtitle: Text(mode.prompt),
-                          onTap: () {
-                            Navigator.pop(context);
-                            if (widget.threadId != null) {
-                              ModeOutputRoute(
-                                threadId: widget.threadId.toString(),
-                                modeId: mode.id.toString(),
-                              ).push(context);
-                            }
-                          },
-                        )),
-                ],
-              ),
-            );
-          },
+              return Container(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Select Mode',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    if (modeState.modes.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('No modes available'),
+                      )
+                    else
+                      ...modeState.modes.map((mode) => ListTile(
+                            leading: const Icon(Icons.psychology),
+                            title: Text(mode.name),
+                            subtitle: Text(mode.prompt),
+                            onTap: () {
+                              Navigator.pop(context);
+                              if (widget.threadId != null) {
+                                ModeOutputRoute(
+                                  threadId: widget.threadId.toString(),
+                                  modeId: mode.id.toString(),
+                                ).push<void>(context);
+                              }
+                            },
+                          )),
+                    // Add some bottom padding to ensure proper touch area
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              );
+            },
+          ),
         );
       },
     );

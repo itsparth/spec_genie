@@ -35,7 +35,7 @@ class ChatInputWidget extends ConsumerWidget {
 
     return Container(
       padding:
-          padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(
@@ -48,17 +48,26 @@ class ChatInputWidget extends ConsumerWidget {
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Pending inputs preview
-            ChatPendingInputsPreview(
-                pendingInputs: state.pendingInputs.toList()),
-            // Tags selection widget with onChange handler
-            TagsSelectionWidget(
-              selectionKey: 'input',
-              onTagObjectsChanged: (selectedTags) {
-                final chatInputBloc = ref.read(chatInputBlocProvider.notifier);
-                chatInputBloc.setTags(selectedTags);
-              },
+            Row(
+              children: [
+                Expanded(
+                  child: ChatPendingInputsPreview(
+                      pendingInputs: state.pendingInputs.toList()),
+                ),
+
+                // Tags selection widget with onChange handler
+                TagsSelectionWidget(
+                  selectionKey: 'input',
+                  onTagObjectsChanged: (selectedTags) {
+                    final chatInputBloc =
+                        ref.read(chatInputBlocProvider.notifier);
+                    chatInputBloc.setTags(selectedTags);
+                  },
+                ),
+              ],
             ),
             // Main input row
             Row(
@@ -73,8 +82,6 @@ class ChatInputWidget extends ConsumerWidget {
                   tooltip: 'Attach file',
                 ),
 
-                const SizedBox(width: 8),
-
                 // Text input field
                 Expanded(
                   child: ChatInputField(
@@ -83,10 +90,6 @@ class ChatInputWidget extends ConsumerWidget {
                     onSubmit: () => _handleSend(context, ref, chatInputBloc),
                   ),
                 ),
-
-                const SizedBox(width: 8),
-
-                const SizedBox(width: 8),
 
                 // Image selection button
                 _buildActionButton(

@@ -22,20 +22,15 @@ class ChatInputField extends ConsumerWidget {
     return TextFormField(
       controller: chatInputBloc.textController,
       decoration: InputDecoration(
-        hintText: hintText ?? 'Type a message...',
+        hintText: hintText ?? 'Info...',
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(24),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(12),
         ),
         filled: true,
         fillColor: Theme.of(context).colorScheme.surface,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
         isDense: true,
       ),
-      maxLines: 4,
+      maxLines: 2,
       minLines: 1,
       textCapitalization: TextCapitalization.sentences,
       onFieldSubmitted: canSend ? (_) => onSubmit?.call() : null,

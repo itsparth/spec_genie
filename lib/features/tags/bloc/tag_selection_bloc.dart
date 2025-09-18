@@ -5,6 +5,27 @@ import 'tag_selection_state.dart';
 
 part 'tag_selection_bloc.g.dart';
 
+/// Static storage for initial tags configuration
+class TagSelectionInitializer {
+  static final Map<String, List<Tag>> _initialTagsMap = {};
+
+  static void setInitialTags(String key, List<Tag>? tags) {
+    if (tags != null && tags.isNotEmpty) {
+      _initialTagsMap[key] = tags;
+    } else {
+      _initialTagsMap.remove(key);
+    }
+  }
+
+  static List<Tag>? getInitialTags(String key) {
+    return _initialTagsMap[key];
+  }
+
+  static void clearInitialTags(String key) {
+    _initialTagsMap.remove(key);
+  }
+}
+
 /// Bloc for managing selected tags in a specific context (identified by key)
 /// Supports adding/removing tags with deduplication
 /// Watches tags bloc to sync when tags are deleted or modified
@@ -21,8 +42,16 @@ class TagSelectionBloc extends _$TagSelectionBloc {
     //           .toIList());
     // });
 
-    // The build method should only return the initial state
-    // Any state synchronization will be handled in separate methods
+    // Check for initial tags and initialize if present
+    final initialTags = TagSelectionInitializer.getInitialTags(key);
+    if (initialTags != null && initialTags.isNotEmpty) {
+      // Clear the initial tags to prevent re-initialization
+      TagSelectionInitializer.clearInitialTags(key);
+      return TagSelectionState(
+        selectedTags: initialTags.toIList(),
+      );
+    }
+
     return TagSelectionState.empty;
   }
 

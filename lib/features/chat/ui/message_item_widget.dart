@@ -47,10 +47,9 @@ class MessageItemWidget extends ConsumerWidget {
           _buildMessageContent(context, message),
 
           // Message actions
-          if (!messageState.isSaving) _buildMessageActions(context),
+          _buildMessageActions(context),
 
-          // Loading indicator
-          if (messageState.isSaving) _buildLoadingIndicator(),
+          // TODO: Loading indicator
 
           // Error display
           if (messageState.error != null) _buildErrorDisplay(context),

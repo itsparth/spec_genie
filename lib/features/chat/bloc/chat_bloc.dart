@@ -120,13 +120,16 @@ class ChatBloc extends _$ChatBloc {
         return false;
       }
 
+      final newTagIds = newTags.map((t) => t.id).toSet();
+      final existingIds = message.tags.map((t) => t.id).toSet();
+      final tagsToLink = newTags.where((t) => !existingIds.contains(t.id));
+      final tagsToUnlink = message.tags.where((t) => !newTagIds.contains(t.id));
+
       await isar.writeTxn(() async {
-        // Clear existing tags and add new ones
-        message.tags.clear();
-        await message.tags.save();
-        message.tags.addAll(newTags);
-        await message.tags.save();
+        await message.tags.update(link: tagsToLink, unlink: tagsToUnlink);
       });
+
+      await message.tags.load();
 
       final finalMessageState = MessageState(message: message, isSaving: false);
       final finalUpdated = state.messages.replace(idx, finalMessageState);
