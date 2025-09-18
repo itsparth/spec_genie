@@ -33,9 +33,8 @@ class ChatInputConverter {
           body: '',
           messageType: 'audio',
           timestamp: a.createdAt,
-          fileData: a.filePath.isNotEmpty
-              ? File(a.filePath).readAsBytesSync()
-              : null,
+          fileData:
+              a.filePath.isNotEmpty ? File(a.filePath).readAsBytesSync() : null,
           mimeType: 'audio/wav',
           transcript: a.transcript,
           fileName: a.fileName,
@@ -47,9 +46,8 @@ class ChatInputConverter {
           body: '',
           messageType: 'image',
           timestamp: i.createdAt,
-            fileData: i.filePath.isNotEmpty
-              ? File(i.filePath).readAsBytesSync()
-              : null,
+          fileData:
+              i.filePath.isNotEmpty ? File(i.filePath).readAsBytesSync() : null,
           mimeType: i.mimeType ?? 'image/jpeg',
           transcript: null,
           fileName: i.fileName,
@@ -61,9 +59,8 @@ class ChatInputConverter {
           body: 'File: ${f.fileName}',
           messageType: 'text',
           timestamp: f.createdAt,
-          fileData: f.filePath.isNotEmpty
-              ? File(f.filePath).readAsBytesSync()
-              : null,
+          fileData:
+              f.filePath.isNotEmpty ? File(f.filePath).readAsBytesSync() : null,
           mimeType: f.mimeType,
           transcript: null,
           fileName: f.fileName,

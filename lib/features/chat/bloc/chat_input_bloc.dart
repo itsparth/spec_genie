@@ -536,7 +536,9 @@ class ChatInputBloc extends _$ChatInputBloc {
       for (final input in inputs) {
         final params = ChatInputConverter.toAddParams(input);
         String? threadName;
-        if (threadId == null && input is TextChatInput && input.text.isNotEmpty) {
+        if (threadId == null &&
+            input is TextChatInput &&
+            input.text.isNotEmpty) {
           threadName = input.text.length <= 50
               ? input.text
               : '${input.text.substring(0, 47)}...';
@@ -548,7 +550,9 @@ class ChatInputBloc extends _$ChatInputBloc {
           mimeType: params.mimeType,
           transcript: params.transcript,
           fileName: params.fileName,
-          fileData: params.fileData != null ? Uint8List.fromList(params.fileData!) : null,
+          fileData: params.fileData != null
+              ? Uint8List.fromList(params.fileData!)
+              : null,
           threadName: threadName,
         );
         if (tagsToAttach.isNotEmpty) {
