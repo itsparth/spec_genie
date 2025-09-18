@@ -15,6 +15,7 @@ class ModeOutputsStateMapper extends ClassMapperBase<ModeOutputsState> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = ModeOutputsStateMapper._());
       ModeOutputMapper.ensureInitialized();
+      ModeMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -62,6 +63,12 @@ class ModeOutputsStateMapper extends ClassMapperBase<ModeOutputsState> {
     _$streamingIndex,
     opt: true,
   );
+  static Mode? _$currentMode(ModeOutputsState v) => v.currentMode;
+  static const Field<ModeOutputsState, Mode> _f$currentMode = Field(
+    'currentMode',
+    _$currentMode,
+    opt: true,
+  );
   static ModeOutput? _$currentOutput(ModeOutputsState v) => v.currentOutput;
   static const Field<ModeOutputsState, ModeOutput> _f$currentOutput = Field(
     'currentOutput',
@@ -101,6 +108,7 @@ class ModeOutputsStateMapper extends ClassMapperBase<ModeOutputsState> {
     #isGenerating: _f$isGenerating,
     #streamingContent: _f$streamingContent,
     #streamingIndex: _f$streamingIndex,
+    #currentMode: _f$currentMode,
     #currentOutput: _f$currentOutput,
     #currentContent: _f$currentContent,
     #canGoBack: _f$canGoBack,
@@ -116,6 +124,7 @@ class ModeOutputsStateMapper extends ClassMapperBase<ModeOutputsState> {
       isGenerating: data.dec(_f$isGenerating),
       streamingContent: data.dec(_f$streamingContent),
       streamingIndex: data.dec(_f$streamingIndex),
+      currentMode: data.dec(_f$currentMode),
     );
   }
 
@@ -181,6 +190,7 @@ extension ModeOutputsStateValueCopy<$R, $Out>
 
 abstract class ModeOutputsStateCopyWith<$R, $In extends ModeOutputsState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
+  ModeCopyWith<$R, Mode, Mode>? get currentMode;
   $R call({
     IList<ModeOutput>? outputs,
     bool? isLoading,
@@ -188,6 +198,7 @@ abstract class ModeOutputsStateCopyWith<$R, $In extends ModeOutputsState, $Out>
     bool? isGenerating,
     String? streamingContent,
     int? streamingIndex,
+    Mode? currentMode,
   });
   ModeOutputsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -203,6 +214,9 @@ class _ModeOutputsStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<ModeOutputsState> $mapper =
       ModeOutputsStateMapper.ensureInitialized();
   @override
+  ModeCopyWith<$R, Mode, Mode>? get currentMode =>
+      $value.currentMode?.copyWith.$chain((v) => call(currentMode: v));
+  @override
   $R call({
     IList<ModeOutput>? outputs,
     bool? isLoading,
@@ -210,6 +224,7 @@ class _ModeOutputsStateCopyWithImpl<$R, $Out>
     bool? isGenerating,
     Object? streamingContent = $none,
     Object? streamingIndex = $none,
+    Object? currentMode = $none,
   }) => $apply(
     FieldCopyWithData({
       if (outputs != null) #outputs: outputs,
@@ -218,6 +233,7 @@ class _ModeOutputsStateCopyWithImpl<$R, $Out>
       if (isGenerating != null) #isGenerating: isGenerating,
       if (streamingContent != $none) #streamingContent: streamingContent,
       if (streamingIndex != $none) #streamingIndex: streamingIndex,
+      if (currentMode != $none) #currentMode: currentMode,
     }),
   );
   @override
@@ -228,6 +244,7 @@ class _ModeOutputsStateCopyWithImpl<$R, $Out>
     isGenerating: data.get(#isGenerating, or: $value.isGenerating),
     streamingContent: data.get(#streamingContent, or: $value.streamingContent),
     streamingIndex: data.get(#streamingIndex, or: $value.streamingIndex),
+    currentMode: data.get(#currentMode, or: $value.currentMode),
   );
 
   @override

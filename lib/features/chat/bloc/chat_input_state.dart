@@ -10,22 +10,14 @@ part 'chat_input_state.mapper.dart';
 class ChatInputState with ChatInputStateMappable {
   final ChatInputMode currentMode;
   final String textInput;
-  final IList<ChatInput> pendingInputs;
+  final String description; // Optional description for media content
+  final ChatInput? currentContent; // Single content (audio, image, or file)
   final bool isLoading;
   final String? error;
 
   // Audio recording state
   final AudioRecordingState audioState;
-  final Duration recordingDuration;
   final AudioRecordingConfig recordingConfig;
-
-  // File selection state
-  final bool isSelectingFile;
-  final IList<String> selectedFilePaths;
-
-  // Image capture/selection state
-  final bool isCapturingImage;
-  final IList<String> selectedImagePaths;
 
   // Tags state
   final IList<Tag> selectedTags;
@@ -33,16 +25,12 @@ class ChatInputState with ChatInputStateMappable {
   const ChatInputState({
     this.currentMode = ChatInputMode.text,
     this.textInput = '',
-    this.pendingInputs = const IListConst([]),
+    this.description = '',
+    this.currentContent,
     this.isLoading = false,
     this.error,
     this.audioState = const AudioRecordingState(),
-    this.recordingDuration = Duration.zero,
     this.recordingConfig = const AudioRecordingConfig(),
-    this.isSelectingFile = false,
-    this.selectedFilePaths = const IListConst([]),
-    this.isCapturingImage = false,
-    this.selectedImagePaths = const IListConst([]),
     this.selectedTags = const IListConst([]),
   });
 
@@ -56,9 +44,9 @@ class ChatInputState with ChatInputStateMappable {
       return false;
     }
 
-    // Allow sending if there's text, pending inputs (audio/images/files), or completed audio recording
+    // Allow sending if there's text input or current content (audio/image/file)
     return textInput.trim().isNotEmpty ||
-        pendingInputs.isNotEmpty ||
+        currentContent != null ||
         (audioState.status == RecordingStatus.stopped &&
             audioState.filePath != null);
   }
@@ -69,11 +57,11 @@ class ChatInputState with ChatInputStateMappable {
   /// Check if recording is paused
   bool get isRecordingPaused => audioState.status == RecordingStatus.paused;
 
-  /// Get the total number of pending inputs
-  int get pendingInputCount => pendingInputs.length;
+  /// Check if there is current content
+  bool get hasCurrentContent => currentContent != null;
 
-  /// Check if there are any pending inputs
-  bool get hasPendingInputs => pendingInputs.isNotEmpty;
+  /// Get content type of current content
+  ChatInputType? get currentContentType => currentContent?.type;
 }
 
 @MappableClass()
@@ -157,7 +145,6 @@ enum ChatInputMode {
   audio,
   image,
   file,
-  mixed, // Combination of multiple input types
 }
 
 @MappableEnum()

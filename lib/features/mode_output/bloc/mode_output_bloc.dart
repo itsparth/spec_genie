@@ -31,6 +31,10 @@ class ModeOutputBloc extends _$ModeOutputBloc {
   Future<void> _loadOutputs(int threadId, int modeId) async {
     try {
       final isar = ref.read(isarProvider);
+
+      // Load the mode first
+      final mode = await isar.modes.get(modeId);
+
       final outputs = await isar.modeOutputs
           .filter()
           .thread((q) => q.idEqualTo(threadId))
@@ -45,7 +49,13 @@ class ModeOutputBloc extends _$ModeOutputBloc {
         currentIndex: outputs.isNotEmpty
             ? outputs.length - 1
             : 0, // Show latest by default
+        currentMode: mode,
       );
+
+      // If no outputs exist, automatically start generation
+      if (outputs.isEmpty) {
+        generateOutput();
+      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -78,36 +88,74 @@ class ModeOutputBloc extends _$ModeOutputBloc {
     final contentParts = <ContentPart>[];
 
     for (final message in messages) {
+      // Load tags for this message
+      await message.tags.load();
+      final tags = message.tags.toList();
+
+      // Build context string with tags and description
+      final contextParts = <String>[];
+
+      // Add tag information
+      if (tags.isNotEmpty) {
+        final tagDescriptions =
+            tags.map((tag) => '${tag.name}: ${tag.description}').join(', ');
+        contextParts.add('Tags: $tagDescriptions');
+      }
+
+      // Add message description if present
+      if (message.description.isNotEmpty) {
+        contextParts.add('Description: ${message.description}');
+      }
+
+      final contextText =
+          contextParts.isNotEmpty ? '${contextParts.join(' | ')}\n' : '';
+
       // Add text content if present
       if (message.text.isNotEmpty) {
-        contentParts.add(TextPart(message.text));
+        final fullText = contextText.isNotEmpty
+            ? '$contextText${message.text}'
+            : message.text;
+        contentParts.add(TextPart(fullText));
       }
 
       // Add transcript if audio message has transcript
       if (message.type == MessageType.audio &&
           message.transcript != null &&
           message.transcript!.isNotEmpty) {
-        contentParts.add(TextPart('Transcribed audio: ${message.transcript!}'));
+        final transcriptText = contextText.isNotEmpty
+            ? '${contextText}Transcribed audio: ${message.transcript!}'
+            : 'Transcribed audio: ${message.transcript!}';
+        contentParts.add(TextPart(transcriptText));
       }
 
       // Add image data if present
       if (message.type == MessageType.image && message.fileData != null) {
         try {
+          // Add context as separate text part before image if present
+          if (contextText.isNotEmpty) {
+            contentParts.add(TextPart('${contextText.trim()}'));
+          }
+
           final imageBytes = Uint8List.fromList(message.fileData!);
           final mimeType = message.mimeType ?? 'image/jpeg';
           contentParts.add(ImagePart(imageBytes, mimeType));
         } catch (e) {
           // If image processing fails, add description instead
-          if (message.description.isNotEmpty) {
-            contentParts
-                .add(TextPart('Image description: ${message.description}'));
-          }
+          final fallbackText = contextText.isNotEmpty
+              ? '${contextText}Image description: ${message.description.isNotEmpty ? message.description : 'Image processing failed'}'
+              : 'Image description: ${message.description.isNotEmpty ? message.description : 'Image processing failed'}';
+          contentParts.add(TextPart(fallbackText));
         }
       }
 
       // Add audio data if present
       if (message.type == MessageType.audio && message.fileData != null) {
         try {
+          // Add context as separate text part before audio if present
+          if (contextText.isNotEmpty) {
+            contentParts.add(TextPart('${contextText.trim()}'));
+          }
+
           final audioBytes = Uint8List.fromList(message.fileData!);
           final mimeType = message.mimeType ?? 'audio/wav';
           contentParts.add(AudioPart(audioBytes, mimeType));
@@ -118,7 +166,11 @@ class ModeOutputBloc extends _$ModeOutputBloc {
               : message.description.isNotEmpty
                   ? 'Audio description: ${message.description}'
                   : 'Audio content (processing failed)';
-          contentParts.add(TextPart(fallbackText));
+
+          final fullFallbackText = contextText.isNotEmpty
+              ? '$contextText$fallbackText'
+              : fallbackText;
+          contentParts.add(TextPart(fullFallbackText));
         }
       }
     }
@@ -209,8 +261,29 @@ class ModeOutputBloc extends _$ModeOutputBloc {
 
   /// Update the streaming content
   void _updateStreamingContent(String content) {
-    if (state.isGenerating) {
+    if (state.isGenerating && state.streamingIndex != null) {
       state = state.copyWith(streamingContent: content);
+
+      // Also update the actual output in the list for real-time display
+      if (state.streamingIndex! < state.outputs.length) {
+        final updatedOutputs = <ModeOutput>[];
+
+        for (int i = 0; i < state.outputs.length; i++) {
+          final output = state.outputs[i];
+          if (i == state.streamingIndex) {
+            // Update the content of the streaming output
+            final updatedOutput = output.copyWith(content: content);
+            updatedOutputs.add(updatedOutput);
+          } else {
+            updatedOutputs.add(output);
+          }
+        }
+
+        state = state.copyWith(
+          outputs: updatedOutputs.toIList(),
+          streamingContent: content,
+        );
+      }
     }
   }
 
@@ -227,12 +300,42 @@ class ModeOutputBloc extends _$ModeOutputBloc {
 
     // Stop streaming and update state directly instead of reloading
     _stopStreaming();
-    
+
     // Update the outputs list with the updated placeholder
     final updatedOutputs = state.outputs.map((output) {
       return output.id == placeholder.id ? placeholder : output;
     }).toList();
-    
+
+    state = state.copyWith(
+      outputs: updatedOutputs.toIList(),
+    );
+  }
+
+  /// Complete streaming for regenerated output and save to database
+  Future<void> _completeRegenerateStreaming(String finalContent,
+      ModeOutput newOutput, Thread thread, Mode mode, Isar isar) async {
+    // Update the output's content for saving to database
+    newOutput.content = finalContent;
+
+    // Save to database with relationships
+    await isar.writeTxn(() async {
+      await isar.modeOutputs.put(newOutput);
+      newOutput.thread.value = thread;
+      newOutput.mode.value = mode;
+      await newOutput.thread.save();
+      await newOutput.mode.save();
+    });
+
+    // Stop streaming
+    _stopStreaming();
+
+    // Update the outputs list with the final content using copyWith for immutability
+    final updatedOutputs = state.outputs.map((output) {
+      return output.id == newOutput.id
+          ? output.copyWith(content: finalContent)
+          : output;
+    }).toList();
+
     state = state.copyWith(
       outputs: updatedOutputs.toIList(),
     );
@@ -264,23 +367,17 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       // Get content parts from messages
       final contentParts = await _getContentPartsFromMessages(threadId, isar);
 
-      // Create a placeholder output for streaming
-      final placeholderOutput = ModeOutput.completed(content: '');
+      // Create a new output in state only (not in database yet)
+      final newOutput = ModeOutput.completed(content: '');
 
-      // Save placeholder to database and link relationships
-      await isar.writeTxn(() async {
-        await isar.modeOutputs.put(placeholderOutput);
-        placeholderOutput.thread.value = thread;
-        placeholderOutput.mode.value = mode;
-        await placeholderOutput.thread.save();
-        await placeholderOutput.mode.save();
-      });
+      // Add to state immediately
+      final updatedOutputs = state.outputs.add(newOutput);
+      final newOutputIndex = updatedOutputs.length - 1;
 
-      // Reload outputs to include the new placeholder
-      await _loadOutputs(threadId, modeId);
-
-      // Find the index of the new output (should be the last one)
-      final newOutputIndex = state.outputs.length - 1;
+      state = state.copyWith(
+        outputs: updatedOutputs,
+        currentIndex: newOutputIndex,
+      );
 
       // Start streaming
       _startStreaming(newOutputIndex);
@@ -288,11 +385,25 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       // Generate content with streaming
       final finalContent = await _performGeneration(mode.prompt, contentParts);
 
-      // Complete streaming and save final content
-      await _completeStreaming(finalContent, placeholderOutput, isar);
+      // Complete streaming and save to database
+      await _completeRegenerateStreaming(
+          finalContent, newOutput, thread, mode, isar);
     } catch (e) {
-      // Stop streaming on error and let the caller handle errors
+      // Stop streaming on error and remove the temporary output from state
       _stopStreaming();
+
+      // Remove the last output (the one we just added) if it exists
+      if (state.outputs.isNotEmpty) {
+        final updatedOutputs = state.outputs.removeLast();
+        final newIndex =
+            updatedOutputs.isNotEmpty ? updatedOutputs.length - 1 : 0;
+        state = state.copyWith(
+          outputs: updatedOutputs,
+          currentIndex: newIndex.clamp(
+              0, (updatedOutputs.length - 1).clamp(0, double.infinity).toInt()),
+        );
+      }
+
       rethrow;
     }
   }

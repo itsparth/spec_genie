@@ -87,6 +87,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
           messageState: messageState,
           onTagsUpdate: (tags) =>
               chatBloc.updateMessageTags(messageState.message.id, tags),
+          onDescriptionUpdate: (description) => chatBloc
+              .updateMessageDescription(messageState.message.id, description),
           onDelete: () => chatBloc.removeMessage(messageState.message.id),
         );
       },
@@ -141,6 +143,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
   void _showModeSelection(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       builder: (BuildContext context) {
         return Material(
           child: Consumer(
@@ -148,41 +151,60 @@ class _ChatViewState extends ConsumerState<ChatView> {
               final modeState = ref.watch(modesBlocProvider);
               final chatState = ref.watch(chatBlocProvider(widget.threadId));
 
-              return Container(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Select Mode',
-                      style: Theme.of(context).textTheme.titleLarge,
+              return DraggableScrollableSheet(
+                initialChildSize: 0.6,
+                minChildSize: 0.3,
+                maxChildSize: 0.9,
+                expand: false,
+                builder: (context, scrollController) {
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Select Mode',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: modeState.modes.isEmpty
+                              ? const Center(
+                                  child: Text('No modes available'),
+                                )
+                              : ListView.builder(
+                                  controller: scrollController,
+                                  itemCount: modeState.modes.length,
+                                  itemBuilder: (context, index) {
+                                    final mode = modeState.modes[index];
+                                    return ListTile(
+                                      leading: const Icon(Icons.psychology),
+                                      title: Text(mode.name),
+                                      subtitle: Text(
+                                        mode.prompt,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        if (widget.threadId != null) {
+                                          ModeOutputRoute(
+                                            threadId:
+                                                chatState.threadId.toString(),
+                                            modeId: mode.id.toString(),
+                                          ).push<void>(context);
+                                        }
+                                      },
+                                    );
+                                  },
+                                ),
+                        ),
+                        // Add some bottom padding to ensure proper touch area
+                        const SizedBox(height: 16),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    if (modeState.modes.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('No modes available'),
-                      )
-                    else
-                      ...modeState.modes.map((mode) => ListTile(
-                            leading: const Icon(Icons.psychology),
-                            title: Text(mode.name),
-                            subtitle: Text(mode.prompt),
-                            onTap: () {
-                              Navigator.pop(context);
-                              if (widget.threadId != null) {
-                                ModeOutputRoute(
-                                  threadId: chatState.threadId.toString(),
-                                  modeId: mode.id.toString(),
-                                ).push<void>(context);
-                              }
-                            },
-                          )),
-                    // Add some bottom padding to ensure proper touch area
-                    const SizedBox(height: 16),
-                  ],
-                ),
+                  );
+                },
               );
             },
           ),

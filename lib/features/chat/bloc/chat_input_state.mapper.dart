@@ -34,8 +34,6 @@ class ChatInputModeMapper extends EnumMapper<ChatInputMode> {
         return ChatInputMode.image;
       case r'file':
         return ChatInputMode.file;
-      case r'mixed':
-        return ChatInputMode.mixed;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -52,8 +50,6 @@ class ChatInputModeMapper extends EnumMapper<ChatInputMode> {
         return r'image';
       case ChatInputMode.file:
         return r'file';
-      case ChatInputMode.mixed:
-        return r'mixed';
     }
   }
 }
@@ -242,12 +238,18 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
     opt: true,
     def: '',
   );
-  static IList<ChatInput> _$pendingInputs(ChatInputState v) => v.pendingInputs;
-  static const Field<ChatInputState, IList<ChatInput>> _f$pendingInputs = Field(
-    'pendingInputs',
-    _$pendingInputs,
+  static String _$description(ChatInputState v) => v.description;
+  static const Field<ChatInputState, String> _f$description = Field(
+    'description',
+    _$description,
     opt: true,
-    def: const IListConst([]),
+    def: '',
+  );
+  static ChatInput? _$currentContent(ChatInputState v) => v.currentContent;
+  static const Field<ChatInputState, ChatInput> _f$currentContent = Field(
+    'currentContent',
+    _$currentContent,
+    opt: true,
   );
   static bool _$isLoading(ChatInputState v) => v.isLoading;
   static const Field<ChatInputState, bool> _f$isLoading = Field(
@@ -269,13 +271,6 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
     opt: true,
     def: const AudioRecordingState(),
   );
-  static Duration _$recordingDuration(ChatInputState v) => v.recordingDuration;
-  static const Field<ChatInputState, Duration> _f$recordingDuration = Field(
-    'recordingDuration',
-    _$recordingDuration,
-    opt: true,
-    def: Duration.zero,
-  );
   static AudioRecordingConfig _$recordingConfig(ChatInputState v) =>
       v.recordingConfig;
   static const Field<ChatInputState, AudioRecordingConfig> _f$recordingConfig =
@@ -284,38 +279,6 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
         _$recordingConfig,
         opt: true,
         def: const AudioRecordingConfig(),
-      );
-  static bool _$isSelectingFile(ChatInputState v) => v.isSelectingFile;
-  static const Field<ChatInputState, bool> _f$isSelectingFile = Field(
-    'isSelectingFile',
-    _$isSelectingFile,
-    opt: true,
-    def: false,
-  );
-  static IList<String> _$selectedFilePaths(ChatInputState v) =>
-      v.selectedFilePaths;
-  static const Field<ChatInputState, IList<String>> _f$selectedFilePaths =
-      Field(
-        'selectedFilePaths',
-        _$selectedFilePaths,
-        opt: true,
-        def: const IListConst([]),
-      );
-  static bool _$isCapturingImage(ChatInputState v) => v.isCapturingImage;
-  static const Field<ChatInputState, bool> _f$isCapturingImage = Field(
-    'isCapturingImage',
-    _$isCapturingImage,
-    opt: true,
-    def: false,
-  );
-  static IList<String> _$selectedImagePaths(ChatInputState v) =>
-      v.selectedImagePaths;
-  static const Field<ChatInputState, IList<String>> _f$selectedImagePaths =
-      Field(
-        'selectedImagePaths',
-        _$selectedImagePaths,
-        opt: true,
-        def: const IListConst([]),
       );
   static IList<Tag> _$selectedTags(ChatInputState v) => v.selectedTags;
   static const Field<ChatInputState, IList<Tag>> _f$selectedTags = Field(
@@ -342,55 +305,45 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
     _$isRecordingPaused,
     mode: FieldMode.member,
   );
-  static int _$pendingInputCount(ChatInputState v) => v.pendingInputCount;
-  static const Field<ChatInputState, int> _f$pendingInputCount = Field(
-    'pendingInputCount',
-    _$pendingInputCount,
+  static bool _$hasCurrentContent(ChatInputState v) => v.hasCurrentContent;
+  static const Field<ChatInputState, bool> _f$hasCurrentContent = Field(
+    'hasCurrentContent',
+    _$hasCurrentContent,
     mode: FieldMode.member,
   );
-  static bool _$hasPendingInputs(ChatInputState v) => v.hasPendingInputs;
-  static const Field<ChatInputState, bool> _f$hasPendingInputs = Field(
-    'hasPendingInputs',
-    _$hasPendingInputs,
-    mode: FieldMode.member,
-  );
+  static ChatInputType? _$currentContentType(ChatInputState v) =>
+      v.currentContentType;
+  static const Field<ChatInputState, ChatInputType> _f$currentContentType =
+      Field('currentContentType', _$currentContentType, mode: FieldMode.member);
 
   @override
   final MappableFields<ChatInputState> fields = const {
     #currentMode: _f$currentMode,
     #textInput: _f$textInput,
-    #pendingInputs: _f$pendingInputs,
+    #description: _f$description,
+    #currentContent: _f$currentContent,
     #isLoading: _f$isLoading,
     #error: _f$error,
     #audioState: _f$audioState,
-    #recordingDuration: _f$recordingDuration,
     #recordingConfig: _f$recordingConfig,
-    #isSelectingFile: _f$isSelectingFile,
-    #selectedFilePaths: _f$selectedFilePaths,
-    #isCapturingImage: _f$isCapturingImage,
-    #selectedImagePaths: _f$selectedImagePaths,
     #selectedTags: _f$selectedTags,
     #canSend: _f$canSend,
     #isRecording: _f$isRecording,
     #isRecordingPaused: _f$isRecordingPaused,
-    #pendingInputCount: _f$pendingInputCount,
-    #hasPendingInputs: _f$hasPendingInputs,
+    #hasCurrentContent: _f$hasCurrentContent,
+    #currentContentType: _f$currentContentType,
   };
 
   static ChatInputState _instantiate(DecodingData data) {
     return ChatInputState(
       currentMode: data.dec(_f$currentMode),
       textInput: data.dec(_f$textInput),
-      pendingInputs: data.dec(_f$pendingInputs),
+      description: data.dec(_f$description),
+      currentContent: data.dec(_f$currentContent),
       isLoading: data.dec(_f$isLoading),
       error: data.dec(_f$error),
       audioState: data.dec(_f$audioState),
-      recordingDuration: data.dec(_f$recordingDuration),
       recordingConfig: data.dec(_f$recordingConfig),
-      isSelectingFile: data.dec(_f$isSelectingFile),
-      selectedFilePaths: data.dec(_f$selectedFilePaths),
-      isCapturingImage: data.dec(_f$isCapturingImage),
-      selectedImagePaths: data.dec(_f$selectedImagePaths),
       selectedTags: data.dec(_f$selectedTags),
     );
   }
@@ -464,16 +417,12 @@ abstract class ChatInputStateCopyWith<$R, $In extends ChatInputState, $Out>
   $R call({
     ChatInputMode? currentMode,
     String? textInput,
-    IList<ChatInput>? pendingInputs,
+    String? description,
+    ChatInput? currentContent,
     bool? isLoading,
     String? error,
     AudioRecordingState? audioState,
-    Duration? recordingDuration,
     AudioRecordingConfig? recordingConfig,
-    bool? isSelectingFile,
-    IList<String>? selectedFilePaths,
-    bool? isCapturingImage,
-    IList<String>? selectedImagePaths,
     IList<Tag>? selectedTags,
   });
   ChatInputStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
@@ -501,31 +450,23 @@ class _ChatInputStateCopyWithImpl<$R, $Out>
   $R call({
     ChatInputMode? currentMode,
     String? textInput,
-    IList<ChatInput>? pendingInputs,
+    String? description,
+    Object? currentContent = $none,
     bool? isLoading,
     Object? error = $none,
     AudioRecordingState? audioState,
-    Duration? recordingDuration,
     AudioRecordingConfig? recordingConfig,
-    bool? isSelectingFile,
-    IList<String>? selectedFilePaths,
-    bool? isCapturingImage,
-    IList<String>? selectedImagePaths,
     IList<Tag>? selectedTags,
   }) => $apply(
     FieldCopyWithData({
       if (currentMode != null) #currentMode: currentMode,
       if (textInput != null) #textInput: textInput,
-      if (pendingInputs != null) #pendingInputs: pendingInputs,
+      if (description != null) #description: description,
+      if (currentContent != $none) #currentContent: currentContent,
       if (isLoading != null) #isLoading: isLoading,
       if (error != $none) #error: error,
       if (audioState != null) #audioState: audioState,
-      if (recordingDuration != null) #recordingDuration: recordingDuration,
       if (recordingConfig != null) #recordingConfig: recordingConfig,
-      if (isSelectingFile != null) #isSelectingFile: isSelectingFile,
-      if (selectedFilePaths != null) #selectedFilePaths: selectedFilePaths,
-      if (isCapturingImage != null) #isCapturingImage: isCapturingImage,
-      if (selectedImagePaths != null) #selectedImagePaths: selectedImagePaths,
       if (selectedTags != null) #selectedTags: selectedTags,
     }),
   );
@@ -533,25 +474,12 @@ class _ChatInputStateCopyWithImpl<$R, $Out>
   ChatInputState $make(CopyWithData data) => ChatInputState(
     currentMode: data.get(#currentMode, or: $value.currentMode),
     textInput: data.get(#textInput, or: $value.textInput),
-    pendingInputs: data.get(#pendingInputs, or: $value.pendingInputs),
+    description: data.get(#description, or: $value.description),
+    currentContent: data.get(#currentContent, or: $value.currentContent),
     isLoading: data.get(#isLoading, or: $value.isLoading),
     error: data.get(#error, or: $value.error),
     audioState: data.get(#audioState, or: $value.audioState),
-    recordingDuration: data.get(
-      #recordingDuration,
-      or: $value.recordingDuration,
-    ),
     recordingConfig: data.get(#recordingConfig, or: $value.recordingConfig),
-    isSelectingFile: data.get(#isSelectingFile, or: $value.isSelectingFile),
-    selectedFilePaths: data.get(
-      #selectedFilePaths,
-      or: $value.selectedFilePaths,
-    ),
-    isCapturingImage: data.get(#isCapturingImage, or: $value.isCapturingImage),
-    selectedImagePaths: data.get(
-      #selectedImagePaths,
-      or: $value.selectedImagePaths,
-    ),
     selectedTags: data.get(#selectedTags, or: $value.selectedTags),
   );
 

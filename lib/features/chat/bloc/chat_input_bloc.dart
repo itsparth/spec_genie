@@ -27,6 +27,7 @@ class ChatInputBloc extends _$ChatInputBloc {
   late final AudioRecorder _audioRecorder;
   late final picker.ImagePicker _imagePicker;
   late final TextEditingController _textController;
+  late final TextEditingController _descriptionController;
   Timer? _recordingTimer;
   Timer? _amplitudeTimer;
 
@@ -35,6 +36,7 @@ class ChatInputBloc extends _$ChatInputBloc {
     _audioRecorder = AudioRecorder();
     _imagePicker = picker.ImagePicker();
     _textController = TextEditingController();
+    _descriptionController = TextEditingController();
 
     // Listen to text changes from the controller
     _textController.addListener(() {
@@ -43,10 +45,18 @@ class ChatInputBloc extends _$ChatInputBloc {
       }
     });
 
+    // Listen to description changes from the controller
+    _descriptionController.addListener(() {
+      if (state.description != _descriptionController.text) {
+        state = state.copyWith(description: _descriptionController.text);
+      }
+    });
+
     // Clean up resources when the provider is disposed
     ref.onDispose(() {
       _audioRecorder.dispose();
       _textController.dispose();
+      _descriptionController.dispose();
       _recordingTimer?.cancel();
       _amplitudeTimer?.cancel();
     });
@@ -56,6 +66,9 @@ class ChatInputBloc extends _$ChatInputBloc {
 
   // Getter for text controller
   TextEditingController get textController => _textController;
+
+  // Getter for description controller
+  TextEditingController get descriptionController => _descriptionController;
 
   // Text input methods
   void updateTextInput(String text) {
@@ -68,6 +81,48 @@ class ChatInputBloc extends _$ChatInputBloc {
   void clearTextInput() {
     state = state.copyWith(textInput: '');
     _textController.clear();
+  }
+
+  // Description methods
+  void updateDescription(String description) {
+    state = state.copyWith(description: description);
+    if (_descriptionController.text != description) {
+      _descriptionController.text = description;
+    }
+  }
+
+  void clearDescription() {
+    state = state.copyWith(description: '');
+    _descriptionController.clear();
+  }
+
+  // Content management (single content only)
+  void setCurrentContent(ChatInput content) {
+    // Clear any existing content and set new one
+    state = state.copyWith(currentContent: content);
+
+    // Switch mode based on content type
+    switch (content.type) {
+      case ChatInputType.text:
+        state = state.copyWith(currentMode: ChatInputMode.text);
+        break;
+      case ChatInputType.audio:
+        state = state.copyWith(currentMode: ChatInputMode.audio);
+        break;
+      case ChatInputType.image:
+        state = state.copyWith(currentMode: ChatInputMode.image);
+        break;
+      case ChatInputType.file:
+        state = state.copyWith(currentMode: ChatInputMode.file);
+        break;
+    }
+  }
+
+  void clearCurrentContent() {
+    state = state.copyWith(
+      currentContent: null,
+      currentMode: ChatInputMode.text,
+    );
   }
 
   // Tag management methods
@@ -209,9 +264,11 @@ class ChatInputBloc extends _$ChatInputBloc {
         source: AudioInputSource.recording,
       );
 
+      // Set as current content instead of adding to pending inputs
+      setCurrentContent(audioInput);
+
+      // Reset audio state after saving
       state = state.copyWith(
-        pendingInputs: state.pendingInputs.add(audioInput),
-        // Reset audio state after saving
         audioState: const AudioRecordingState(),
       );
     } catch (e) {
@@ -323,8 +380,9 @@ class ChatInputBloc extends _$ChatInputBloc {
 
       final List<picker.XFile> images = await _imagePicker.pickMultiImage();
 
-      final imageInputs = <ImageChatInput>[];
-      for (final image in images) {
+      // For single content mode, just take the first image
+      if (images.isNotEmpty) {
+        final image = images.first;
         final imageInput = ImageChatInput(
           id: _uuid.v4(),
           createdAt: DateTime.now(),
@@ -332,13 +390,11 @@ class ChatInputBloc extends _$ChatInputBloc {
           fileName: image.name,
           mimeType: image.mimeType,
         );
-        imageInputs.add(imageInput);
+
+        setCurrentContent(imageInput);
       }
 
-      state = state.copyWith(
-        isLoading: false,
-        pendingInputs: state.pendingInputs.addAll(imageInputs),
-      );
+      state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -361,48 +417,41 @@ class ChatInputBloc extends _$ChatInputBloc {
         result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
           allowedExtensions: InputUtils.audioExtensions,
-          allowMultiple: allowMultiple,
+          allowMultiple: false, // Single content only
         );
       } else if (filterType == FileInputType.image) {
         result = await FilePicker.platform.pickFiles(
           type: FileType.image,
-          allowMultiple: allowMultiple,
+          allowMultiple: false, // Single content only
         );
       } else {
         // Allow both audio and image files
         result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
           allowedExtensions: InputUtils.allSupportedExtensions,
-          allowMultiple: allowMultiple,
+          allowMultiple: false, // Single content only
         );
       }
 
       if (result != null && result.files.isNotEmpty) {
-        final fileInputs = <FileChatInput>[];
+        final file = result.files.first; // Only take the first file
+        if (file.path != null) {
+          final fileType = InputUtils.getFileInputType(file.extension);
+          final fileInput = FileChatInput(
+            id: _uuid.v4(),
+            createdAt: DateTime.now(),
+            filePath: file.path!,
+            fileName: file.name,
+            fileSize: file.size,
+            mimeType: InputUtils.getMimeType(file.extension),
+            fileType: fileType,
+          );
 
-        for (final file in result.files) {
-          if (file.path != null) {
-            final fileType = InputUtils.getFileInputType(file.extension);
-            final fileInput = FileChatInput(
-              id: _uuid.v4(),
-              createdAt: DateTime.now(),
-              filePath: file.path!,
-              fileName: file.name,
-              fileSize: file.size,
-              mimeType: InputUtils.getMimeType(file.extension),
-              fileType: fileType,
-            );
-            fileInputs.add(fileInput);
-          }
+          setCurrentContent(fileInput);
         }
-
-        state = state.copyWith(
-          isLoading: false,
-          pendingInputs: state.pendingInputs.addAll(fileInputs),
-        );
-      } else {
-        state = state.copyWith(isLoading: false);
       }
+
+      state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -411,18 +460,13 @@ class ChatInputBloc extends _$ChatInputBloc {
     }
   }
 
-  // Pending inputs management
-  void removePendingInput(String inputId) {
-    state = state.copyWith(
-      pendingInputs:
-          state.pendingInputs.removeWhere((input) => input.id == inputId),
-    );
+  // Content management methods (replacing pending inputs management)
+  void removeCurrentContent() {
+    clearCurrentContent();
   }
 
-  void clearPendingInputs() {
-    state = state.copyWith(
-      pendingInputs: const IListConst([]),
-    );
+  void clearAllContent() {
+    clearCurrentContent();
   }
 
   // Send methods
@@ -438,8 +482,10 @@ class ChatInputBloc extends _$ChatInputBloc {
       ));
     }
 
-    // Add all pending inputs
-    inputs.addAll(state.pendingInputs);
+    // Add current content if present
+    if (state.currentContent != null) {
+      inputs.add(state.currentContent!);
+    }
 
     return inputs;
   }
@@ -447,7 +493,7 @@ class ChatInputBloc extends _$ChatInputBloc {
   void clearAllInputs() {
     state = state.copyWith(
       textInput: '',
-      pendingInputs: const IListConst([]),
+      currentContent: null,
       currentMode: ChatInputMode.text,
       audioState: const AudioRecordingState(),
     );
@@ -456,7 +502,7 @@ class ChatInputBloc extends _$ChatInputBloc {
   void clearAllInputsIncludingTags() {
     state = state.copyWith(
       textInput: '',
-      pendingInputs: const IListConst([]),
+      currentContent: null,
       currentMode: ChatInputMode.text,
       audioState: const AudioRecordingState(),
       selectedTags: const IListConst([]),
@@ -544,13 +590,10 @@ class ChatInputBloc extends _$ChatInputBloc {
           mimeType: image.mimeType,
         );
 
-        state = state.copyWith(
-          isLoading: false,
-          pendingInputs: state.pendingInputs.add(imageInput),
-        );
-      } else {
-        state = state.copyWith(isLoading: false);
+        setCurrentContent(imageInput);
       }
+
+      state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -576,12 +619,17 @@ class ChatInputBloc extends _$ChatInputBloc {
 
   void _startAmplitudeMonitoring() {
     _amplitudeTimer =
-        Timer.periodic(const Duration(milliseconds: 100), (timer) async {
+        Timer.periodic(const Duration(milliseconds: 50), (timer) async {
       try {
         final amplitude = await _audioRecorder.getAmplitude();
+        // Normalize amplitude to 0-1 range and apply some smoothing
+        final normalizedAmplitude =
+            (amplitude.current + 160) / 160; // -160dB to 0dB range
+        final clampedAmplitude = normalizedAmplitude.clamp(0.0, 1.0);
+
         state = state.copyWith(
           audioState: state.audioState.copyWith(
-            amplitude: amplitude.current,
+            amplitude: clampedAmplitude,
           ),
         );
       } catch (e) {
