@@ -187,25 +187,6 @@ class ChatInputWidget extends ConsumerWidget {
                     ),
                   ),
           ),
-
-          // Remove button
-          IconButton(
-            onPressed: () {
-              final chatInputBloc = ref.read(chatInputBlocProvider.notifier);
-              if (hasContent) {
-                chatInputBloc.clearCurrentContent();
-              } else {
-                chatInputBloc.clearTextInput();
-              }
-            },
-            icon: Icon(
-              Icons.close,
-              size: 18,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
         ],
       ),
     );

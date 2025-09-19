@@ -237,8 +237,7 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       _startStreaming(newOutputIndex);
 
       // Generate content with streaming
-      final systemPrompt = customPrompt ??
-          "Generate markdown and follow the instructions: \n${mode.prompt}";
+      final systemPrompt = customPrompt ?? "Generate markdown. ${mode.prompt}";
       final finalContent = await _performGeneration(systemPrompt, contentParts);
 
       // Complete streaming and save final content
@@ -388,8 +387,7 @@ class ModeOutputBloc extends _$ModeOutputBloc {
       // Start streaming
       _startStreaming(newOutputIndex);
 
-      final systemPrompt =
-          "Generate markdown and follow the instructions: \n${mode.prompt}";
+      final systemPrompt = "Generate markdown. ${mode.prompt}";
 
       // Generate content with streaming
       final finalContent = await _performGeneration(systemPrompt, contentParts);
