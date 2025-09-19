@@ -17,35 +17,23 @@ part 'modes_bloc.g.dart';
 class ModesBloc extends _$ModesBloc {
   final _defaultModes = [
     Mode(
-        id: Isar.autoIncrement,
-        name: 'Spec',
-        prompt:
-            'Generate well-organized specifications with clear structure, requirements, acceptance criteria, and user stories. Focus on clarity, completeness, and actionable details.',
-        isEditable: false),
+      id: Isar.autoIncrement,
+      name: 'Summary',
+      prompt:
+          'Generate a high-level, well-organized summary of ONLY the provided source content, capturing every key point without omitting important details. Maintain clarity, logical structure, and completeness while staying concise. Do NOT introduce or infer facts that are not explicitly supported by the sources—if something is missing, note it as a gap instead of inventing it.',
+    ),
     Mode(
-        id: Isar.autoIncrement,
-        name: 'Tech Spec',
-        prompt:
-            'Create detailed technical specifications including architecture decisions, implementation details, API designs, database schemas, and technical requirements. Focus on technical depth and engineering considerations.',
-        isEditable: false),
+      id: Isar.autoIncrement,
+      name: 'Spec',
+      prompt:
+          'From ONLY the provided source content, produce a structured product specification including: 1) Overview & Context, 2) Goals & Non-Goals, 3) Scope, 4) Assumptions & Constraints, 5) Stakeholders / Users, 6) Functional Requirements, 7) Non-Functional Requirements, 8) User Stories with Acceptance Criteria, 9) Data / Integrations, 10) Risks & Mitigations, 11) Open Questions, 12) Out-of-Scope. Do NOT generate or embellish information not explicitly grounded in the sources. If required details are absent, list them clearly as gaps or open questions—never fabricate.',
+    ),
     Mode(
-        id: Isar.autoIncrement,
-        name: 'Podcast',
-        prompt:
-            'Generate engaging podcast content including episode outlines, talking points, interview questions, and show notes. Focus on conversational flow, audience engagement, and compelling storytelling.',
-        isEditable: false),
-    Mode(
-        id: Isar.autoIncrement,
-        name: 'Summary',
-        prompt:
-            'Generate concise, well-structured summaries of content. Extract key points, main ideas, and essential information while maintaining clarity and brevity. Focus on capturing the essence without losing important details.',
-        isEditable: false),
-    Mode(
-        id: Isar.autoIncrement,
-        name: 'Transcript',
-        prompt:
-            'Generate accurate, verbatim transcripts of audio/video content. Maintain speaker identification, timestamps where relevant, and preserve the exact spoken words including natural speech patterns, pauses, and corrections.',
-        isEditable: false),
+      id: Isar.autoIncrement,
+      name: 'Detailed Summary',
+      prompt:
+          'Generate a comprehensive, structured summary using ONLY the provided source material. Capture every relevant fact, detail, nuance, rationale, constraint, assumption, decision, data point, example, and edge case present in the sources without omission. Organize the output with the following sections: 1) Overview, 2) Key Themes, 3) Detailed Breakdown (group logically), 4) Data & Metrics, 5) Decisions & Rationale, 6) Constraints & Assumptions, 7) Edge Cases & Exceptions, 8) Risks / Issues, 9) Open Questions / Gaps (items missing from sources), 10) Potential Inferences (Needs Validation) – list ONLY items that seem implied but are not explicitly stated, each clearly marked. Do NOT speculate or introduce external knowledge; if something is not in the sources, do not add it. Preserve original terminology where meaningful. Be exhaustive yet well organized.',
+    ),
   ];
 
   @override
