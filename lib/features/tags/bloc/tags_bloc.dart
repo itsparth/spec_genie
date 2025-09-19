@@ -18,13 +18,11 @@ class TagsBloc extends _$TagsBloc {
     Tag(
         id: Isar.autoIncrement,
         name: 'Feature',
-        description: 'Feature specifications and functionality',
-        isEditable: false),
+        description: 'Feature specifications and functionality'),
     Tag(
         id: Isar.autoIncrement,
         name: 'Requirement',
-        description: 'System requirements and constraints',
-        isEditable: false),
+        description: 'System requirements and constraints'),
   ];
 
   @override
