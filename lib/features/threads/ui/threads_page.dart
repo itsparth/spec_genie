@@ -15,7 +15,7 @@ class ThreadsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Threads'),
+        title: const Text('Projects'),
         elevation: 0,
         actions: [
           PopupMenuButton<String>(
@@ -65,12 +65,13 @@ class ThreadsPage extends ConsumerWidget {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           // Navigate to new chat page
           const ChatRoute(threadId: 'new').push(context);
         },
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('Create'),
       ),
     );
   }
@@ -87,11 +88,11 @@ class ThreadsPage extends ConsumerWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Edit Thread'),
+          title: const Text('Edit Project'),
           content: TextField(
             controller: controller,
             decoration: const InputDecoration(
-              labelText: 'Thread Name',
+              labelText: 'Project Name',
               border: OutlineInputBorder(),
             ),
             autofocus: true,
@@ -111,7 +112,7 @@ class ThreadsPage extends ConsumerWidget {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Thread updated successfully'),
+                      content: Text('Project updated successfully'),
                     ),
                   );
                 }
@@ -130,7 +131,7 @@ class ThreadsPage extends ConsumerWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Thread'),
+          title: const Text('Delete Project'),
           content: Text('Are you sure you want to delete "${thread.name}"?'),
           actions: [
             TextButton(
@@ -143,7 +144,7 @@ class ThreadsPage extends ConsumerWidget {
                 ref.read(threadsBlocProvider.notifier).deleteThread(thread.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Deleted thread: ${thread.name}'),
+                    content: Text('Deleted project: ${thread.name}'),
                   ),
                 );
               },
@@ -186,14 +187,14 @@ class _EmptyThreadsView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'No threads yet',
+            'No projects yet',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: Colors.grey[600],
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Create your first thread to get started',
+            'Create your first project to get started',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.grey[500],
                 ),

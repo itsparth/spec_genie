@@ -270,7 +270,7 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
           ),
           const SizedBox(width: 8),
           Text(
-            widget.messageState.isSaving ? 'Saving...' : 'Processing...',
+            _getProcessingStatusText(),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).primaryColor.withOpacity(0.6),
                   fontWeight: FontWeight.w500,
@@ -302,12 +302,16 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
 
   Widget _buildDescriptionSection(BuildContext context, Message message) {
     final bool isEmpty = message.description.isEmpty;
+    final bool isProcessingDescription = widget.messageState.isProcessing &&
+        isEmpty &&
+        message.type !=
+            MessageType.audio; // Audio processing is for transcription
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
-        onTap: widget.onDescriptionUpdate != null
+        onTap: widget.onDescriptionUpdate != null && !isProcessingDescription
             ? () => _showEditDescriptionDialog(context)
             : null,
         child: Container(
@@ -331,29 +335,49 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                isEmpty
-                    ? Icons.add_comment_outlined
-                    : Icons.description_outlined,
-                size: 16,
-                color: isEmpty
-                    ? Theme.of(context)
-                        .colorScheme
-                        .onSurfaceVariant
-                        .withOpacity(0.6)
-                    : Theme.of(context).colorScheme.primary.withOpacity(0.7),
-              ),
+              // Show processing indicator or regular icon
+              if (isProcessingDescription) ...[
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Theme.of(context).primaryColor.withOpacity(0.6),
+                    ),
+                  ),
+                ),
+              ] else ...[
+                Icon(
+                  isEmpty
+                      ? Icons.add_comment_outlined
+                      : Icons.description_outlined,
+                  size: 16,
+                  color: isEmpty
+                      ? Theme.of(context)
+                          .colorScheme
+                          .onSurfaceVariant
+                          .withOpacity(0.6)
+                      : Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                ),
+              ],
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  isEmpty ? 'Add description...' : message.description,
+                  isProcessingDescription
+                      ? 'Generating description...'
+                      : isEmpty
+                          ? 'Add description...'
+                          : message.description,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: isEmpty
-                            ? Theme.of(context)
-                                .colorScheme
-                                .onSurfaceVariant
-                                .withOpacity(0.6)
-                            : Theme.of(context).colorScheme.onSurface,
+                        color: isProcessingDescription
+                            ? Theme.of(context).primaryColor.withOpacity(0.7)
+                            : isEmpty
+                                ? Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant
+                                    .withOpacity(0.6)
+                                : Theme.of(context).colorScheme.onSurface,
                         height: 1.4,
                         fontWeight: isEmpty ? FontWeight.w400 : FontWeight.w500,
                         fontStyle:
@@ -361,7 +385,8 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
                       ),
                 ),
               ),
-              if (widget.onDescriptionUpdate != null) ...[
+              if (widget.onDescriptionUpdate != null &&
+                  !isProcessingDescription) ...[
                 const SizedBox(width: 8),
                 Icon(
                   Icons.edit_outlined,
@@ -457,23 +482,88 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
                     ),
                     if (message.transcript?.isNotEmpty == true) ...[
                       const SizedBox(height: 4),
-                      Text(
-                        message.transcript!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withOpacity(0.7),
-                              height: 1.3,
+                      GestureDetector(
+                        onTap: () => _showTranscriptDialog(context, message),
+                        child: Container(
+                          child: Text(
+                            message.transcript!,
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.7),
+                                      height: 1.3,
+                                    ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ] else if (widget.messageState.isProcessing) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Theme.of(context).primaryColor.withOpacity(0.6),
+                              ),
                             ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Transcribing audio...',
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context)
+                                          .primaryColor
+                                          .withOpacity(0.7),
+                                      height: 1.3,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                          ),
+                        ],
                       ),
                     ],
                   ],
                 ),
               ),
               const SizedBox(width: 8),
+
+              // Transcript button (if available)
+              if (message.transcript?.isNotEmpty == true) ...[
+                Tooltip(
+                  message: 'View full transcript',
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => _showTranscriptDialog(context, message),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .secondary
+                              .withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.text_snippet_outlined,
+                          color: Theme.of(context).colorScheme.secondary,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
 
               // Play/Pause button
               Material(
@@ -742,6 +832,111 @@ class _MessageItemWidgetState extends ConsumerState<MessageItemWidget> {
           ),
         ],
       ),
+    );
+  }
+
+  String _getProcessingStatusText() {
+    final message = widget.messageState.message;
+    if (widget.messageState.isSaving) {
+      return 'Saving...';
+    } else if (widget.messageState.isProcessing) {
+      if (message.type == MessageType.audio &&
+          (message.transcript == null || message.transcript!.isEmpty)) {
+        return 'Transcribing...';
+      } else if (message.description.isEmpty) {
+        return 'Generating description...';
+      } else {
+        return 'Processing...';
+      }
+    }
+    return '';
+  }
+
+  Future<void> _showTranscriptDialog(
+      BuildContext context, Message message) async {
+    if (message.transcript?.isEmpty ?? true) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(
+                Icons.text_snippet_outlined,
+                color: Theme.of(context).colorScheme.secondary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              const Text('Audio Transcript'),
+            ],
+          ),
+          content: Container(
+            constraints: const BoxConstraints(
+              maxHeight: 400,
+              maxWidth: 400,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Audio file info
+                  if (message.fileName?.isNotEmpty == true) ...[
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceVariant
+                            .withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.audiotrack_rounded,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              message.fileName!,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Transcript text
+                  SelectableText(
+                    message.transcript!,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          height: 1.5,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+          actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        );
+      },
     );
   }
 

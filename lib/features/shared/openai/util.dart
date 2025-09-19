@@ -9,8 +9,9 @@ import 'content_parts.dart';
 class OpenAIUtil {
   final OpenAIClient _client;
   final String _model;
+  OpenAIConfig? config;
 
-  OpenAIUtil._(this._client, this._model);
+  OpenAIUtil._(this._client, this._model, {this.config});
 
   /// Create utility from configuration
   factory OpenAIUtil(OpenAIConfig config) {
@@ -18,9 +19,11 @@ class OpenAIUtil {
       apiKey: config.apiKey,
       baseUrl: config.baseUrl,
       organization: config.organization,
-      queryParams: {'api-version': '2025-01-01-preview'},
+      queryParams: (config.baseUrl != null && config.baseUrl!.contains('azure'))
+          ? {'api-version': '2025-01-01-preview'}
+          : null,
     );
-    return OpenAIUtil._(client, config.model);
+    return OpenAIUtil._(client, config.model, config: config);
   }
 
   /// Convert content part to OpenAI format
@@ -62,6 +65,13 @@ class OpenAIUtil {
 
     final response = await _client.createChatCompletion(request: request);
     return response.choices.first.message.content ?? '';
+  }
+
+  /// Generate a concise 5-6 word description of content
+  Future<String> generateDescription(List<ContentPart> parts) async {
+    return generate(
+        "Create a concise 5-6 word description of the content provided. Return only the description without any additional formatting, quotes, or comments.",
+        parts);
   }
 
   /// Generate complete response

@@ -187,7 +187,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                                       ),
                                       onTap: () {
                                         Navigator.pop(context);
-                                        if (widget.threadId != null) {
+                                        if (chatState.threadId != null) {
                                           ModeOutputRoute(
                                             threadId:
                                                 chatState.threadId.toString(),
