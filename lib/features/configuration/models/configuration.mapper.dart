@@ -90,11 +90,11 @@ mixin ConfigurationMappable {
   }
 
   ConfigurationCopyWith<Configuration, Configuration, Configuration>
-      get copyWith => _ConfigurationCopyWithImpl<Configuration, Configuration>(
-            this as Configuration,
-            $identity,
-            $identity,
-          );
+  get copyWith => _ConfigurationCopyWithImpl<Configuration, Configuration>(
+    this as Configuration,
+    $identity,
+    $identity,
+  );
   @override
   String toString() {
     return ConfigurationMapper.ensureInitialized().stringifyValue(
@@ -144,26 +144,25 @@ class _ConfigurationCopyWithImpl<$R, $Out>
     String? apiKey,
     Object? baseUrl = $none,
     String? modelName,
-  }) =>
-      $apply(
-        FieldCopyWithData({
-          if (id != null) #id: id,
-          if (apiKey != null) #apiKey: apiKey,
-          if (baseUrl != $none) #baseUrl: baseUrl,
-          if (modelName != null) #modelName: modelName,
-        }),
-      );
+  }) => $apply(
+    FieldCopyWithData({
+      if (id != null) #id: id,
+      if (apiKey != null) #apiKey: apiKey,
+      if (baseUrl != $none) #baseUrl: baseUrl,
+      if (modelName != null) #modelName: modelName,
+    }),
+  );
   @override
   Configuration $make(CopyWithData data) => Configuration(
-        id: data.get(#id, or: $value.id),
-        apiKey: data.get(#apiKey, or: $value.apiKey),
-        baseUrl: data.get(#baseUrl, or: $value.baseUrl),
-        modelName: data.get(#modelName, or: $value.modelName),
-      );
+    id: data.get(#id, or: $value.id),
+    apiKey: data.get(#apiKey, or: $value.apiKey),
+    baseUrl: data.get(#baseUrl, or: $value.baseUrl),
+    modelName: data.get(#modelName, or: $value.modelName),
+  );
 
   @override
   ConfigurationCopyWith<$R2, Configuration, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) =>
-      _ConfigurationCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) => _ConfigurationCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
+
