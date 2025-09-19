@@ -18,6 +18,7 @@ class OpenAIUtil {
       apiKey: config.apiKey,
       baseUrl: config.baseUrl,
       organization: config.organization,
+      queryParams: {'api-version': '2025-01-01-preview'},
     );
     return OpenAIUtil._(client, config.model);
   }
