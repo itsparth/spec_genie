@@ -210,6 +210,9 @@ mixin $ModeOutputRoute on GoRouteData {
 mixin $ChatRoute on GoRouteData {
   static ChatRoute _fromState(GoRouterState state) => ChatRoute(
         threadId: state.pathParameters['threadId'],
+        autoStartRecording: _$convertMapValue('auto-start-recording',
+                state.uri.queryParameters, _$boolConverter) ??
+            false,
       );
 
   ChatRoute get _self => this as ChatRoute;
@@ -217,6 +220,10 @@ mixin $ChatRoute on GoRouteData {
   @override
   String get location => GoRouteData.$location(
         '/chat/${Uri.encodeComponent(_self.threadId ?? '')}',
+        queryParams: {
+          if (_self.autoStartRecording != false)
+            'auto-start-recording': _self.autoStartRecording.toString(),
+        },
       );
 
   @override
@@ -231,4 +238,24 @@ mixin $ChatRoute on GoRouteData {
 
   @override
   void replace(BuildContext context) => context.replace(location);
+}
+
+T? _$convertMapValue<T>(
+  String key,
+  Map<String, String> map,
+  T? Function(String) converter,
+) {
+  final value = map[key];
+  return value == null ? null : converter(value);
+}
+
+bool _$boolConverter(String value) {
+  switch (value) {
+    case 'true':
+      return true;
+    case 'false':
+      return false;
+    default:
+      throw UnsupportedError('Cannot convert "$value" into a bool.');
+  }
 }

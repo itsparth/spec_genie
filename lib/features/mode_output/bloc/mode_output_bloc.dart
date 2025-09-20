@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:isar_community/isar.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:spec_genie/features/shared/isar/isar_provider.dart';
@@ -15,16 +16,19 @@ import '../data/mode_outputs_repository.dart';
 part 'mode_output_bloc.g.dart';
 
 /// Manages mode outputs for a specific thread and mode combination
-@riverpod
+@Riverpod(keepAlive: true)
 class ModeOutputBloc extends _$ModeOutputBloc {
   int? _threadId;
   int? _modeId;
   ModeOutputsRepository? _repository;
+  KeepAliveLink? _keepAliveLink;
 
   @override
   ModeOutputsState build(int threadId, int modeId) {
     _threadId = threadId;
     _modeId = modeId;
+    // Prevent auto-dispose during long-running streaming generations
+    _keepAliveLink ??= ref.keepAlive();
     _loadOutputs(threadId, modeId);
     return const ModeOutputsState(isLoading: true);
   }

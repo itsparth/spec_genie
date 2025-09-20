@@ -98,43 +98,60 @@ class ModeOutputsRepository {
     return latest.mode.value;
   }
 
-  /// Determines the most frequently used Mode across the last [lookback] outputs.
-  /// Returns the Mode instance (loaded) or null if none.
-  /// Tie-breaker: among equally frequent modes, the most recent output wins.
-  Future<Mode?> getMostUsedModeInLastGenerations({int lookback = 10}) async {
-    final recentOutputs = await _isar.modeOutputs
+  /// Computes the globally most used mode across ALL outputs (optionally limited by [maxScan]).
+  /// Strategy:
+  /// 1. Scan most recent [maxScan] outputs (default 200) descending by createdAt.
+  /// 2. Build frequency map; stop early if we have already seen a stable winner and remaining
+  ///    outputs cannot overtake (micro-optimization; minimal here but keeps future scalability).
+  /// 3. Tie-breaker: the most recent occurrence among modes with equal frequency wins.
+  /// Returns loaded Mode instance or null if none.
+  Future<Mode?> getGloballyMostUsedMode({int maxScan = 20}) async {
+    final outputs = await _isar.modeOutputs
         .where()
         .sortByCreatedAtDesc()
-        .limit(lookback)
+        .limit(maxScan)
         .findAll();
-    if (recentOutputs.isEmpty) return null;
+    if (outputs.isEmpty) return null;
 
     final freq = <int, int>{};
-    // Keep a map of id -> Mode reference (first seen) to return the proper instance.
-    final modeRef = <int, Mode>{};
-    for (final output in recentOutputs) {
-      await output.mode.load();
-      final modeObj = output.mode.value;
-      final modeId = modeObj?.id;
-      if (modeObj == null || modeId == null) continue;
-      freq.update(modeId, (v) => v + 1, ifAbsent: () => 1);
-      modeRef.putIfAbsent(modeId, () => modeObj);
+    final latestOccurrenceIndex =
+        <int, int>{}; // lower index => more recent (since list is desc)
+    final modeCache = <int, Mode>{};
+
+    for (var i = 0; i < outputs.length; i++) {
+      final o = outputs[i];
+      await o.mode.load();
+      final m = o.mode.value;
+      final id = m?.id;
+      if (m == null || id == null) continue;
+      freq.update(id, (v) => v + 1, ifAbsent: () => 1);
+      // Only set latest occurrence if not already present (first seen is most recent)
+      latestOccurrenceIndex.putIfAbsent(id, () => i);
+      modeCache.putIfAbsent(id, () => m);
     }
+
     if (freq.isEmpty) return null;
 
-    final maxCount = freq.values.fold<int>(0, (p, c) => c > p ? c : p);
-    for (final output in recentOutputs) {
-      final id = output.mode.value?.id;
-      if (id != null && freq[id] == maxCount) {
-        return modeRef[id];
+    // Determine max frequency
+    final maxFreq = freq.values.reduce((a, b) => a > b ? a : b);
+    // Among those with max frequency, pick the one with smallest index (most recent)
+    int? winningId;
+    int? winningIndex;
+    freq.forEach((id, count) {
+      if (count == maxFreq) {
+        final idx = latestOccurrenceIndex[id]!;
+        if (winningIndex == null || idx < winningIndex!) {
+          winningId = id;
+          winningIndex = idx;
+        }
       }
-    }
-    return null;
+    });
+    return winningId != null ? modeCache[winningId] : null;
   }
 }
 
 /// Riverpod provider for the repository
-@riverpod
+@Riverpod(keepAlive: true)
 ModeOutputsRepository modeOutputsRepository(Ref ref) {
   final isar = ref.watch(isarProvider);
   return ModeOutputsRepository(isar);

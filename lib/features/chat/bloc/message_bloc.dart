@@ -11,6 +11,7 @@ import 'package:spec_genie/features/shared/isar/isar_provider.dart';
 import 'package:spec_genie/features/shared/openai/openai_provider.dart';
 import 'package:spec_genie/features/shared/openai/util.dart';
 import 'package:spec_genie/features/shared/openai/content_parts.dart';
+import 'package:spec_genie/features/threads/models/thread.dart';
 import '../../tags/models/tag.dart';
 
 part 'message_bloc.g.dart';
@@ -169,6 +170,8 @@ class MessageBloc extends _$MessageBloc {
         isProcessing: false,
         error: null,
       );
+      // Attempt thread title update using description if available
+      await _maybeUpdateThreadTitle(fresh);
     } catch (e) {
       state = state.copyWith(
         isProcessing: false,
@@ -192,6 +195,7 @@ class MessageBloc extends _$MessageBloc {
           isProcessing: false,
           error: null,
         );
+        await _maybeUpdateThreadTitle(fresh);
       } else {
         state = state.copyWith(isProcessing: false);
       }
@@ -296,5 +300,33 @@ class MessageBloc extends _$MessageBloc {
       state = state.copyWith(message: latest);
     }
     return state;
+  }
+
+  /// If the parent thread still has the placeholder name, try updating it using this message's description.
+  Future<void> _maybeUpdateThreadTitle(Message m) async {
+    try {
+      // Load thread via link
+      await m.thread.load();
+      final thread = m.thread.value;
+      if (thread == null) return;
+      if (thread.name.trim() != 'New Thread') return; // already named
+      final desc = m.description.trim();
+      if (desc.isEmpty) return;
+      // Derive a concise title (reuse the same heuristic as placeholder trimming)
+      final candidate =
+          desc.length <= 50 ? desc : '${desc.substring(0, 47)}...';
+      if (candidate.isEmpty) return;
+      // Update directly via Isar to avoid depending on non-keepAlive providers.
+      await _isar.writeTxn(() async {
+        final updatedThread = Thread(
+          id: thread.id,
+          name: candidate,
+          createdAt: thread.createdAt,
+        );
+        await _isar.threads.put(updatedThread);
+      });
+    } catch (_) {
+      // Ignore failures silently
+    }
   }
 }

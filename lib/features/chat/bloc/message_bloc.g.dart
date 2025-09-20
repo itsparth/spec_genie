@@ -60,7 +60,7 @@ final class MessageBlocProvider
   }
 }
 
-String _$messageBlocHash() => r'b3aa638a5f7689f07561c5156a07a2348ad4bc24';
+String _$messageBlocHash() => r'46576a3c1354c1926b35fc9500ed3f434879edb9';
 
 /// Bloc responsible for a single message's lifecycle (processing, saving updates, etc.)
 

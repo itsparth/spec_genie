@@ -78,16 +78,21 @@ class ThreadsRoute extends GoRouteData with $ThreadsRoute {
 }
 
 class ChatRoute extends GoRouteData with $ChatRoute {
-  const ChatRoute({this.threadId});
+  const ChatRoute({this.threadId, this.autoStartRecording = false});
 
   final String? threadId;
+  final bool autoStartRecording; // new flag
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    if (threadId == 'new') {
-      return const ChatView(threadId: null);
+    final id = threadId;
+    if (id == 'new') {
+      return ChatView(threadId: null, autoStartRecording: autoStartRecording);
     }
-    return ChatView(threadId: int.parse(threadId!));
+    return ChatView(
+      threadId: id != null ? int.parse(id) : null,
+      autoStartRecording: autoStartRecording,
+    );
   }
 }
 

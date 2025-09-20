@@ -6,6 +6,7 @@ import '../bloc/threads_bloc.dart';
 import '../bloc/threads_state.dart';
 import '../models/thread.dart';
 import 'thread_item_widget.dart';
+import '../../mode_output/data/mode_outputs_repository.dart';
 
 class ThreadsPage extends ConsumerWidget {
   const ThreadsPage({super.key});
@@ -88,25 +89,69 @@ class ThreadsPage extends ConsumerWidget {
                   onDelete: isDeleting
                       ? null
                       : () => _onDeleteThread(context, ref, thread),
+                  onOpenLatestOutput: () =>
+                      _openLatestOutput(context, ref, thread),
+                  onQuickRecord: () => _quickRecord(context, thread),
                 );
               },
             ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // Navigate to new chat page
-          const ChatRoute(threadId: 'new').push<void>(context);
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Create'),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: 'fab_mic_new',
+            tooltip: 'Quick voice project',
+            onPressed: () {
+              // Start a brand new chat with recording enabled immediately
+              const ChatRoute(
+                threadId: 'new',
+                autoStartRecording: true,
+              ).push<void>(context);
+            },
+            child: const Icon(Icons.mic),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.extended(
+            heroTag: 'fab_create_new',
+            onPressed: () {
+              // Navigate to new chat page
+              const ChatRoute(threadId: 'new').push<void>(context);
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Create'),
+          ),
+        ],
       ),
     );
   }
 
   void _onThreadTap(BuildContext context, Thread thread) {
     ChatRoute(threadId: thread.id.toString()).go(context);
+  }
+
+  Future<void> _openLatestOutput(
+      BuildContext context, WidgetRef ref, Thread thread) async {
+    final repo = ref.read(modeOutputsRepositoryProvider);
+    final latestMode = await repo.getLatestUsedModeForThread(thread.id);
+    if (latestMode == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No outputs yet for this project')),
+      );
+      return;
+    }
+    ModeOutputRoute(
+      threadId: thread.id.toString(),
+      modeId: latestMode.id.toString(),
+    ).push<void>(context);
+  }
+
+  void _quickRecord(BuildContext context, Thread thread) {
+    ChatRoute(threadId: thread.id.toString(), autoStartRecording: true)
+        .push<void>(context);
   }
 
   void _onEditThread(BuildContext context, WidgetRef ref, Thread thread) {

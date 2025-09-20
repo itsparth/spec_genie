@@ -11,16 +11,15 @@ part of 'chat_input_bloc.dart';
 /// Manages chat input state for a specific thread
 
 @ProviderFor(ChatInputBloc)
-const chatInputBlocProvider = ChatInputBlocProvider._();
+const chatInputBlocProvider = ChatInputBlocFamily._();
 
 /// Manages chat input state for a specific thread
 final class ChatInputBlocProvider
     extends $NotifierProvider<ChatInputBloc, ChatInputState> {
   /// Manages chat input state for a specific thread
-  const ChatInputBlocProvider._()
+  const ChatInputBlocProvider._(
+      {required ChatInputBlocFamily super.from, required bool super.argument})
       : super(
-          from: null,
-          argument: null,
           retry: null,
           name: r'chatInputBlocProvider',
           isAutoDispose: true,
@@ -30,6 +29,13 @@ final class ChatInputBlocProvider
 
   @override
   String debugGetCreateSourceHash() => _$chatInputBlocHash();
+
+  @override
+  String toString() {
+    return r'chatInputBlocProvider'
+        ''
+        '($argument)';
+  }
 
   @$internal
   @override
@@ -42,18 +48,61 @@ final class ChatInputBlocProvider
       providerOverride: $SyncValueProvider<ChatInputState>(value),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ChatInputBlocProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
-String _$chatInputBlocHash() => r'ef3ec5ffbc2cf97461e2c534e4ff7abf32215b31';
+String _$chatInputBlocHash() => r'a5b9c1046769a85aa80b844a9c119b17f1010868';
+
+/// Manages chat input state for a specific thread
+
+final class ChatInputBlocFamily extends $Family
+    with
+        $ClassFamilyOverride<ChatInputBloc, ChatInputState, ChatInputState,
+            ChatInputState, bool> {
+  const ChatInputBlocFamily._()
+      : super(
+          retry: null,
+          name: r'chatInputBlocProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  /// Manages chat input state for a specific thread
+
+  ChatInputBlocProvider call({
+    bool autoStartRecording = false,
+  }) =>
+      ChatInputBlocProvider._(argument: autoStartRecording, from: this);
+
+  @override
+  String toString() => r'chatInputBlocProvider';
+}
 
 /// Manages chat input state for a specific thread
 
 abstract class _$ChatInputBloc extends $Notifier<ChatInputState> {
-  ChatInputState build();
+  late final _$args = ref.$arg as bool;
+  bool get autoStartRecording => _$args;
+
+  ChatInputState build({
+    bool autoStartRecording = false,
+  });
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
+    final created = build(
+      autoStartRecording: _$args,
+    );
     final ref = this.ref as $Ref<ChatInputState, ChatInputState>;
     final element = ref.element as $ClassProviderElement<
         AnyNotifier<ChatInputState, ChatInputState>,

@@ -30,9 +30,10 @@ class ChatInputBloc extends _$ChatInputBloc {
   Timer? _recordingTimer;
   Timer? _amplitudeTimer;
   Timer? _pulseTimer;
+  bool _didAutoStart = false;
 
   @override
-  ChatInputState build() {
+  ChatInputState build({bool autoStartRecording = false}) {
     _audioRecorder = AudioRecorder();
     _imagePicker = picker.ImagePicker();
     _textController = TextEditingController();
@@ -53,7 +54,26 @@ class ChatInputBloc extends _$ChatInputBloc {
       _pulseTimer?.cancel();
     });
 
-    return const ChatInputState();
+    final initialState = ChatInputState(
+      currentMode:
+          autoStartRecording ? ChatInputMode.audio : ChatInputMode.text,
+    );
+
+    // If we should auto start, schedule after build so consumers can listen.
+    if (autoStartRecording && !_didAutoStart) {
+      _didAutoStart = true;
+      // Schedule microtask to avoid doing async work in build.
+      Future.microtask(() async {
+        try {
+          switchMode(ChatInputMode.audio);
+          await startRecording();
+        } catch (_) {
+          // Swallow errors (permissions, etc.)
+        }
+      });
+    }
+
+    return initialState;
   }
 
   // Getter for text controller

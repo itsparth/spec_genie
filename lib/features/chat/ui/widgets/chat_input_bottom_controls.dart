@@ -13,6 +13,7 @@ class ChatInputBottomControls extends ConsumerWidget {
   final VoidCallback onCancel;
   final VoidCallback onShowFileOptions;
   final VoidCallback onShowTextInput;
+  final VoidCallback? onGenerateMostUsedMode; // New button action
 
   const ChatInputBottomControls({
     super.key,
@@ -22,6 +23,7 @@ class ChatInputBottomControls extends ConsumerWidget {
     required this.onCancel,
     required this.onShowFileOptions,
     required this.onShowTextInput,
+    this.onGenerateMostUsedMode,
   });
 
   @override
@@ -35,8 +37,11 @@ class ChatInputBottomControls extends ConsumerWidget {
             state.currentContent!.type == ChatInputType.audio;
 
     Widget buildLeft() {
+      // We always wrap the icon with the same horizontal padding so the
+      // center record button stays perfectly centered regardless of state.
+      Widget icon;
       if (isRecording) {
-        return _SmallCircleIcon(
+        icon = _SmallCircleIcon(
           icon: state.isRecordingPaused ? Icons.play_arrow : Icons.pause,
           color: Colors.orange,
           tooltip: state.isRecordingPaused ? 'Resume' : 'Pause',
@@ -44,20 +49,24 @@ class ChatInputBottomControls extends ConsumerWidget {
               ? bloc.resumeRecording()
               : bloc.pauseRecording(),
         );
-      }
-      if (recordingFinished || hasAttachmentOrText) {
-        return _SmallCircleIcon(
+      } else if (recordingFinished || hasAttachmentOrText) {
+        icon = _SmallCircleIcon(
           icon: Icons.close,
           color: Theme.of(context).colorScheme.error,
           tooltip: 'Cancel',
           onTap: onCancel,
         );
+      } else {
+        icon = _SmallCircleIcon(
+          icon: Icons.attach_file_outlined,
+          color: Theme.of(context).colorScheme.primary,
+          tooltip: 'Attach',
+          onTap: state.isLoading ? null : onShowFileOptions,
+        );
       }
-      return _SmallCircleIcon(
-        icon: Icons.attach_file_outlined,
-        color: Theme.of(context).colorScheme.primary,
-        tooltip: 'Attach',
-        onTap: state.isLoading ? null : onShowFileOptions,
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: icon,
       );
     }
 
@@ -97,13 +106,13 @@ class ChatInputBottomControls extends ConsumerWidget {
           const Spacer(),
           buildCenter(),
           const Spacer(),
-          Opacity(
-            opacity: 0.0,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: _SmallCircleIcon(
-              icon: Icons.more_horiz,
+              icon: Icons.auto_awesome,
               color: Theme.of(context).colorScheme.primary,
-              tooltip: '',
-              onTap: null,
+              tooltip: 'Generate (Most Used Mode)',
+              onTap: state.isLoading ? null : onGenerateMostUsedMode,
             ),
           ),
         ],

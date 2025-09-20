@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../bloc/chat_input_bloc.dart';
 import '../models/chat_input.dart';
@@ -7,6 +6,11 @@ import '../services/feedback_service.dart';
 import '../models/chat_input_state.dart';
 import 'widgets/chat_input_content_preview.dart';
 import 'widgets/chat_input_bottom_controls.dart';
+import '../../mode_output/data/mode_outputs_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+// Removed mode_output_bloc import since we only navigate now instead of forcing generation
+// import '../../mode_output/bloc/mode_output_bloc.dart';
+import '../../../routing/routes/app_routes.dart';
 
 /// Simplified and beautified chat input widget (stateless)
 /// Layout:
@@ -18,6 +22,7 @@ class ChatInputWidget extends ConsumerWidget {
   final VoidCallback? onSend;
   final String? hintText;
   final EdgeInsets? padding;
+  final bool autoStartRecording;
 
   const ChatInputWidget({
     super.key,
@@ -25,15 +30,18 @@ class ChatInputWidget extends ConsumerWidget {
     this.onSend,
     this.hintText,
     this.padding,
+    this.autoStartRecording = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chatInputBloc = ref.read(chatInputBlocProvider.notifier);
-    final state = ref.watch(chatInputBlocProvider);
+    final provider =
+        chatInputBlocProvider(autoStartRecording: autoStartRecording);
+    final chatInputBloc = ref.read(provider.notifier);
+    final state = ref.watch(provider);
 
     final feedback = ref.read(feedbackServiceProvider);
-    ref.listen<ChatInputState>(chatInputBlocProvider, (prev, next) async {
+    ref.listen<ChatInputState>(provider, (prev, next) async {
       final prevAudio = prev?.audioState;
       final curr = next.audioState;
       if (curr.triggerStartFeedback &&
@@ -77,6 +85,8 @@ class ChatInputWidget extends ConsumerWidget {
               onCancel: () => _handleCancel(chatInputBloc, state),
               onShowFileOptions: () => _showFileOptions(context, chatInputBloc),
               onShowTextInput: () => _showTextInput(context, chatInputBloc),
+              onGenerateMostUsedMode: () =>
+                  _handleGenerateMostUsedMode(context, ref),
             ),
           ],
         ),
@@ -231,6 +241,37 @@ class ChatInputWidget extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _handleGenerateMostUsedMode(
+      BuildContext context, WidgetRef ref) async {
+    // Need a thread id to open mode output page
+    if (threadId == null) return; // Silent no-op if no thread yet
+    final repo = ref.read(modeOutputsRepositoryProvider);
+    // Previous implementation looked at global recent generations, which may
+    // exclude this thread's outputs if they are older than the global lookback
+    // window or simply not among the most recent outputs overall. We switch to
+    // fetching the latest mode used within this specific thread for more
+    // predictable behavior.
+    // We want the globally most used mode across all threads (recent window),
+    // falling back to latest for this thread if global is null.
+    final mode = await repo.getGloballyMostUsedMode() ??
+        await repo.getLatestUsedModeForThread(threadId!);
+    if (mode == null) {
+      if (ScaffoldMessenger.maybeOf(context) != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No mode outputs yet for this project'),
+          ),
+        );
+      }
+      return;
+    }
+    // Just navigate to the route, do NOT trigger a new generation.
+    ModeOutputRoute(
+      threadId: threadId!.toString(),
+      modeId: mode.id.toString(),
+    ).push<void>(context);
   }
 }
 

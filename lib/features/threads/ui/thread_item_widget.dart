@@ -7,6 +7,9 @@ class ThreadItemWidget extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onOpenLatestOutput; // New action: open latest mode output
+  final VoidCallback?
+      onQuickRecord; // New action: jump to chat & start recording
   final bool isDeleting;
 
   const ThreadItemWidget({
@@ -15,6 +18,8 @@ class ThreadItemWidget extends StatelessWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
+    this.onOpenLatestOutput,
+    this.onQuickRecord,
     this.isDeleting = false,
   });
 
@@ -24,61 +29,90 @@ class ThreadItemWidget extends StatelessWidget {
       opacity: isDeleting ? 0.5 : 1,
       child: Card(
         margin: const EdgeInsets.only(bottom: 12.0),
-        child: ListTile(
-          contentPadding: const EdgeInsets.all(16.0),
-          leading: CircleAvatar(
-            backgroundColor:
-                Theme.of(context).primaryColor.withValues(alpha: 0.1),
-            child: Icon(
-              Icons.chat_bubble_outline,
-              color: Theme.of(context).primaryColor,
-            ),
-          ),
-          title: Text(
-            thread.name.isEmpty ? 'Untitled Thread' : thread.name,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          subtitle: Text(
-            _formatDate(thread.createdAt),
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 12,
-            ),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isDeleting)
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              else ...[
-                IconButton(
-                  icon: const Icon(Icons.edit, size: 20),
-                  onPressed: onEdit,
-                  tooltip: 'Edit thread',
-                  constraints: const BoxConstraints(
-                    minWidth: 32,
-                    minHeight: 32,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  onPressed: onDelete,
-                  tooltip: 'Delete thread',
-                  constraints: const BoxConstraints(
-                    minWidth: 32,
-                    minHeight: 32,
-                  ),
-                ),
-              ]
-            ],
-          ),
+        child: InkWell(
           onTap: isDeleting ? null : onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor:
+                      Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                  child: Icon(
+                    Icons.chat_bubble_outline,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        thread.name.isEmpty ? 'Untitled Thread' : thread.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _formatDate(thread.createdAt),
+                        maxLines: 1,
+                        overflow: TextOverflow.fade,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (isDeleting)
+                        const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              if (onOpenLatestOutput != null)
+                                IconButton(
+                                  icon: const Icon(Icons.auto_awesome),
+                                  tooltip: 'Latest output',
+                                  onPressed: onOpenLatestOutput,
+                                ),
+                              if (onQuickRecord != null)
+                                IconButton(
+                                  icon: const Icon(Icons.mic),
+                                  tooltip: 'Quick record',
+                                  onPressed: onQuickRecord,
+                                ),
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                tooltip: 'Edit project',
+                                onPressed: onEdit,
+                              ),
+                              if (onDelete != null)
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline),
+                                  tooltip: 'Delete project',
+                                  onPressed: onDelete,
+                                ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -113,3 +147,5 @@ class ThreadItemWidget extends StatelessWidget {
     }
   }
 }
+
+// Removed _SmallIconButton; using standard IconButton for accessible targets.

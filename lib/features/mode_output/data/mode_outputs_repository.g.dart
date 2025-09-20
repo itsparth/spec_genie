@@ -26,7 +26,7 @@ final class ModeOutputsRepositoryProvider extends $FunctionalProvider<
           argument: null,
           retry: null,
           name: r'modeOutputsRepositoryProvider',
-          isAutoDispose: true,
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
@@ -55,4 +55,4 @@ final class ModeOutputsRepositoryProvider extends $FunctionalProvider<
 }
 
 String _$modeOutputsRepositoryHash() =>
-    r'c473d0c4c69fc938c02c60b058904a97012fdfed';
+    r'048ed7a23d47331867efffea8802d70603e604ee';

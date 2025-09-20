@@ -5,36 +5,31 @@ import '../../../routing/routes/app_routes.dart';
 import '../../modes/bloc/modes_bloc.dart';
 import '../bloc/chat_bloc.dart';
 import '../models/chat_state.dart';
+import '../bloc/chat_input_bloc.dart';
+// Removed unused chat_input_state import after refactor
 import 'chat_input_widget.dart';
 import 'message_item_widget.dart';
 
 /// Main chat view page that displays messages and chat input
-class ChatView extends ConsumerStatefulWidget {
+class ChatView extends ConsumerWidget {
   final int? threadId;
+  final bool autoStartRecording;
 
   const ChatView({
     super.key,
     required this.threadId,
+    this.autoStartRecording = false,
   });
 
   @override
-  ConsumerState<ChatView> createState() => _ChatViewState();
-}
-
-class _ChatViewState extends ConsumerState<ChatView> {
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ScrollController scrollController = ScrollController();
     // Watch the chat bloc for both new and existing chats
-    final chatState = ref.watch(chatBlocProvider(widget.threadId));
-    final chatBloc = ref.read(chatBlocProvider(widget.threadId).notifier);
+    final chatState = ref.watch(chatBlocProvider(threadId));
+    final chatBloc = ref.read(chatBlocProvider(threadId).notifier);
+
+    // Ensure chatInputBloc is created with autoStartRecording parameter
+    ref.watch(chatInputBlocProvider(autoStartRecording: autoStartRecording));
 
     return Scaffold(
       appBar: AppBar(
@@ -43,7 +38,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
         actions: [
           IconButton(
             icon: const Icon(Icons.auto_awesome),
-            onPressed: () => _showModeSelection(context),
+            onPressed: () => _showModeSelection(context, ref),
             tooltip: 'Generate',
           ),
         ],
@@ -52,21 +47,23 @@ class _ChatViewState extends ConsumerState<ChatView> {
         children: [
           // Messages list
           Expanded(
-            child: _buildMessagesList(chatState, chatBloc),
+            child: _buildMessagesList(chatState, chatBloc, scrollController),
           ),
 
           // Chat input at bottom
           ChatInputWidget(
-            threadId: widget.threadId,
-            onSend: _handleSendMessage,
+            threadId: threadId,
+            onSend: () => _handleSendMessage(scrollController),
             padding: const EdgeInsets.all(16),
+            autoStartRecording: autoStartRecording,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMessagesList(ChatState chatState, ChatBloc chatBloc) {
+  Widget _buildMessagesList(ChatState chatState, ChatBloc chatBloc,
+      ScrollController scrollController) {
     if (chatState.isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -74,11 +71,12 @@ class _ChatViewState extends ConsumerState<ChatView> {
     }
 
     if (chatState.messages.isEmpty) {
-      return _buildEmptyState();
+      // Use a Builder to provide a context for theming if needed
+      return Builder(builder: (ctx) => _buildEmptyState(ctx));
     }
 
     return ListView.builder(
-      controller: _scrollController,
+      controller: scrollController,
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: chatState.messages.length,
       itemBuilder: (context, index) {
@@ -91,7 +89,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -128,12 +126,11 @@ class _ChatViewState extends ConsumerState<ChatView> {
     );
   }
 
-  void _handleSendMessage() {
-    // Scroll to bottom when a new message is sent
+  void _handleSendMessage(ScrollController scrollController) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
+      if (scrollController.hasClients) {
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
@@ -141,7 +138,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
     });
   }
 
-  void _showModeSelection(BuildContext context) {
+  void _showModeSelection(BuildContext context, WidgetRef ref) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -150,7 +147,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
           child: Consumer(
             builder: (context, ref, child) {
               final modeState = ref.watch(modesBlocProvider);
-              final chatState = ref.watch(chatBlocProvider(widget.threadId));
+              final chatState = ref.watch(chatBlocProvider(threadId));
 
               return DraggableScrollableSheet(
                 initialChildSize: 0.6,

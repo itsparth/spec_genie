@@ -27,7 +27,7 @@ final class ModeOutputBlocProvider
       : super(
           retry: null,
           name: r'modeOutputBlocProvider',
-          isAutoDispose: true,
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
@@ -65,7 +65,7 @@ final class ModeOutputBlocProvider
   }
 }
 
-String _$modeOutputBlocHash() => r'8e1c97833c4b3b244efb3ddd85220dd4ae05e978';
+String _$modeOutputBlocHash() => r'be0794d29e7f57d093975cd2e1f31ddb56265da1';
 
 /// Manages mode outputs for a specific thread and mode combination
 
@@ -86,7 +86,7 @@ final class ModeOutputBlocFamily extends $Family
           name: r'modeOutputBlocProvider',
           dependencies: null,
           $allTransitiveDependencies: null,
-          isAutoDispose: true,
+          isAutoDispose: false,
         );
 
   /// Manages mode outputs for a specific thread and mode combination
