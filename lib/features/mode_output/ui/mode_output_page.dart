@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gpt_markdown/gpt_markdown.dart';
 
 import '../bloc/mode_output_bloc.dart';
-import '../bloc/mode_outputs_state.dart';
+import '../models/mode_outputs_state.dart';
 
 /// Main mode output page that displays generated outputs for a specific thread and mode
 class ModeOutputPage extends ConsumerWidget {
@@ -66,7 +66,7 @@ class ModeOutputPage extends ConsumerWidget {
                     ? Theme.of(context)
                         .colorScheme
                         .errorContainer
-                        .withOpacity(0.1)
+                        .withValues(alpha: 0.1)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -78,7 +78,7 @@ class ModeOutputPage extends ConsumerWidget {
                       : Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.3),
+                          .withValues(alpha: 0.3),
                 ),
                 onPressed: outputState.outputs.length > 1
                     ? () => _showDeleteConfirmation(context, outputBloc)
@@ -96,7 +96,7 @@ class ModeOutputPage extends ConsumerWidget {
             end: Alignment.bottomCenter,
             colors: [
               Theme.of(context).colorScheme.surface,
-              Theme.of(context).colorScheme.surface.withOpacity(0.95),
+              Theme.of(context).colorScheme.surface.withValues(alpha: 0.95),
             ],
           ),
         ),
@@ -113,7 +113,8 @@ class ModeOutputPage extends ConsumerWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -141,7 +142,7 @@ class ModeOutputPage extends ConsumerWidget {
                   }
                 },
           backgroundColor: outputState.isGenerating
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.6)
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.6)
               : Theme.of(context).colorScheme.primary,
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
           elevation: 0,
@@ -201,11 +202,14 @@ class ModeOutputPage extends ConsumerWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                        Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.2),
                         Theme.of(context)
                             .colorScheme
                             .primaryContainer
-                            .withOpacity(0.4),
+                            .withValues(alpha: 0.4),
                       ],
                     ),
                     boxShadow: [
@@ -213,7 +217,7 @@ class ModeOutputPage extends ConsumerWidget {
                         color: Theme.of(context)
                             .colorScheme
                             .primary
-                            .withOpacity(0.2),
+                            .withValues(alpha: 0.2),
                         blurRadius: 20,
                         spreadRadius: 2,
                       ),
@@ -231,7 +235,7 @@ class ModeOutputPage extends ConsumerWidget {
                           Theme.of(context)
                               .colorScheme
                               .primary
-                              .withOpacity(0.8),
+                              .withValues(alpha: 0.8),
                         ],
                       ),
                     ),
@@ -263,8 +267,10 @@ class ModeOutputPage extends ConsumerWidget {
             'Crafting something amazing for you',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.7),
                   letterSpacing: 0.3,
                 ),
           ),
@@ -274,7 +280,7 @@ class ModeOutputPage extends ConsumerWidget {
             height: 2,
             child: LinearProgressIndicator(
               backgroundColor:
-                  Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
               valueColor: AlwaysStoppedAnimation<Color>(
                 Theme.of(context).colorScheme.primary,
               ),
@@ -306,14 +312,19 @@ class ModeOutputPage extends ConsumerWidget {
                     Theme.of(context)
                         .colorScheme
                         .primaryContainer
-                        .withOpacity(0.3),
-                    Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        .withValues(alpha: 0.3),
+                    Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.1),
                   ],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.1),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
@@ -323,7 +334,10 @@ class ModeOutputPage extends ConsumerWidget {
                 child: Icon(
                   Icons.auto_awesome_rounded,
                   size: 80,
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.8),
                 ),
               ),
             ),
@@ -347,7 +361,7 @@ class ModeOutputPage extends ConsumerWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7),
+                          .withValues(alpha: 0.7),
                       height: 1.5,
                       letterSpacing: 0.2,
                     ),
@@ -360,8 +374,10 @@ class ModeOutputPage extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -398,10 +414,13 @@ class ModeOutputPage extends ConsumerWidget {
                 color: Theme.of(context)
                     .colorScheme
                     .surfaceContainer
-                    .withOpacity(0.5),
+                    .withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
@@ -419,7 +438,7 @@ class ModeOutputPage extends ConsumerWidget {
                           color: Theme.of(context)
                               .colorScheme
                               .onSurface
-                              .withOpacity(0.6),
+                              .withValues(alpha: 0.6),
                           fontWeight: FontWeight.w500,
                         ),
                   ),
@@ -454,7 +473,10 @@ class ModeOutputPage extends ConsumerWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).colorScheme.shadow.withOpacity(0.05),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .shadow
+                      .withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -465,7 +487,10 @@ class ModeOutputPage extends ConsumerWidget {
                 Container(
                   decoration: BoxDecoration(
                     color: outputState.canGoBack
-                        ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                        ? Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.1)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -477,7 +502,7 @@ class ModeOutputPage extends ConsumerWidget {
                           : Theme.of(context)
                               .colorScheme
                               .onSurface
-                              .withOpacity(0.3),
+                              .withValues(alpha: 0.3),
                     ),
                     onPressed: outputState.canGoBack
                         ? outputBloc.goToPreviousOutput
@@ -509,7 +534,7 @@ class ModeOutputPage extends ConsumerWidget {
                                     color: Theme.of(context)
                                         .colorScheme
                                         .onSurface
-                                        .withOpacity(0.6),
+                                        .withValues(alpha: 0.6),
                                   ),
                         ),
                       ],
@@ -519,7 +544,10 @@ class ModeOutputPage extends ConsumerWidget {
                 Container(
                   decoration: BoxDecoration(
                     color: outputState.canGoForward
-                        ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                        ? Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.1)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -531,7 +559,7 @@ class ModeOutputPage extends ConsumerWidget {
                           : Theme.of(context)
                               .colorScheme
                               .onSurface
-                              .withOpacity(0.3),
+                              .withValues(alpha: 0.3),
                     ),
                     onPressed: outputState.canGoForward
                         ? outputBloc.goToNextOutput
@@ -561,7 +589,7 @@ class ModeOutputPage extends ConsumerWidget {
                         color: Theme.of(context)
                             .colorScheme
                             .shadow
-                            .withOpacity(0.08),
+                            .withValues(alpha: 0.08),
                         blurRadius: 20,
                         offset: const Offset(0, 4),
                       ),
@@ -570,7 +598,7 @@ class ModeOutputPage extends ConsumerWidget {
                       color: Theme.of(context)
                           .colorScheme
                           .outline
-                          .withOpacity(0.1),
+                          .withValues(alpha: 0.1),
                       width: 1,
                     ),
                   ),
@@ -591,7 +619,7 @@ class ModeOutputPage extends ConsumerWidget {
                                     color: Theme.of(context)
                                         .colorScheme
                                         .primaryContainer
-                                        .withOpacity(0.7),
+                                        .withValues(alpha: 0.7),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Row(
@@ -633,7 +661,7 @@ class ModeOutputPage extends ConsumerWidget {
                                         color: Theme.of(context)
                                             .colorScheme
                                             .shadow
-                                            .withOpacity(0.1),
+                                            .withValues(alpha: 0.1),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
@@ -656,7 +684,7 @@ class ModeOutputPage extends ConsumerWidget {
                                               color: Theme.of(context)
                                                   .colorScheme
                                                   .onSurface
-                                                  .withOpacity(0.8),
+                                                  .withValues(alpha: 0.8),
                                             ),
                                             const SizedBox(width: 6),
                                             Text(
@@ -668,7 +696,7 @@ class ModeOutputPage extends ConsumerWidget {
                                                     color: Theme.of(context)
                                                         .colorScheme
                                                         .onSurface
-                                                        .withOpacity(0.8),
+                                                        .withValues(alpha: 0.8),
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                             ),
@@ -700,13 +728,13 @@ class ModeOutputPage extends ConsumerWidget {
                     color: Theme.of(context)
                         .colorScheme
                         .surfaceContainer
-                        .withOpacity(0.5),
+                        .withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: Theme.of(context)
                           .colorScheme
                           .outline
-                          .withOpacity(0.1),
+                          .withValues(alpha: 0.1),
                     ),
                   ),
                   child: Row(
@@ -717,7 +745,7 @@ class ModeOutputPage extends ConsumerWidget {
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.6),
+                            .withValues(alpha: 0.6),
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -726,7 +754,7 @@ class ModeOutputPage extends ConsumerWidget {
                               color: Theme.of(context)
                                   .colorScheme
                                   .onSurface
-                                  .withOpacity(0.6),
+                                  .withValues(alpha: 0.6),
                               fontWeight: FontWeight.w500,
                             ),
                       ),
@@ -775,7 +803,7 @@ class ModeOutputPage extends ConsumerWidget {
                 color: Theme.of(context)
                     .colorScheme
                     .errorContainer
-                    .withOpacity(0.3),
+                    .withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -797,7 +825,8 @@ class ModeOutputPage extends ConsumerWidget {
         content: Text(
           'Are you sure you want to delete this output? This action cannot be undone.',
           style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
             height: 1.4,
           ),
         ),
@@ -805,8 +834,10 @@ class ModeOutputPage extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             style: TextButton.styleFrom(
-              foregroundColor:
-                  Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              foregroundColor: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

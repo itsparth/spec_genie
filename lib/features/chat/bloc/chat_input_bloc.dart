@@ -15,7 +15,7 @@ import '../../tags/models/tag.dart';
 import '../models/chat_input.dart';
 import '../utils/input_utils.dart';
 import '../utils/chat_input_converter.dart';
-import 'chat_input_state.dart';
+import '../models/chat_input_state.dart';
 import 'chat_bloc.dart';
 
 part 'chat_input_bloc.g.dart';
@@ -27,16 +27,15 @@ class ChatInputBloc extends _$ChatInputBloc {
   late final AudioRecorder _audioRecorder;
   late final picker.ImagePicker _imagePicker;
   late final TextEditingController _textController;
-  late final TextEditingController _descriptionController;
   Timer? _recordingTimer;
   Timer? _amplitudeTimer;
+  Timer? _pulseTimer;
 
   @override
   ChatInputState build() {
     _audioRecorder = AudioRecorder();
     _imagePicker = picker.ImagePicker();
     _textController = TextEditingController();
-    _descriptionController = TextEditingController();
 
     // Listen to text changes from the controller
     _textController.addListener(() {
@@ -45,20 +44,13 @@ class ChatInputBloc extends _$ChatInputBloc {
       }
     });
 
-    // Listen to description changes from the controller
-    _descriptionController.addListener(() {
-      if (state.description != _descriptionController.text) {
-        state = state.copyWith(description: _descriptionController.text);
-      }
-    });
-
     // Clean up resources when the provider is disposed
     ref.onDispose(() {
       _audioRecorder.dispose();
       _textController.dispose();
-      _descriptionController.dispose();
       _recordingTimer?.cancel();
       _amplitudeTimer?.cancel();
+      _pulseTimer?.cancel();
     });
 
     return const ChatInputState();
@@ -66,9 +58,6 @@ class ChatInputBloc extends _$ChatInputBloc {
 
   // Getter for text controller
   TextEditingController get textController => _textController;
-
-  // Getter for description controller
-  TextEditingController get descriptionController => _descriptionController;
 
   // Text input methods
   void updateTextInput(String text) {
@@ -81,19 +70,6 @@ class ChatInputBloc extends _$ChatInputBloc {
   void clearTextInput() {
     state = state.copyWith(textInput: '');
     _textController.clear();
-  }
-
-  // Description methods
-  void updateDescription(String description) {
-    state = state.copyWith(description: description);
-    if (_descriptionController.text != description) {
-      _descriptionController.text = description;
-    }
-  }
-
-  void clearDescription() {
-    state = state.copyWith(description: '');
-    _descriptionController.clear();
   }
 
   // Content management (single content only)
@@ -150,6 +126,18 @@ class ChatInputBloc extends _$ChatInputBloc {
   }
 
   // Audio recording methods
+  void _startRecordingVisuals() {
+    _startRecordingTimer();
+    _startAmplitudeMonitoring();
+    _startPulseTimer();
+  }
+
+  void _stopRecordingVisuals() {
+    _stopRecordingTimer();
+    _stopAmplitudeMonitoring();
+    _stopPulseTimer();
+  }
+
   Future<void> startRecording({AudioRecordingConfig? config}) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
@@ -189,14 +177,12 @@ class ChatInputBloc extends _$ChatInputBloc {
           duration: Duration.zero,
           hasPermission: true,
           error: null,
+          triggerStartFeedback: true,
+          triggerStopFeedback: false,
         ),
       );
 
-      // Start recording timer
-      _startRecordingTimer();
-
-      // Start amplitude monitoring
-      _startAmplitudeMonitoring();
+      _startRecordingVisuals();
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -214,8 +200,7 @@ class ChatInputBloc extends _$ChatInputBloc {
       state = state.copyWith(isLoading: true);
 
       final filePath = await _audioRecorder.stop();
-      _stopRecordingTimer();
-      _stopAmplitudeMonitoring();
+      _stopRecordingVisuals();
 
       if (filePath != null) {
         // Just stop recording and update state, don't add to pending inputs yet
@@ -224,6 +209,8 @@ class ChatInputBloc extends _$ChatInputBloc {
           audioState: state.audioState.copyWith(
             status: RecordingStatus.stopped,
             filePath: filePath,
+            triggerStartFeedback: false,
+            triggerStopFeedback: true,
           ),
         );
       } else {
@@ -285,14 +272,16 @@ class ChatInputBloc extends _$ChatInputBloc {
   Future<void> pauseRecording() async {
     try {
       await _audioRecorder.pause();
-      _recordingTimer?.cancel();
-      _amplitudeTimer?.cancel();
+      _stopRecordingVisuals();
 
       state = state.copyWith(
         audioState: state.audioState.copyWith(
           status: RecordingStatus.paused,
+          triggerStartFeedback: false,
+          triggerStopFeedback: false,
         ),
       );
+      _startPulseTimer();
     } catch (e) {
       state = state.copyWith(
         error: 'Failed to pause recording: $e',
@@ -307,12 +296,13 @@ class ChatInputBloc extends _$ChatInputBloc {
   Future<void> resumeRecording() async {
     try {
       await _audioRecorder.resume();
-      _startRecordingTimer();
-      _startAmplitudeMonitoring();
+      _startRecordingVisuals();
 
       state = state.copyWith(
         audioState: state.audioState.copyWith(
           status: RecordingStatus.recording,
+          triggerStartFeedback: true,
+          triggerStopFeedback: false,
         ),
       );
     } catch (e) {
@@ -332,8 +322,7 @@ class ChatInputBloc extends _$ChatInputBloc {
 
       // Stop recording without saving
       await _audioRecorder.stop();
-      _stopRecordingTimer();
-      _stopAmplitudeMonitoring();
+      _stopRecordingVisuals();
 
       // Delete the recording file if it exists
       final filePath = state.audioState.filePath;
@@ -531,32 +520,18 @@ class ChatInputBloc extends _$ChatInputBloc {
         tagsToAttach = selectedTags.toList();
       }
 
-      // Convert each input to a message and let ChatBloc handle thread creation
+      // Convert each input to a message and let ChatBloc handle thread creation & naming.
+      // (Thread name generation moved entirely to ChatBloc.)
       for (final input in inputs) {
         final message = ChatInputConverter.convertChatInputToMessage(input);
-
-        // Attach tags to the message
         if (tagsToAttach.isNotEmpty) {
           message.tags.addAll(tagsToAttach);
         }
-
-        // For the first message, generate thread name from text input if available
-        String? threadName;
-        if (threadId == null &&
-            input is TextChatInput &&
-            input.text.isNotEmpty) {
-          threadName = input.text.length <= 50
-              ? input.text
-              : '${input.text.substring(0, 47)}...';
-        }
-
-        // ChatBloc will handle thread creation if needed
-        await chatBloc.addMessage(message, threadName: threadName);
+        await chatBloc.addMessage(message); // no threadName passed anymore
       }
     } catch (e) {
-      // TODO: Handle error - maybe show a snackbar or add to error state
-      // For now, just rethrow
-      rethrow;
+      // Record error so UI can react (snackbar, banner, etc.).
+      state = state.copyWith(error: 'Failed to send message: $e');
     }
   }
 
@@ -641,5 +616,36 @@ class ChatInputBloc extends _$ChatInputBloc {
   void _stopAmplitudeMonitoring() {
     _amplitudeTimer?.cancel();
     _amplitudeTimer = null;
+  }
+
+  void _startPulseTimer() {
+    // 60fps approx -> every ~16ms
+    _pulseTimer = Timer.periodic(const Duration(milliseconds: 40), (timer) {
+      final current = state.audioState.pulsePhase;
+      // Advance phase and wrap
+      final next = (current + 0.04) % 1.0; // adjustable speed
+      state = state.copyWith(
+        audioState: state.audioState.copyWith(
+          pulsePhase: next,
+        ),
+      );
+    });
+  }
+
+  void _stopPulseTimer() {
+    _pulseTimer?.cancel();
+    _pulseTimer = null;
+  }
+
+  // Acknowledge feedback triggers so UI won't re-fire.
+  void ackRecordingFeedback() {
+    final audio = state.audioState;
+    if (!audio.triggerStartFeedback && !audio.triggerStopFeedback) return;
+    state = state.copyWith(
+      audioState: audio.copyWith(
+        triggerStartFeedback: false,
+        triggerStopFeedback: false,
+      ),
+    );
   }
 }

@@ -14,7 +14,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
   static ChatStateMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = ChatStateMapper._());
-      MessageStateMapper.ensureInitialized();
+      MessageMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -28,8 +28,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     _$threadId,
     opt: true,
   );
-  static IList<MessageState> _$messages(ChatState v) => v.messages;
-  static const Field<ChatState, IList<MessageState>> _f$messages = Field(
+  static IList<Message> _$messages(ChatState v) => v.messages;
+  static const Field<ChatState, IList<Message>> _f$messages = Field(
     'messages',
     _$messages,
     opt: true,
@@ -117,7 +117,7 @@ extension ChatStateValueCopy<$R, $Out> on ObjectCopyWith<$R, ChatState, $Out> {
 
 abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({int? threadId, IList<MessageState>? messages, bool? isLoading});
+  $R call({int? threadId, IList<Message>? messages, bool? isLoading});
   ChatStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -132,7 +132,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
   @override
   $R call({
     Object? threadId = $none,
-    IList<MessageState>? messages,
+    IList<Message>? messages,
     bool? isLoading,
   }) => $apply(
     FieldCopyWithData({

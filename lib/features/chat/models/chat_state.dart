@@ -1,14 +1,15 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
-import 'message_state.dart';
+import 'message.dart';
 
 part 'chat_state.mapper.dart';
 
 @MappableClass()
 class ChatState with ChatStateMappable {
   final int? threadId;
-  final IList<MessageState> messages;
+  // Now only the raw messages are stored; per-message UI/process state lives in MessageBloc
+  final IList<Message> messages;
   final bool isLoading;
 
   const ChatState({

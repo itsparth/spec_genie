@@ -1,6 +1,6 @@
 import 'package:dart_mappable/dart_mappable.dart';
 
-import '../models/mode_output.dart';
+import 'mode_output.dart';
 
 part 'mode_output_state.mapper.dart';
 

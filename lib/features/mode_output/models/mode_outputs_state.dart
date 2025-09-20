@@ -1,8 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-
-import '../models/mode_output.dart';
-import '../../modes/models/mode.dart';
+import 'package:spec_genie/features/mode_output/models/mode_output.dart';
+import 'package:spec_genie/features/modes/models/mode.dart';
 
 part 'mode_outputs_state.mapper.dart';
 

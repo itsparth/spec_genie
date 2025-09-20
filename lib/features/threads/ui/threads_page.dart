@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../routing/routes/app_routes.dart';
 import '../bloc/threads_bloc.dart';
+import '../bloc/threads_state.dart';
 import '../models/thread.dart';
 import 'thread_item_widget.dart';
 
@@ -11,7 +12,12 @@ class ThreadsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final threads = ref.watch(threadsBlocProvider);
+    final ThreadsState state = ref.watch(threadsBlocProvider);
+    final notifier = ref.read(threadsBlocProvider.notifier);
+    // Prefer enriched threadItems if available, else fall back to raw threads
+    final items = state.threadItems.isNotEmpty
+        ? state.threadItems
+        : state.threads.map((t) => ThreadItemState(thread: t)).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -50,25 +56,48 @@ class ThreadsPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: threads.isEmpty
-          ? const _EmptyThreadsView()
-          : ListView.builder(
+      body: Builder(
+        builder: (context) {
+          if (state.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state.error != null) {
+            return _ErrorView(
+              error: state.error!,
+              onRetry: () => notifier.reload(),
+            );
+          }
+          if (items.isEmpty) {
+            return const _EmptyThreadsView();
+          }
+          return RefreshIndicator(
+            onRefresh: () async => notifier.reload(),
+            child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16.0),
-              itemCount: threads.length,
+              itemCount: items.length,
               itemBuilder: (context, index) {
-                final thread = threads[index];
+                final item = items[index];
+                final thread = item.thread;
+                final isDeleting = state.deletingIds.contains(thread.id);
                 return ThreadItemWidget(
                   thread: thread,
+                  isDeleting: isDeleting,
                   onTap: () => _onThreadTap(context, thread),
                   onEdit: () => _onEditThread(context, ref, thread),
-                  onDelete: () => _onDeleteThread(context, ref, thread),
+                  onDelete: isDeleting
+                      ? null
+                      : () => _onDeleteThread(context, ref, thread),
                 );
               },
             ),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           // Navigate to new chat page
-          const ChatRoute(threadId: 'new').push(context);
+          const ChatRoute(threadId: 'new').push<void>(context);
         },
         icon: const Icon(Icons.add),
         label: const Text('Create'),
@@ -159,15 +188,56 @@ class ThreadsPage extends ConsumerWidget {
   void _onSettingsSelected(BuildContext context, String value) {
     switch (value) {
       case 'model':
-        const ModelConfigurationRoute().push(context);
+        const ModelConfigurationRoute().push<void>(context);
         break;
       case 'modes':
-        const ModesRoute().push(context);
+        const ModesRoute().push<void>(context);
         break;
       case 'tags':
-        const TagsRoute().push(context);
+        const TagsRoute().push<void>(context);
         break;
     }
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  final Object error;
+  final VoidCallback onRetry;
+  const _ErrorView({required this.error, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
+            const SizedBox(height: 12),
+            Text(
+              'Failed to load projects',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error.toString(),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: Colors.redAccent),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            )
+          ],
+        ),
+      ),
+    );
   }
 }
 

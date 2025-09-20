@@ -55,7 +55,7 @@ final class TagsBlocProvider extends $NotifierProvider<TagsBloc, TagState> {
   }
 }
 
-String _$tagsBlocHash() => r'10e8350e63250924ea006c2ff7106196f26a5292';
+String _$tagsBlocHash() => r'5f598d9dfa4c2badecf60330e45cbbf6481918bb';
 
 /// Bloc responsible for managing tags list & persistence.
 /// Capabilities:

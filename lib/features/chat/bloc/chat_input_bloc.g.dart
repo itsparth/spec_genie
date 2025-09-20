@@ -44,7 +44,7 @@ final class ChatInputBlocProvider
   }
 }
 
-String _$chatInputBlocHash() => r'a296a8d05ada3b0693698cb1051bcac27693707a';
+String _$chatInputBlocHash() => r'9e4b34653e4d7a10000fe63fc88e5741ba9a7fde';
 
 /// Manages chat input state for a specific thread
 

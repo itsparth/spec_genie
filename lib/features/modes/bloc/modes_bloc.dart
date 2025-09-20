@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:isar_community/isar.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:spec_genie/features/shared/isar/isar_provider.dart';
+import 'package:spec_genie/features/modes/data/modes_repository.dart';
+import 'package:spec_genie/features/modes/data/modes_providers.dart';
 import '../models/mode.dart';
 import 'mode_state.dart';
 
@@ -9,83 +9,33 @@ part 'modes_bloc.g.dart';
 
 /// Bloc responsible for managing modes list & persistence.
 /// Capabilities:
-///  - Load existing modes from Isar on build.
-///  - Insert a default (non-editable) mode if database empty.
-///  - CRUD operations for editable modes only.
-///  - (Selection removed per current requirements)
+///  - Provides CRUD operations for editable modes.
+///  - List state derives from watchAllModesProvider stream; no manual seeding here.
 @riverpod
 class ModesBloc extends _$ModesBloc {
-  final _defaultModes = [
-    Mode(
-      id: Isar.autoIncrement,
-      name: 'Summary',
-      prompt:
-          'Organize the content into a concise, well-structured summary capturing all key points.',
-    ),
-    Mode(
-      id: Isar.autoIncrement,
-      name: 'Spec',
-      prompt:
-          'Organize the content into a product specification with: Overview, Goals/Non-Goals, Scope, Constraints, Stakeholders, Functional/Non-Functional Requirements, User Stories, Data/Integrations, Risks, and Open Questions.',
-    ),
-    Mode(
-      id: Isar.autoIncrement,
-      name: 'Detailed Summary',
-      prompt:
-          'Organize the content into a comprehensive summary with sections: Overview, Key Themes, Detailed Breakdown, Data/Metrics, Decisions/Rationale, Constraints, Edge Cases, Risks, Open Questions, and Potential Inferences.',
-    ),
-  ];
-
   @override
   ModeState build() {
-    final isar = ref.read(isarProvider);
-    // Load existing modes.
-    final existing = isar.modes.where().findAllSync();
-    if (existing.isNotEmpty) {
-      return ModeState(
-        modes: existing.toIList(),
-      );
-    }
-    // Seed defaults asynchronously so build stays synchronous.
-    Future(() async {
-      final db = ref.read(isarProvider);
-      final inserted = <Mode>[];
-      await db.writeTxn(() async {
-        for (final m in _defaultModes) {
-          final id = await db.modes.put(m);
-          final stored = await db.modes.get(id);
-          if (stored != null) inserted.add(stored);
-        }
+    // Listen to stream provider; rebuild state when list changes.
+    ref.listen<AsyncValue<List<Mode>>>(watchAllModesProvider, (prev, next) {
+      next.whenData((list) {
+        state = state.copyWith(modes: list.toIList());
       });
-      if (inserted.isNotEmpty) {
-        // Update state only if still empty (avoid overwriting user changes during race conditions).
-        if (state.modes.isEmpty) {
-          state = state.copyWith(
-            modes: inserted.toIList(),
-          );
-        }
-      }
     });
-    return ModeState.empty;
+    // Initial value from current provider state (avoid wait for listen callback if already loaded)
+    final current = ref.read(watchAllModesProvider);
+    return current.maybeWhen(
+      data: (list) => ModeState(modes: list.toIList()),
+      orElse: () => ModeState.empty,
+    );
   }
 
   /// Create a new editable mode and persist it.
   Future<void> create({required String name, required String prompt}) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
-      final mode = Mode(name: name, prompt: prompt, isEditable: true);
-      await isar.writeTxn(() async {
-        final id = await isar.modes.put(mode);
-        final stored = await isar.modes.get(id);
-        if (stored != null) {
-          final updated = state.modes.add(stored);
-          state = state.copyWith(
-            modes: updated,
-            isSaving: false,
-          );
-        }
-      });
+      final ModesRepository repo = ref.read(modesRepositoryProvider);
+      await repo.addEditableMode(name: name, prompt: prompt);
+      state = state.copyWith(isSaving: false); // list will update via stream
     } finally {
       if (state.isSaving) {
         state = state.copyWith(isSaving: false);
@@ -97,7 +47,6 @@ class ModesBloc extends _$ModesBloc {
   Future<bool> update(int id, {String? name, String? prompt}) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
       final idx = state.modes.indexWhere((m) => m.id == id);
       if (idx == -1) {
         state = state.copyWith(isSaving: false);
@@ -108,16 +57,10 @@ class ModesBloc extends _$ModesBloc {
         state = state.copyWith(isSaving: false);
         return false;
       }
-      final updated = original.copyWith(
-        name: name ?? original.name,
-        prompt: prompt ?? original.prompt,
-      );
-      return await isar.writeTxn(() async {
-        await isar.modes.put(updated);
-        final updatedModes = state.modes.replace(idx, updated);
-        state = state.copyWith(modes: updatedModes, isSaving: false);
-        return true;
-      });
+      final ModesRepository repo = ref.read(modesRepositoryProvider);
+      final updated = await repo.updateMode(id, name: name, prompt: prompt);
+      state = state.copyWith(isSaving: false);
+      return updated != null;
     } finally {
       if (state.isSaving) {
         state = state.copyWith(isSaving: false);
@@ -129,7 +72,6 @@ class ModesBloc extends _$ModesBloc {
   Future<bool> remove(int id) async {
     state = state.copyWith(isSaving: true);
     try {
-      final isar = ref.read(isarProvider);
       final idx = state.modes.indexWhere((m) => m.id == id);
       if (idx == -1) {
         state = state.copyWith(isSaving: false);
@@ -140,32 +82,14 @@ class ModesBloc extends _$ModesBloc {
         state = state.copyWith(isSaving: false);
         return false;
       }
-      return await isar.writeTxn(() async {
-        final deleted = await isar.modes.delete(id);
-        if (deleted) {
-          final remaining = state.modes.where((m) => m.id != id).toIList();
-          state = state.copyWith(
-            modes: remaining,
-            isSaving: false,
-          );
-        } else {
-          state = state.copyWith(isSaving: false);
-        }
-        return deleted;
-      });
+      final ModesRepository repo = ref.read(modesRepositoryProvider);
+      final deleted = await repo.deleteMode(id);
+      state = state.copyWith(isSaving: false);
+      return deleted;
     } finally {
       if (state.isSaving) {
         state = state.copyWith(isSaving: false);
       }
-    }
-  }
-
-  /// Force reload list from persistence.
-  Future<void> reload() async {
-    final isar = ref.read(isarProvider);
-    final list = await isar.modes.where().findAll();
-    if (list.isNotEmpty) {
-      state = state.copyWith(modes: list.toIList());
     }
   }
 }

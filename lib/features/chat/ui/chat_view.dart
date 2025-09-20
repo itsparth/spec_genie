@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../routing/routes/app_routes.dart';
 import '../../modes/bloc/modes_bloc.dart';
 import '../bloc/chat_bloc.dart';
-import '../bloc/chat_state.dart';
+import '../models/chat_state.dart';
 import 'chat_input_widget.dart';
 import 'message_item_widget.dart';
 
@@ -82,14 +82,10 @@ class _ChatViewState extends ConsumerState<ChatView> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: chatState.messages.length,
       itemBuilder: (context, index) {
-        final messageState = chatState.messages[index];
+        final message = chatState.messages[index];
         return MessageItemWidget(
-          messageState: messageState,
-          onTagsUpdate: (tags) =>
-              chatBloc.updateMessageTags(messageState.message.id, tags),
-          onDescriptionUpdate: (description) => chatBloc
-              .updateMessageDescription(messageState.message.id, description),
-          onDelete: () => chatBloc.removeMessage(messageState.message.id),
+          messageId: message.id,
+          onDelete: () => chatBloc.removeMessage(message.id),
         );
       },
     );
@@ -103,14 +99,17 @@ class _ChatViewState extends ConsumerState<ChatView> {
           Icon(
             Icons.chat_bubble_outline,
             size: 64,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 16),
           Text(
             'Start a conversation',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
                 ),
           ),
           const SizedBox(height: 8),
@@ -118,8 +117,10 @@ class _ChatViewState extends ConsumerState<ChatView> {
             'Type a message, record audio, or add files to begin',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
                 ),
           ),
         ],

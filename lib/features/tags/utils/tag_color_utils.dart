@@ -35,13 +35,13 @@ class TagColorUtils {
   /// Get a lighter version of the tag color for backgrounds
   static Color getTagBackgroundColor(String tagName) {
     final color = getTagColor(tagName);
-    return color.withOpacity(0.1);
+    return color.withValues(alpha: 0.1);
   }
 
   /// Get a border color for the tag
   static Color getTagBorderColor(String tagName) {
     final color = getTagColor(tagName);
-    return color.withOpacity(0.3);
+    return color.withValues(alpha: 0.3);
   }
 
   /// Get appropriate text color for the tag (either white or black based on background)

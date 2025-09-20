@@ -47,6 +47,34 @@ class MessageStateMapper extends ClassMapperBase<MessageState> {
     _$error,
     opt: true,
   );
+  static bool _$isAudioPlaying(MessageState v) => v.isAudioPlaying;
+  static const Field<MessageState, bool> _f$isAudioPlaying = Field(
+    'isAudioPlaying',
+    _$isAudioPlaying,
+    opt: true,
+    def: false,
+  );
+  static bool _$isAudioLoading(MessageState v) => v.isAudioLoading;
+  static const Field<MessageState, bool> _f$isAudioLoading = Field(
+    'isAudioLoading',
+    _$isAudioLoading,
+    opt: true,
+    def: false,
+  );
+  static int _$audioDurationMs(MessageState v) => v.audioDurationMs;
+  static const Field<MessageState, int> _f$audioDurationMs = Field(
+    'audioDurationMs',
+    _$audioDurationMs,
+    opt: true,
+    def: 0,
+  );
+  static int _$audioPositionMs(MessageState v) => v.audioPositionMs;
+  static const Field<MessageState, int> _f$audioPositionMs = Field(
+    'audioPositionMs',
+    _$audioPositionMs,
+    opt: true,
+    def: 0,
+  );
 
   @override
   final MappableFields<MessageState> fields = const {
@@ -54,6 +82,10 @@ class MessageStateMapper extends ClassMapperBase<MessageState> {
     #isSaving: _f$isSaving,
     #isProcessing: _f$isProcessing,
     #error: _f$error,
+    #isAudioPlaying: _f$isAudioPlaying,
+    #isAudioLoading: _f$isAudioLoading,
+    #audioDurationMs: _f$audioDurationMs,
+    #audioPositionMs: _f$audioPositionMs,
   };
 
   static MessageState _instantiate(DecodingData data) {
@@ -62,6 +94,10 @@ class MessageStateMapper extends ClassMapperBase<MessageState> {
       isSaving: data.dec(_f$isSaving),
       isProcessing: data.dec(_f$isProcessing),
       error: data.dec(_f$error),
+      isAudioPlaying: data.dec(_f$isAudioPlaying),
+      isAudioLoading: data.dec(_f$isAudioLoading),
+      audioDurationMs: data.dec(_f$audioDurationMs),
+      audioPositionMs: data.dec(_f$audioPositionMs),
     );
   }
 
@@ -133,6 +169,10 @@ abstract class MessageStateCopyWith<$R, $In extends MessageState, $Out>
     bool? isSaving,
     bool? isProcessing,
     String? error,
+    bool? isAudioPlaying,
+    bool? isAudioLoading,
+    int? audioDurationMs,
+    int? audioPositionMs,
   });
   MessageStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -154,12 +194,20 @@ class _MessageStateCopyWithImpl<$R, $Out>
     bool? isSaving,
     bool? isProcessing,
     Object? error = $none,
+    bool? isAudioPlaying,
+    bool? isAudioLoading,
+    int? audioDurationMs,
+    int? audioPositionMs,
   }) => $apply(
     FieldCopyWithData({
       if (message != null) #message: message,
       if (isSaving != null) #isSaving: isSaving,
       if (isProcessing != null) #isProcessing: isProcessing,
       if (error != $none) #error: error,
+      if (isAudioPlaying != null) #isAudioPlaying: isAudioPlaying,
+      if (isAudioLoading != null) #isAudioLoading: isAudioLoading,
+      if (audioDurationMs != null) #audioDurationMs: audioDurationMs,
+      if (audioPositionMs != null) #audioPositionMs: audioPositionMs,
     }),
   );
   @override
@@ -168,6 +216,10 @@ class _MessageStateCopyWithImpl<$R, $Out>
     isSaving: data.get(#isSaving, or: $value.isSaving),
     isProcessing: data.get(#isProcessing, or: $value.isProcessing),
     error: data.get(#error, or: $value.error),
+    isAudioPlaying: data.get(#isAudioPlaying, or: $value.isAudioPlaying),
+    isAudioLoading: data.get(#isAudioLoading, or: $value.isAudioLoading),
+    audioDurationMs: data.get(#audioDurationMs, or: $value.audioDurationMs),
+    audioPositionMs: data.get(#audioPositionMs, or: $value.audioPositionMs),
   );
 
   @override

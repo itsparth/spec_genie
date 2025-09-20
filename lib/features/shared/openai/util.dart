@@ -74,6 +74,14 @@ class OpenAIUtil {
         parts);
   }
 
+  /// Generate a concise 3-4 word title summarizing the content
+  Future<String> generateTitle(List<ContentPart> parts) async {
+    return generate(
+      "Provide a short 3-4 word title capturing the core idea of the provided content. Return ONLY the title, no punctuation (except needed inside a word), no quotes.",
+      parts,
+    );
+  }
+
   /// Generate complete response
   Future<String> generate(String systemPrompt, List<ContentPart> parts) async {
     final request = CreateChatCompletionRequest(

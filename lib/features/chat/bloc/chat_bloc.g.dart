@@ -59,7 +59,7 @@ final class ChatBlocProvider extends $NotifierProvider<ChatBloc, ChatState> {
   }
 }
 
-String _$chatBlocHash() => r'0b5990b37e634c1d7c7007cd4ff9fcba0714f2d0';
+String _$chatBlocHash() => r'6c913e0c16835656885493bcad9d91eb7ac5e3aa';
 
 /// Manages chat messages for a specific thread
 

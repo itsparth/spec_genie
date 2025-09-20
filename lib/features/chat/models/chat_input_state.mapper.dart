@@ -238,13 +238,6 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
     opt: true,
     def: '',
   );
-  static String _$description(ChatInputState v) => v.description;
-  static const Field<ChatInputState, String> _f$description = Field(
-    'description',
-    _$description,
-    opt: true,
-    def: '',
-  );
   static ChatInput? _$currentContent(ChatInputState v) => v.currentContent;
   static const Field<ChatInputState, ChatInput> _f$currentContent = Field(
     'currentContent',
@@ -320,7 +313,6 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
   final MappableFields<ChatInputState> fields = const {
     #currentMode: _f$currentMode,
     #textInput: _f$textInput,
-    #description: _f$description,
     #currentContent: _f$currentContent,
     #isLoading: _f$isLoading,
     #error: _f$error,
@@ -338,7 +330,6 @@ class ChatInputStateMapper extends ClassMapperBase<ChatInputState> {
     return ChatInputState(
       currentMode: data.dec(_f$currentMode),
       textInput: data.dec(_f$textInput),
-      description: data.dec(_f$description),
       currentContent: data.dec(_f$currentContent),
       isLoading: data.dec(_f$isLoading),
       error: data.dec(_f$error),
@@ -417,7 +408,6 @@ abstract class ChatInputStateCopyWith<$R, $In extends ChatInputState, $Out>
   $R call({
     ChatInputMode? currentMode,
     String? textInput,
-    String? description,
     ChatInput? currentContent,
     bool? isLoading,
     String? error,
@@ -450,7 +440,6 @@ class _ChatInputStateCopyWithImpl<$R, $Out>
   $R call({
     ChatInputMode? currentMode,
     String? textInput,
-    String? description,
     Object? currentContent = $none,
     bool? isLoading,
     Object? error = $none,
@@ -461,7 +450,6 @@ class _ChatInputStateCopyWithImpl<$R, $Out>
     FieldCopyWithData({
       if (currentMode != null) #currentMode: currentMode,
       if (textInput != null) #textInput: textInput,
-      if (description != null) #description: description,
       if (currentContent != $none) #currentContent: currentContent,
       if (isLoading != null) #isLoading: isLoading,
       if (error != $none) #error: error,
@@ -474,7 +462,6 @@ class _ChatInputStateCopyWithImpl<$R, $Out>
   ChatInputState $make(CopyWithData data) => ChatInputState(
     currentMode: data.get(#currentMode, or: $value.currentMode),
     textInput: data.get(#textInput, or: $value.textInput),
-    description: data.get(#description, or: $value.description),
     currentContent: data.get(#currentContent, or: $value.currentContent),
     isLoading: data.get(#isLoading, or: $value.isLoading),
     error: data.get(#error, or: $value.error),
@@ -544,6 +531,29 @@ class AudioRecordingStateMapper extends ClassMapperBase<AudioRecordingState> {
     opt: true,
     def: false,
   );
+  static double _$pulsePhase(AudioRecordingState v) => v.pulsePhase;
+  static const Field<AudioRecordingState, double> _f$pulsePhase = Field(
+    'pulsePhase',
+    _$pulsePhase,
+    opt: true,
+    def: 0.0,
+  );
+  static bool _$triggerStartFeedback(AudioRecordingState v) =>
+      v.triggerStartFeedback;
+  static const Field<AudioRecordingState, bool> _f$triggerStartFeedback = Field(
+    'triggerStartFeedback',
+    _$triggerStartFeedback,
+    opt: true,
+    def: false,
+  );
+  static bool _$triggerStopFeedback(AudioRecordingState v) =>
+      v.triggerStopFeedback;
+  static const Field<AudioRecordingState, bool> _f$triggerStopFeedback = Field(
+    'triggerStopFeedback',
+    _$triggerStopFeedback,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<AudioRecordingState> fields = const {
@@ -553,6 +563,9 @@ class AudioRecordingStateMapper extends ClassMapperBase<AudioRecordingState> {
     #amplitude: _f$amplitude,
     #error: _f$error,
     #hasPermission: _f$hasPermission,
+    #pulsePhase: _f$pulsePhase,
+    #triggerStartFeedback: _f$triggerStartFeedback,
+    #triggerStopFeedback: _f$triggerStopFeedback,
   };
 
   static AudioRecordingState _instantiate(DecodingData data) {
@@ -563,6 +576,9 @@ class AudioRecordingStateMapper extends ClassMapperBase<AudioRecordingState> {
       amplitude: data.dec(_f$amplitude),
       error: data.dec(_f$error),
       hasPermission: data.dec(_f$hasPermission),
+      pulsePhase: data.dec(_f$pulsePhase),
+      triggerStartFeedback: data.dec(_f$triggerStartFeedback),
+      triggerStopFeedback: data.dec(_f$triggerStopFeedback),
     );
   }
 
@@ -643,6 +659,9 @@ abstract class AudioRecordingStateCopyWith<
     double? amplitude,
     String? error,
     bool? hasPermission,
+    double? pulsePhase,
+    bool? triggerStartFeedback,
+    bool? triggerStopFeedback,
   });
   AudioRecordingStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -665,6 +684,9 @@ class _AudioRecordingStateCopyWithImpl<$R, $Out>
     double? amplitude,
     Object? error = $none,
     bool? hasPermission,
+    double? pulsePhase,
+    bool? triggerStartFeedback,
+    bool? triggerStopFeedback,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -673,6 +695,11 @@ class _AudioRecordingStateCopyWithImpl<$R, $Out>
       if (amplitude != null) #amplitude: amplitude,
       if (error != $none) #error: error,
       if (hasPermission != null) #hasPermission: hasPermission,
+      if (pulsePhase != null) #pulsePhase: pulsePhase,
+      if (triggerStartFeedback != null)
+        #triggerStartFeedback: triggerStartFeedback,
+      if (triggerStopFeedback != null)
+        #triggerStopFeedback: triggerStopFeedback,
     }),
   );
   @override
@@ -683,6 +710,15 @@ class _AudioRecordingStateCopyWithImpl<$R, $Out>
     amplitude: data.get(#amplitude, or: $value.amplitude),
     error: data.get(#error, or: $value.error),
     hasPermission: data.get(#hasPermission, or: $value.hasPermission),
+    pulsePhase: data.get(#pulsePhase, or: $value.pulsePhase),
+    triggerStartFeedback: data.get(
+      #triggerStartFeedback,
+      or: $value.triggerStartFeedback,
+    ),
+    triggerStopFeedback: data.get(
+      #triggerStopFeedback,
+      or: $value.triggerStopFeedback,
+    ),
   );
 
   @override

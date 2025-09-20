@@ -6,7 +6,8 @@ class ThreadItemWidget extends StatelessWidget {
   final Thread thread;
   final VoidCallback onTap;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
+  final bool isDeleting;
 
   const ThreadItemWidget({
     super.key,
@@ -14,58 +15,71 @@ class ThreadItemWidget extends StatelessWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
+    this.isDeleting = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12.0),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16.0),
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
-          child: Icon(
-            Icons.chat_bubble_outline,
-            color: Theme.of(context).primaryColor,
-          ),
-        ),
-        title: Text(
-          thread.name.isEmpty ? 'Untitled Thread' : thread.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        subtitle: Text(
-          _formatDate(thread.createdAt),
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit, size: 20),
-              onPressed: onEdit,
-              tooltip: 'Edit thread',
-              constraints: const BoxConstraints(
-                minWidth: 32,
-                minHeight: 32,
-              ),
+    return Opacity(
+      opacity: isDeleting ? 0.5 : 1,
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12.0),
+        child: ListTile(
+          contentPadding: const EdgeInsets.all(16.0),
+          leading: CircleAvatar(
+            backgroundColor:
+                Theme.of(context).primaryColor.withValues(alpha: 0.1),
+            child: Icon(
+              Icons.chat_bubble_outline,
+              color: Theme.of(context).primaryColor,
             ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline, size: 20),
-              onPressed: onDelete,
-              tooltip: 'Delete thread',
-              constraints: const BoxConstraints(
-                minWidth: 32,
-                minHeight: 32,
-              ),
+          ),
+          title: Text(
+            thread.name.isEmpty ? 'Untitled Thread' : thread.name,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
             ),
-          ],
+          ),
+          subtitle: Text(
+            _formatDate(thread.createdAt),
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+            ),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isDeleting)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else ...[
+                IconButton(
+                  icon: const Icon(Icons.edit, size: 20),
+                  onPressed: onEdit,
+                  tooltip: 'Edit thread',
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 20),
+                  onPressed: onDelete,
+                  tooltip: 'Delete thread',
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
+                ),
+              ]
+            ],
+          ),
+          onTap: isDeleting ? null : onTap,
         ),
-        onTap: onTap,
       ),
     );
   }

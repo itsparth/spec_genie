@@ -1,7 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
-import '../models/chat_input.dart';
+import 'chat_input.dart';
 import '../../tags/models/tag.dart';
 
 part 'chat_input_state.mapper.dart';
@@ -10,7 +10,6 @@ part 'chat_input_state.mapper.dart';
 class ChatInputState with ChatInputStateMappable {
   final ChatInputMode currentMode;
   final String textInput;
-  final String description; // Optional description for media content
   final ChatInput? currentContent; // Single content (audio, image, or file)
   final bool isLoading;
   final String? error;
@@ -25,7 +24,6 @@ class ChatInputState with ChatInputStateMappable {
   const ChatInputState({
     this.currentMode = ChatInputMode.text,
     this.textInput = '',
-    this.description = '',
     this.currentContent,
     this.isLoading = false,
     this.error,
@@ -72,6 +70,11 @@ class AudioRecordingState with AudioRecordingStateMappable {
   final double amplitude;
   final String? error;
   final bool hasPermission;
+  // UI animation phase (0-1) for pulsing effect while recording
+  final double pulsePhase;
+  // Flags to signal one-shot UI feedback (haptics/sound) without side effects.
+  final bool triggerStartFeedback;
+  final bool triggerStopFeedback;
 
   const AudioRecordingState({
     this.status = RecordingStatus.idle,
@@ -80,6 +83,9 @@ class AudioRecordingState with AudioRecordingStateMappable {
     this.amplitude = 0.0,
     this.error,
     this.hasPermission = false,
+    this.pulsePhase = 0.0,
+    this.triggerStartFeedback = false,
+    this.triggerStopFeedback = false,
   });
 }
 

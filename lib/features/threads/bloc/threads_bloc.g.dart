@@ -13,7 +13,7 @@ part of 'threads_bloc.dart';
 const threadsBlocProvider = ThreadsBlocProvider._();
 
 final class ThreadsBlocProvider
-    extends $NotifierProvider<ThreadsBloc, List<Thread>> {
+    extends $NotifierProvider<ThreadsBloc, ThreadsState> {
   const ThreadsBlocProvider._()
       : super(
           from: null,
@@ -33,26 +33,26 @@ final class ThreadsBlocProvider
   ThreadsBloc create() => ThreadsBloc();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<Thread> value) {
+  Override overrideWithValue(ThreadsState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<List<Thread>>(value),
+      providerOverride: $SyncValueProvider<ThreadsState>(value),
     );
   }
 }
 
-String _$threadsBlocHash() => r'ebd995d8517c4be805e4740f6a932d6056bb8231';
+String _$threadsBlocHash() => r'afb7665a95ad1adf0424ebd0067a2e1549a405b1';
 
-abstract class _$ThreadsBloc extends $Notifier<List<Thread>> {
-  List<Thread> build();
+abstract class _$ThreadsBloc extends $Notifier<ThreadsState> {
+  ThreadsState build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<List<Thread>, List<Thread>>;
+    final ref = this.ref as $Ref<ThreadsState, ThreadsState>;
     final element = ref.element as $ClassProviderElement<
-        AnyNotifier<List<Thread>, List<Thread>>,
-        List<Thread>,
+        AnyNotifier<ThreadsState, ThreadsState>,
+        ThreadsState,
         Object?,
         Object?>;
     element.handleValue(ref, created);
