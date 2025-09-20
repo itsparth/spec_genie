@@ -24,7 +24,7 @@ final class IsarProvider extends $FunctionalProvider<Isar, Isar, Isar>
           argument: null,
           retry: null,
           name: r'isarProvider',
-          isAutoDispose: true,
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
@@ -51,4 +51,4 @@ final class IsarProvider extends $FunctionalProvider<Isar, Isar, Isar>
   }
 }
 
-String _$isarHash() => r'8004358e125a2563ae59b8a8967c914f7e3489dd';
+String _$isarHash() => r'a367287c975e8d64865b6ab3d35ac3d4bc3f05df';

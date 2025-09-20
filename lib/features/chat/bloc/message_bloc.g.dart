@@ -22,7 +22,7 @@ final class MessageBlocProvider
       : super(
           retry: null,
           name: r'messageBlocProvider',
-          isAutoDispose: true,
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
@@ -60,7 +60,7 @@ final class MessageBlocProvider
   }
 }
 
-String _$messageBlocHash() => r'8dc4b16c1a20af89c28ba5328c2b44fa99f05647';
+String _$messageBlocHash() => r'b3aa638a5f7689f07561c5156a07a2348ad4bc24';
 
 /// Bloc responsible for a single message's lifecycle (processing, saving updates, etc.)
 
@@ -74,7 +74,7 @@ final class MessageBlocFamily extends $Family
           name: r'messageBlocProvider',
           dependencies: null,
           $allTransitiveDependencies: null,
-          isAutoDispose: true,
+          isAutoDispose: false,
         );
 
   /// Bloc responsible for a single message's lifecycle (processing, saving updates, etc.)

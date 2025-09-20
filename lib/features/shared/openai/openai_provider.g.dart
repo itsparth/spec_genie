@@ -40,7 +40,7 @@ final class OpenAIUtilProvider
           argument: null,
           retry: null,
           name: r'openAIUtilProvider',
-          isAutoDispose: true,
+          isAutoDispose: false,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
@@ -67,4 +67,4 @@ final class OpenAIUtilProvider
   }
 }
 
-String _$openAIUtilHash() => r'29f2ec2b95ad5bdf5bc3541a18be3d3810dc738f';
+String _$openAIUtilHash() => r'aaf18e8d225280f17623db2f1e8556043e174f0f';

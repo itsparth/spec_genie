@@ -12,7 +12,7 @@ part 'openai_provider.g.dart';
 /// recreates the utility when the configuration changes.
 ///
 /// The utility instance is automatically disposed when no longer needed.
-@riverpod
+@Riverpod(keepAlive: true)
 OpenAIUtil openAIUtil(Ref ref) {
   final config = ref.watch(configurationBlocProvider);
 
