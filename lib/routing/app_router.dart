@@ -33,7 +33,7 @@ class AppRouter {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => const HomeScreenRoute().push(context),
+              onPressed: () => const HomeScreenRoute().push<void>(context),
               child: const Text('Go Home'),
             ),
           ],
